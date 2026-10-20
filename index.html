@@ -128,6 +128,7 @@ const initialRoute=[
  {id:'r5',name:'Fim — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
 ];
 let route=structuredClone(initialRoute), resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawnCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
+let pointPopup=null;
 const $=id=>document.getElementById(id);
 const map=new maplibregl.Map({
  container:'map',
@@ -167,8 +168,24 @@ function renderList(){
  $('flightSlider').max=Math.max(route.length-1,0);if(Number($('flightSlider').value)>=route.length)$('flightSlider').value=0;
  $('flightCount').textContent=`${Number($('flightSlider').value)+1}/${route.length}`;
 }
+function showPointPopup(p){
+ if(pointPopup){pointPopup.remove();pointPopup=null}
+ const image=p.imageData
+   ? '<img src="'+p.imageData+'" alt="Imagem da guarnição" style="display:block;width:100%;max-height:180px;object-fit:contain;margin:7px 0;border-radius:6px;background:#071a26">'
+   : '<div style="margin:7px 0;padding:14px 8px;border:1px dashed #6b8494;border-radius:6px;text-align:center;color:#d2e0e8;font-size:11px">Imagem da guarnição ainda não fornecida</div>';
+ const details=[
+   p.type?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Tipo:</b> '+safe(p.type)+'</div>':'',
+   p.team?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Efetivo:</b> '+safe(p.team)+'</div>':'',
+   p.vehicle?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Viatura:</b> '+safe(p.vehicle)+'</div>':'',
+   p.mission?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Missão:</b> '+safe(p.mission)+'</div>':''
+ ].join('');
+ const content='<div style="width:250px;max-width:65vw;background:#0c2231;color:#eaf3f8;padding:11px;border-radius:8px;font-family:Arial,sans-serif"><div style="font-size:13px;font-weight:700;line-height:1.35">'+safe(p.name)+'</div>'+image+details+'<div style="font-size:9px;color:#a9bfce;margin-top:7px">Ponto de planejamento • CBMSE</div></div>';
+ pointPopup=new maplibregl.Popup({closeButton:true,closeOnClick:false,offset:18,maxWidth:'290px',className:'crew-point-popup'})
+   .setLngLat([p.lng,p.lat]).setHTML(content).addTo(map);
+}
 function selectPoint(id,fly=true){
  selectedId=id;const p=selected();if(!p)return;
+ showPointPopup(p);
  $('crewImageTitle').textContent='IMAGEM DA GUARNIÇÃO — '+p.name;
  const crewImg=$('crewImage'), crewPlaceholder=$('crewImagePlaceholder'), removeCrew=$('removeCrewImage');
  if(p.imageData){crewImg.src=p.imageData;crewImg.style.display='block';crewPlaceholder.style.display='none';removeCrew.style.display='block'}
