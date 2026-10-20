@@ -80,6 +80,14 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
     <section class="card">
       <h2>Ponto selecionado</h2>
       <div id="selectedInfo"><strong>Início do circuito (referência)</strong><p class="small">Selecione um marcador ou clique em “Adicionar equipe no mapa” e marque o ponto sobre a avenida.</p></div>
+      <div id="crewImageWrap" style="margin-top:10px;border:1px dashed #42647a;border-radius:8px;padding:9px;background:#081c29">
+        <div id="crewImageTitle" class="small" style="margin-bottom:7px;font-weight:700;color:#c5d9e5">IMAGEM DA GUARNIÇÃO</div>
+        <img id="crewImage" alt="Imagem da guarnição do ponto selecionado" style="display:none;width:100%;max-height:220px;object-fit:contain;border-radius:6px;background:#061722">
+        <p id="crewImagePlaceholder" class="small" style="margin:0">Imagem ainda não fornecida. Ao selecionar este ponto, a imagem vinculada aparecerá aqui.</p>
+        <label for="crewImageFile" class="file-label" style="display:block;text-align:center;margin-top:8px">Adicionar / trocar imagem deste ponto</label>
+        <input id="crewImageFile" type="file" accept="image/*" hidden>
+        <button id="removeCrewImage" class="danger" style="display:none;width:100%;margin-top:6px">Remover imagem</button>
+      </div>
       <div class="actions" style="margin-top:10px"><button id="editBtn">Editar ponto</button><button id="deleteBtn" class="danger">Excluir recurso</button></div>
     </section>
     <section class="card">
@@ -161,6 +169,10 @@ function renderList(){
 }
 function selectPoint(id,fly=true){
  selectedId=id;const p=selected();if(!p)return;
+ $('crewImageTitle').textContent='IMAGEM DA GUARNIÇÃO — '+p.name;
+ const crewImg=$('crewImage'), crewPlaceholder=$('crewImagePlaceholder'), removeCrew=$('removeCrewImage');
+ if(p.imageData){crewImg.src=p.imageData;crewImg.style.display='block';crewPlaceholder.style.display='none';removeCrew.style.display='block'}
+ else{crewImg.removeAttribute('src');crewImg.style.display='none';crewPlaceholder.style.display='block';removeCrew.style.display='none'}
  $('selectedInfo').innerHTML=`<strong>${safe(p.name)}</strong><p class="small">${p.kind==='route'?'Ponto de referência preliminar do percurso.':'Recurso cadastrado manualmente.'}</p>${p.type?`<p class="small"><b>Tipo:</b> ${safe(p.type)}</p>`:''}${p.team?`<p class="small"><b>Efetivo:</b> ${safe(p.team)}</p>`:''}${p.vehicle?`<p class="small"><b>Viatura:</b> ${safe(p.vehicle)}</p>`:''}${p.mission?`<p class="small"><b>Missão:</b> ${safe(p.mission)}</p>`:''}<p class="small">Lat ${p.lat.toFixed(6)} · Lon ${p.lng.toFixed(6)}</p>`;
  $('editBtn').disabled=p.kind==='route';$('deleteBtn').disabled=p.kind==='route';
  if(fly)map.flyTo({center:[p.lng,p.lat],zoom:16,pitch:60,bearing:map.getBearing(),duration:1300});
@@ -213,6 +225,23 @@ $('saveBtn').onclick=()=>{
  selectedId=p.id;persist();closeForm();updateMapData();renderList();selectPoint(p.id);toast(editId?'Recurso atualizado.':'Recurso cadastrado localmente.');
 };
 $('cancelBtn').onclick=closeForm;$('formModal').addEventListener('click',e=>{if(e.target===$('formModal'))closeForm()});
+$('crewImageFile').onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ if(!file.type.startsWith('image/')){toast('Selecione um arquivo de imagem.');e.target.value='';return}
+ const p=selected();if(!p){toast('Selecione um ponto do percurso primeiro.');e.target.value='';return}
+ const reader=new FileReader();
+ reader.onload=()=>{
+   p.imageData=reader.result;
+   persist();selectPoint(p.id,false);
+   toast('Imagem vinculada a "'+p.name+'". Ela será exibida ao selecionar este ponto.');
+ };
+ reader.onerror=()=>toast('Não foi possível ler a imagem.');
+ reader.readAsDataURL(file);e.target.value='';
+};
+$('removeCrewImage').onclick=()=>{
+ const p=selected();if(!p||!p.imageData)return;
+ delete p.imageData;persist();selectPoint(p.id,false);toast('Imagem removida deste ponto.');
+};
 $('editBtn').onclick=()=>{const p=selected();if(p&&p.kind!=='route')openForm(null,p)};
 $('deleteBtn').onclick=()=>{const p=selected();if(!p||p.kind==='route')return;if(confirm(`Excluir o recurso "${p.name}"?`)){resources=resources.filter(x=>x.id!==p.id);selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);toast('Recurso excluído.')}};
 function stopFlight(){playing=false;clearInterval(playTimer);$('playBtn').textContent='▶ Sobrevoar'}
