@@ -200,7 +200,7 @@ function renderImageMarkers(){
 function showPointFocus(p){
  $('focusTitle').textContent=p.name;
  const images=[p.imageData,p.imageData2].filter(Boolean);
- $('focusImages').innerHTML=images.length?images.map((src,i)=>'<img src="'+src+'" alt="Imagem '+(i+1)+'" style="width:clamp(110px,22vw,180px);height:clamp(110px,22vw,180px);object-fit:contain;opacity:.9;background:transparent;filter:drop-shadow(0 2px 5px #000)">').join(''):'<div style="padding:16px;border:1px dashed #567487;border-radius:8px;color:#b7cbd8">Imagens de militares/viaturas ainda não cadastradas neste ponto.</div>';
+ $('focusImages').style.gap='18px';$('focusImages').innerHTML=images.length?images.map((src,i)=>'<img src="'+src+'" alt="Imagem '+(i+1)+' — militares e viaturas do ponto" style="width:clamp(180px,34vw,280px);height:clamp(180px,34vw,280px);object-fit:contain;opacity:1;background:rgba(255,255,255,.04);border:1px solid #45677c;border-radius:10px;padding:5px;filter:drop-shadow(0 3px 8px #000)">').join(''):'<div style="padding:16px;border:1px dashed #567487;border-radius:8px;color:#b7cbd8">Adicione as imagens dos bombeiros e das viaturas neste ponto para exibi-las juntas aqui.</div>';
  $('focusDetails').innerHTML=[p.type?'<div><b>Tipo:</b> '+safe(p.type)+'</div>':'',p.team?'<div><b>Efetivo:</b> '+safe(p.team)+'</div>':'',p.vehicle?'<div><b>Viatura:</b> '+safe(p.vehicle)+'</div>':'',p.mission?'<div><b>Missão:</b> '+safe(p.mission)+'</div>':''].join('');
  $('pointFocus').style.display='block';
 }
@@ -227,7 +227,7 @@ function openForm(coords,existing=null){
  $('formModal').style.display='flex';$('fName').focus();
 }
 function closeForm(){$('formModal').style.display='none';editId=null;draftCoords=null}
-map.on('load',()=>{buildLayers();renderList();selectPoint('r0',false);map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:100,bottom:100,left:60,right:60},duration:0});});
+map.on('load',()=>{buildLayers();renderList();map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:100,bottom:100,left:60,right:60},duration:0});selectPoint('r0',false);map.easeTo({center:[route[0].lng,route[0].lat],zoom:17.4,pitch:65,bearing:18,duration:900});});
 map.on('click',e=>{
  if(drawRouteMode){
    drawnCoords.push([e.lngLat.lng,e.lngLat.lat]);
