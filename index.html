@@ -56,7 +56,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
         <button id="streetViewOpen" class="primary">Abrir panorama no Google Maps ↗</button>
         <button id="streetViewClose">Voltar ao mapa ✕</button>
       </div>
-      <div id="streetViewFrameWrap" style="min-height:220px;display:grid;place-items:center;padding:24px;text-align:center">
+      <div id="streetViewFrameWrap" style="height:calc(100% - 46px);min-height:420px;padding:0;text-align:center"><iframe id="streetViewFrame" title="Google Street View do ponto selecionado" style="width:100%;height:calc(100% - 32px);min-height:380px;border:0;display:block" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe><div style="padding:8px;font-size:10px;color:#829eaf">Se o panorama não carregar incorporado, use “Abrir panorama no Google Maps”.</div>
         <div style="max-width:520px">
           <div style="font-size:34px;margin-bottom:10px">📍</div>
           <strong id="streetViewPointTitle">Ponto selecionado</strong>
@@ -202,7 +202,7 @@ function showPointFocus(p){
  const images=[p.imageData,p.imageData2].filter(Boolean);
  $('focusImages').style.gap='18px';$('focusImages').innerHTML=images.length?images.map((src,i)=>'<img src="'+src+'" alt="Imagem '+(i+1)+' — militares e viaturas do ponto" style="width:clamp(180px,34vw,280px);height:clamp(180px,34vw,280px);object-fit:contain;opacity:1;background:rgba(255,255,255,.04);border:1px solid #45677c;border-radius:10px;padding:5px;filter:drop-shadow(0 3px 8px #000)">').join(''):'<div style="padding:16px;border:1px dashed #567487;border-radius:8px;color:#b7cbd8">Adicione as imagens dos bombeiros e das viaturas neste ponto para exibi-las juntas aqui.</div>';
  $('focusDetails').innerHTML=[p.type?'<div><b>Tipo:</b> '+safe(p.type)+'</div>':'',p.team?'<div><b>Efetivo:</b> '+safe(p.team)+'</div>':'',p.vehicle?'<div><b>Viatura:</b> '+safe(p.vehicle)+'</div>':'',p.mission?'<div><b>Missão:</b> '+safe(p.mission)+'</div>':''].join('');
- $('pointFocus').style.display='block';
+ $('pointFocus').style.display='none';
 }
 function selectPoint(id,fly=true){
  selectedId=id;const p=selected();if(!p)return;
@@ -328,14 +328,17 @@ function streetViewUrl(){
 function showStreetView(){
  const p=selectedCoords();
  $('streetViewPointTitle').textContent=p.name;
+ $('streetViewFrame').src='https://maps.google.com/maps?layer=c&cbll='+encodeURIComponent(p.lat+','+p.lng)+'&output=svembed';
+ $('pointFocus').style.display='none';
  $('streetViewPanel').style.display='block';
+ map.flyTo({center:[p.lng,p.lat],zoom:18.2,pitch:60,bearing:map.getBearing(),duration:1200,essential:true});
 }
-function hideStreetView(){ $('streetViewPanel').style.display='none'; }
+function hideStreetView(){ $('streetViewPanel').style.display='none';$('streetViewFrame').src='about:blank'; }
 function openStreetView(){window.open(streetViewUrl(),'_blank','noopener,noreferrer');}
 $('streetViewBtn').onclick=()=>{showStreetView();toast('Ponto selecionado: '+selectedCoords().name+'. Abra o panorama no Google Maps.');};
 $('focusClose').onclick=()=>{$('pointFocus').style.display='none'};
 $('focusMap').onclick=()=>{$('pointFocus').style.display='none'};
-$('focusStreet').onclick=()=>openStreetView();
+$('focusStreet').onclick=()=>showStreetView();
 $('streetViewClose').onclick=hideStreetView;
 $('streetViewOpen').onclick=openStreetView;
 $('streetViewOpenSecondary').onclick=openStreetView;
