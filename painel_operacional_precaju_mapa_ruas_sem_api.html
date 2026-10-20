@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel Operacional Pré-Caju — CBMSE</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<style>
+:root{--navy:#0b1d2b;--navy2:#12344a;--blue:#1e6388;--cyan:#72d2f2;--gold:#ffc857;--text:#eaf3f8;--muted:#a9bfce;--panel:#102838;--line:#29485b}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--navy);color:var(--text);overflow:hidden}
+#app{height:100%;display:grid;grid-template-rows:auto 1fr}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:linear-gradient(110deg,#071521,#12374f);border-bottom:1px solid #31556a;z-index:5}
+.crest{width:42px;height:42px;border:2px solid var(--gold);border-radius:50%;display:grid;place-items:center;font-size:21px;color:var(--gold);flex:none}
+.brand{min-width:0}.brand h1{margin:0;font-size:17px;letter-spacing:.7px}.brand p{margin:4px 0 0;color:var(--muted);font-size:11px;letter-spacing:1.1px}
+.header-right{margin-left:auto;display:flex;gap:8px;align-items:center}.tag{font-size:10px;text-transform:uppercase;letter-spacing:.7px;padding:6px 9px;border-radius:5px;border:1px solid #956f28;background:#3e321a;color:#ffe1a0;font-weight:700}
+button,.file-label{border:1px solid #42647a;background:#1a4058;color:var(--text);border-radius:7px;padding:9px 11px;font-weight:650;cursor:pointer;font-size:12px}button:hover,.file-label:hover{background:#245b78}button.primary{background:#087eaa;border-color:#36a5cf}button.danger{background:#572d31;border-color:#8c4b50}button:disabled{opacity:.45;cursor:not-allowed}
+main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 330px;position:relative}
+#map{height:100%;width:100%;background:#142b39}
+.sidebar{overflow:auto;background:var(--panel);border-left:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:13px}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px;background:#0c2231}.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:#b8d8e8;margin:0 0 10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#17394d;border-radius:7px;padding:10px}.stat strong{display:block;font-size:20px;color:white}.stat span{font-size:10px;color:var(--muted)}
+.small{font-size:11px;color:var(--muted);line-height:1.45}.field{display:flex;flex-direction:column;gap:5px;margin:8px 0}.field label{font-size:11px;color:#c5d9e5}.field input,.field select,.field textarea{width:100%;border:1px solid #36566a;background:#071a26;color:white;padding:9px;border-radius:6px;font:inherit;font-size:12px}.field textarea{resize:vertical;min-height:54px}
+.row{display:flex;gap:7px}.row>*{flex:1;min-width:0}.actions{display:flex;flex-wrap:wrap;gap:7px}.actions button{flex:1}
+.point-list{display:flex;flex-direction:column;gap:7px}.point{border:1px solid #294a5f;border-radius:7px;padding:9px;display:flex;gap:8px;align-items:center}.point .pin{width:10px;height:10px;border-radius:50%;background:var(--cyan);border:2px solid #d7f7ff;flex:none}.point .ptxt{min-width:0;flex:1}.point strong{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.point span{font-size:10px;color:var(--muted)}.point button{padding:6px 8px}
+#toast{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;background:#071925;border:1px solid #4a738b;padding:10px 14px;border-radius:8px;box-shadow:0 6px 24px #0007;font-size:12px;display:none;max-width:80vw}
+#mapControls{position:absolute;top:12px;left:12px;z-index:3;display:flex;flex-direction:column;gap:7px;max-width:calc(100% - 24px)}
+.mapnote{background:#081c29eF;border:1px solid #34566a;border-radius:8px;padding:9px 11px;font-size:11px;line-height:1.4;max-width:300px}
+.maptools{display:flex;gap:6px;flex-wrap:wrap}.maptools button{background:#0b2434eF}
+#playbar{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;display:flex;align-items:center;gap:8px;background:#071925ee;border:1px solid #36566b;border-radius:10px;padding:10px;max-width:700px}
+#playbar input{flex:1;min-width:40px;accent-color:var(--cyan)}#playbar span{font-size:10px;color:#c8dbe6;white-space:nowrap}
+#formModal{position:absolute;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:20;padding:15px}
+.modal{width:min(460px,100%);background:#0c2231;border:1px solid #42657b;border-radius:12px;padding:18px;box-shadow:0 20px 70px #0009;max-height:90%;overflow:auto}.modal h2{margin:0 0 5px;font-size:17px}.modal p{font-size:11px;color:var(--muted);margin:0 0 12px}
+.status{font-size:10px;color:#b7d2e1}.legend{display:flex;gap:9px;flex-wrap:wrap;font-size:10px;color:var(--muted)}.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
+.maplibregl-ctrl-group{background:#102b3d!important}.maplibregl-ctrl-group button{background-color:#102b3d!important}.maplibregl-ctrl-group button span{filter:invert(1)}
+@media(max-width:800px){main{grid-template-columns:1fr;grid-template-rows:minmax(300px,1fr) 42vh}.sidebar{border-left:0;border-top:1px solid var(--line)}header{padding:9px 11px}.brand h1{font-size:14px}.header-right .tag{display:none}#playbar{bottom:8px;left:8px;right:8px}#mapControls{top:8px;left:8px}}
+@media print{header,.sidebar,#mapControls,#playbar{display:none!important}main{display:block}#map{height:100vh}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div class="crest">✚</div>
+  <div class="brand"><h1>PRÉ-CAJU 2026 | CBMSE</h1><p>PAINEL DE PLANEJAMENTO OPERACIONAL</p></div>
+  <div class="header-right"><span class="tag">Traçado preliminar</span><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
+</header>
+<main>
+  <div id="map">
+    <div id="mapControls">
+      <div class="mapnote"><strong>VISUALIZAÇÃO DE PLANEJAMENTO</strong><br>Traçado ainda não validado. Use “Desenhar percurso” e clique ponto a ponto sobre a avenida. Se as imagens ficarem indisponíveis ao aproximar, reduza o zoom. Para o mapa de ruas sem chave, publique o site em um endereço HTTP/HTTPS; abrir como arquivo local pode provocar bloqueio de tiles.</div>
+      <div class="maptools"><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="streetViewBtn">↗ Street View</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="baseMapBtn">Mapa de ruas</button></div>
+    </div>
+    <div id="streetViewPanel" style="display:none;position:absolute;inset:76px 12px 78px 12px;z-index:4;background:#071925;border:1px solid #45677c;border-radius:10px;overflow:auto;box-shadow:0 12px 38px #0008">
+      <div style="display:flex;gap:8px;align-items:center;padding:9px 11px;background:#102b3d">
+        <strong style="font-size:12px;flex:1">GOOGLE STREET VIEW — VISUALIZAÇÃO AO NÍVEL DA RUA</strong>
+        <button id="streetViewOpen" class="primary">Abrir panorama no Google Maps ↗</button>
+        <button id="streetViewClose">Voltar ao mapa ✕</button>
+      </div>
+      <div id="streetViewFrameWrap" style="min-height:220px;display:grid;place-items:center;padding:24px;text-align:center">
+        <div style="max-width:520px">
+          <div style="font-size:34px;margin-bottom:10px">📍</div>
+          <strong id="streetViewPointTitle">Ponto selecionado</strong>
+          <p style="font-size:12px;color:#b7cbd8;line-height:1.6">O panorama será aberto em uma nova aba do Google Maps, centralizado nas coordenadas do ponto selecionado. Não é necessária chave de API. A disponibilidade e a data das imagens dependem da cobertura do Street View.</p>
+          <div style="margin-top:12px"><button id="streetViewOpenSecondary" class="primary">Abrir no Google Maps ↗</button></div>
+          <p style="font-size:10px;color:#829eaf;line-height:1.5">Este modo usa o Google Maps como serviço externo gratuito de consulta; não incorpora nem armazena imagens do Street View no site.</p>
+        </div>
+      </div>
+    </div>
+    <div id="playbar">
+      <button id="prevBtn" title="Ponto anterior">◀</button><button id="playBtn" class="primary">▶ Sobrevoar</button><button id="nextBtn" title="Próximo ponto">▶|</button>
+      <span id="flightLabel">PERCURSO / INÍCIO</span><input id="flightSlider" type="range" min="0" max="5" step="1" value="0" aria-label="Ponto do percurso"><span id="flightCount">1/6</span>
+    </div>
+  </div>
+  <aside class="sidebar">
+    <section class="card">
+      <h2>Resumo do circuito</h2>
+      <div class="stats"><div class="stat"><strong id="pointCount">6</strong><span>Pontos de percurso</span></div><div class="stat"><strong id="teamCount">0</strong><span>Recursos cadastrados</span></div></div>
+      <p class="small" style="margin-bottom:0">Referência pública: aproximadamente 3 km entre a Passarela do Caranguejo e a região do Farol da Coroa do Meio. Extensão e geometria ainda precisam de validação oficial.</p>
+    </section>
+    <section class="card">
+      <h2>Ponto selecionado</h2>
+      <div id="selectedInfo"><strong>Início do circuito (referência)</strong><p class="small">Selecione um marcador ou clique em “Adicionar equipe no mapa” e marque o ponto sobre a avenida.</p></div>
+      <div class="actions" style="margin-top:10px"><button id="editBtn">Editar ponto</button><button id="deleteBtn" class="danger">Excluir recurso</button></div>
+    </section>
+    <section class="card">
+      <h2>Recursos cadastrados</h2>
+      <div class="legend"><span><i style="background:#2478ff"></i>Traçado preliminar</span><span><i style="background:#45d4ff"></i>Recurso CBMSE</span></div>
+      <div id="pointList" class="point-list" style="margin-top:10px"></div>
+      <p class="small">Os registros criados neste navegador são salvos localmente. Exporte o JSON para guardar ou transportar os dados.</p>
+    </section>
+    <section class="card">
+      <h2>Dados e apresentação</h2>
+      <div class="actions"><button id="exportBtn">Exportar JSON</button><label class="file-label" for="importFile" style="text-align:center">Importar JSON</label><input id="importFile" type="file" accept=".json,application/json" hidden></div>
+      <div class="actions" style="margin-top:7px"><button id="resetBtn" class="danger">Restaurar protótipo</button><button id="helpBtn">Como usar</button></div>
+    </section>
+    <footer>Protótipo demonstrativo • CBMSE / ASTINF • Street View externo sem API<br>Não contém posições reais ou confirmadas de equipes. Verifique a licença e a disponibilidade da base cartográfica antes da publicação institucional.</footer>
+  </aside>
+</main>
+</div>
+<div id="toast"></div>
+<div id="formModal"><div class="modal">
+  <h2 id="modalTitle">Cadastrar recurso</h2><p id="modalSubtitle">Clique no mapa para definir a localização aproximada.</p>
+  <div class="field"><label for="fName">Nome do ponto / equipe *</label><input id="fName" placeholder="Ex.: Posto APH 01"></div>
+  <div class="row"><div class="field"><label for="fType">Tipo de recurso</label><select id="fType"><option>Posto de atendimento</option><option>Guarnição APH</option><option>Viatura de combate a incêndio</option><option>Salvamento</option><option>Guarda-vidas</option><option>Comando / coordenação</option><option>Outro</option></select></div><div class="field"><label for="fTeam">Efetivo</label><input id="fTeam" type="number" min="0" placeholder="A definir"></div></div>
+  <div class="field"><label for="fVehicle">Viatura / identificação</label><input id="fVehicle" placeholder="Ex.: ABT / prefixo a definir"></div>
+  <div class="field"><label for="fMission">Missão / observações</label><textarea id="fMission" placeholder="Descrever missão, referência local e observações"></textarea></div>
+  <div class="row"><div class="field"><label for="fLat">Latitude</label><input id="fLat" type="number" step="any"></div><div class="field"><label for="fLng">Longitude</label><input id="fLng" type="number" step="any"></div></div>
+  <div class="actions"><button id="saveBtn" class="primary">Salvar recurso</button><button id="cancelBtn">Cancelar</button></div>
+</div></div>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+(() => {
+const STORAGE_KEY='cbmse-precaju-prototipo-v1';
+const initialRoute=[
+ {id:'r0',name:'Início — Passarela do Caranguejo (aprox.)',lng:-37.0429,lat:-10.9875,kind:'route'},
+ {id:'r1',name:'Eixo da avenida — trecho 01 (aprox.)',lng:-37.0424,lat:-10.9847,kind:'route'},
+ {id:'r2',name:'Eixo da avenida — trecho 02 (aprox.)',lng:-37.0419,lat:-10.9819,kind:'route'},
+ {id:'r3',name:'Eixo da avenida — trecho 03 (aprox.)',lng:-37.0414,lat:-10.9791,kind:'route'},
+ {id:'r4',name:'Eixo da avenida — trecho 04 (aprox.)',lng:-37.0409,lat:-10.9763,kind:'route'},
+ {id:'r5',name:'Fim — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
+];
+let route=structuredClone(initialRoute), resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawnCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
+const $=id=>document.getElementById(id);
+const map=new maplibregl.Map({
+ container:'map',
+ style:{version:8,sources:{satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:17,attribution:'Imagery © Esri; map data © OpenStreetMap contributors'},openstreetmap:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'satellite',type:'raster',source:'satellite'},{id:'street-base',type:'raster',source:'openstreetmap',layout:{visibility:'none'}}]},
+ center:[-37.041,-10.978],zoom:14.5,pitch:55,bearing:18,antialias:true
+});
+map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
+map.addControl(new maplibregl.ScaleControl({maxWidth:120,unit:'metric'}),'bottom-right');
+function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').style.display='none',3200)}
+function allPoints(){return [...route,...resources]}
+function selected(){return allPoints().find(p=>p.id===selectedId)}
+function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({route,resources}))}catch(e){}}
+function loadSaved(){try{const v=JSON.parse(localStorage.getItem(STORAGE_KEY));if(v&&Array.isArray(v.route)&&Array.isArray(v.resources)){route=v.route;resources=v.resources}}catch(e){}}
+function sourceData(){return {type:'FeatureCollection',features:allPoints().map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.lng,p.lat]},properties:{id:p.id,name:p.name,kind:p.kind||'resource',type:p.type||''}}))}}
+function updateMapData(){
+ if(!map.isStyleLoaded())return;
+ const line=map.getSource('route-line');if(line)line.setData({type:'Feature',geometry:{type:'LineString',coordinates:route.map(p=>[p.lng,p.lat])}});
+ const pts=map.getSource('all-points');if(pts)pts.setData(sourceData());
+}
+function buildLayers(){
+ if(map.getSource('route-line'))return;
+ map.addSource('route-line',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:route.map(p=>[p.lng,p.lat])}}});
+ map.addLayer({id:'route-glow',type:'line',source:'route-line',paint:{'line-color':'#2478ff','line-width':12,'line-opacity':.30,'line-blur':2}});
+ map.addLayer({id:'route-main',type:'line',source:'route-line',paint:{'line-color':'#2478ff','line-width':5,'line-dasharray':[2,1.3]}});
+ map.addSource('all-points',{type:'geojson',data:sourceData()});
+ map.addLayer({id:'point-circles',type:'circle',source:'all-points',paint:{'circle-radius':['case',['==',['get','kind'],'route'],7,10],'circle-color':['case',['==',['get','kind'],'route'],'#2478ff','#45d4ff'],'circle-stroke-color':'#071925','circle-stroke-width':2,'circle-opacity':.98}});
+ map.addLayer({id:'point-labels',type:'symbol',source:'all-points',layout:{'text-field':['get','name'],'text-size':11,'text-offset':[0,1.3],'text-anchor':'top','text-max-width':18},paint:{'text-color':'#ffffff','text-halo-color':'#061722','text-halo-width':1.5}});
+ map.on('click','point-circles',e=>{const f=e.features?.[0];if(!f)return;selectPoint(f.properties.id);});
+ map.on('mouseenter','point-circles',()=>map.getCanvas().style.cursor='pointer');
+ map.on('mouseleave','point-circles',()=>map.getCanvas().style.cursor=addMode?'crosshair':'');
+}
+function renderList(){
+ $('pointCount').textContent=route.length;$('teamCount').textContent=resources.length;
+ $('pointList').innerHTML=resources.length?resources.map(p=>`<div class="point"><i class="pin"></i><div class="ptxt"><strong>${safe(p.name)}</strong><span>${safe(p.type||'Recurso')} · ${p.team?safe(p.team)+' militar(es)':'efetivo a definir'}</span></div><button data-select="${safe(p.id)}">Ver</button></div>`).join(''):'<p class="small">Nenhum recurso cadastrado. Use “Adicionar equipe no mapa” e clique na localização desejada.</p>';
+ $('pointList').querySelectorAll('[data-select]').forEach(b=>b.onclick=()=>selectPoint(b.dataset.select,true));
+ $('flightSlider').max=Math.max(route.length-1,0);if(Number($('flightSlider').value)>=route.length)$('flightSlider').value=0;
+ $('flightCount').textContent=`${Number($('flightSlider').value)+1}/${route.length}`;
+}
+function selectPoint(id,fly=true){
+ selectedId=id;const p=selected();if(!p)return;
+ $('selectedInfo').innerHTML=`<strong>${safe(p.name)}</strong><p class="small">${p.kind==='route'?'Ponto de referência preliminar do percurso.':'Recurso cadastrado manualmente.'}</p>${p.type?`<p class="small"><b>Tipo:</b> ${safe(p.type)}</p>`:''}${p.team?`<p class="small"><b>Efetivo:</b> ${safe(p.team)}</p>`:''}${p.vehicle?`<p class="small"><b>Viatura:</b> ${safe(p.vehicle)}</p>`:''}${p.mission?`<p class="small"><b>Missão:</b> ${safe(p.mission)}</p>`:''}<p class="small">Lat ${p.lat.toFixed(6)} · Lon ${p.lng.toFixed(6)}</p>`;
+ $('editBtn').disabled=p.kind==='route';$('deleteBtn').disabled=p.kind==='route';
+ if(fly)map.flyTo({center:[p.lng,p.lat],zoom:16,pitch:60,bearing:map.getBearing(),duration:1300});
+ const idx=route.findIndex(r=>r.id===id);if(idx>=0){$('flightSlider').value=idx;$('flightLabel').textContent=p.name;$('flightCount').textContent=`${idx+1}/${route.length}`}
+}
+function openForm(coords,existing=null){
+ editId=existing?.id||null;draftCoords=coords||{lng:existing.lng,lat:existing.lat};
+ $('modalTitle').textContent=existing?'Editar recurso':'Cadastrar recurso no mapa';
+ $('modalSubtitle').textContent=existing?'Atualize os dados do recurso.':'A posição selecionada será salva como localização aproximada.';
+ $('fName').value=existing?.name||'';$('fType').value=existing?.type||'Posto de atendimento';$('fTeam').value=existing?.team||'';$('fVehicle').value=existing?.vehicle||'';$('fMission').value=existing?.mission||'';
+ $('fLat').value=Number(draftCoords.lat).toFixed(6);$('fLng').value=Number(draftCoords.lng).toFixed(6);
+ $('formModal').style.display='flex';$('fName').focus();
+}
+function closeForm(){$('formModal').style.display='none';editId=null;draftCoords=null}
+map.on('load',()=>{buildLayers();renderList();selectPoint('r0',false);map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:100,bottom:100,left:60,right:60},duration:0});});
+map.on('click',e=>{
+ if(drawRouteMode){
+   drawnCoords.push([e.lngLat.lng,e.lngLat.lat]);
+   route=drawnCoords.map((c,i)=>({id:'r'+i,name:i===0?'Início — percurso desenhado':(i===drawnCoords.length-1?'Fim — percurso desenhado':'Trecho '+String(i).padStart(2,'0')),lng:c[0],lat:c[1],kind:'route'}));
+   selectedId=route[0]?.id||'r0';updateMapData();renderList();
+   $('drawRouteBtn').textContent=`✓ Concluir percurso (${drawnCoords.length} pontos)`;
+   $('flightLabel').textContent='Desenhando percurso — clique seguindo a avenida';
+   toast('Ponto do percurso adicionado. Continue clicando sobre a avenida.');
+   return;
+ }
+ if(addMode){openForm(e.lngLat);addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor='';}
+});
+$('drawRouteBtn').onclick=()=>{
+ if(!drawRouteMode){
+   stopFlight();drawRouteMode=true;drawnCoords=[];addMode=false;
+   $('addModeBtn').textContent='＋ Adicionar equipe no mapa';
+   $('drawRouteBtn').textContent='✓ Concluir percurso (0 pontos)';
+   map.getCanvas().style.cursor='crosshair';map.doubleClickZoom.disable();
+   toast('Clique sobre a avenida, seguindo as curvas do percurso. Ao terminar, clique em “Concluir percurso”.');
+ }else{
+   if(drawnCoords.length<2){toast('Marque pelo menos dois pontos ao longo da avenida.');return;}
+   drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();
+   route=drawnCoords.map((c,i)=>({id:'r'+i,name:i===0?'Início — percurso desenhado':(i===drawnCoords.length-1?'Fim — percurso desenhado':'Trecho '+String(i).padStart(2,'0')),lng:c[0],lat:c[1],kind:'route'}));
+   selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);
+   $('drawRouteBtn').textContent='✎ Desenhar percurso';
+   toast('Percurso desenhado e salvo neste navegador. Exporte JSON para guardar uma cópia.');
+ }
+};
+$('addModeBtn').onclick=()=>{addMode=!addMode;$('addModeBtn').textContent=addMode?'Clique no mapa…':'＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=addMode?'crosshair':'';toast(addMode?'Clique no local aproximado para cadastrar o recurso.':'Modo de cadastro cancelado.')};
+$('saveBtn').onclick=()=>{
+ const name=$('fName').value.trim();if(!name){toast('Informe o nome do ponto ou equipe.');$('fName').focus();return}
+ const lat=Number($('fLat').value),lng=Number($('fLng').value);if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){toast('Latitude ou longitude inválida.');return}
+ const p={id:editId||'u'+Date.now(),name,type:$('fType').value,team:$('fTeam').value.trim(),vehicle:$('fVehicle').value.trim(),mission:$('fMission').value.trim(),lat,lng,kind:'resource'};
+ if(editId)resources=resources.map(x=>x.id===editId?p:x);else resources.push(p);
+ selectedId=p.id;persist();closeForm();updateMapData();renderList();selectPoint(p.id);toast(editId?'Recurso atualizado.':'Recurso cadastrado localmente.');
+};
+$('cancelBtn').onclick=closeForm;$('formModal').addEventListener('click',e=>{if(e.target===$('formModal'))closeForm()});
+$('editBtn').onclick=()=>{const p=selected();if(p&&p.kind!=='route')openForm(null,p)};
+$('deleteBtn').onclick=()=>{const p=selected();if(!p||p.kind==='route')return;if(confirm(`Excluir o recurso "${p.name}"?`)){resources=resources.filter(x=>x.id!==p.id);selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);toast('Recurso excluído.')}};
+function stopFlight(){playing=false;clearInterval(playTimer);$('playBtn').textContent='▶ Sobrevoar'}
+function gotoRoute(i){i=Math.max(0,Math.min(route.length-1,i));$('flightSlider').value=i;const p=route[i];$('flightLabel').textContent=p.name;$('flightCount').textContent=`${i+1}/${route.length}`;selectedId=p.id;selectPoint(p.id,false);map.flyTo({center:[p.lng,p.lat],zoom:16.2,pitch:65,bearing:map.getBearing()+8,duration:1500,essential:true})}
+$('flightSlider').oninput=e=>{stopFlight();gotoRoute(Number(e.target.value))};
+$('prevBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)-1)};
+$('nextBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)+1)};
+$('playBtn').onclick=()=>{
+ if(playing){stopFlight();return}playing=true;$('playBtn').textContent='Ⅱ Pausar';
+ let i=Number($('flightSlider').value);gotoRoute(i);
+ playTimer=setInterval(()=>{i++;if(i>=route.length){stopFlight();toast('Sobrevoo demonstrativo concluído.');return}gotoRoute(i)},3300);
+};
+let streetMapVisible=false;
+$('baseMapBtn').onclick=()=>{
+ streetMapVisible=!streetMapVisible;
+ if(map.getLayer('street-base'))map.setLayoutProperty('street-base','visibility',streetMapVisible?'visible':'none');
+ if(map.getLayer('satellite'))map.setLayoutProperty('satellite','visibility',streetMapVisible?'none':'visible');
+ $('baseMapBtn').textContent=streetMapVisible?'Imagens de satélite':'Mapa de ruas (CARTO)';
+ toast(streetMapVisible?'Mapa de ruas OpenStreetMap ativado.':'Imagens de satélite ativadas.');
+};
+$('routeBtn').onclick=()=>map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:90,bottom:110,left:50,right:50},duration:1200});
+$('northBtn').onclick=()=>map.easeTo({bearing:0,pitch:0,duration:800});
+$('presentationBtn').onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){toast('Use F11 para ativar a tela cheia no navegador.')}};
+$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({project:'Painel Operacional Pré-Caju — CBMSE',status:'PROTOTIPO — VALIDAR PERCURSO E POSIÇÕES',exportedAt:new Date().toISOString(),route,resources},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='precaju-cbmse-dados.json';a.click();URL.revokeObjectURL(a.href);toast('JSON exportado.')};
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.route)||!Array.isArray(d.resources))throw Error('Formato inválido');if(!confirm('A importação substituirá o traçado e os recursos atuais neste navegador. Continuar?'))return;route=d.route;resources=d.resources;selectedId=route[0]?.id;persist();updateMapData();renderList();selectPoint(selectedId);toast('Dados importados.')}catch(err){toast('Não foi possível importar: arquivo JSON inválido.')}e.target.value=''};
+$('resetBtn').onclick=()=>{if(confirm('Restaurar o traçado preliminar e apagar os recursos locais deste protótipo?')){route=structuredClone(initialRoute);resources=[];selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);$('flightSlider').value=0;toast('Protótipo restaurado.')}};
+$('helpBtn').onclick=()=>alert('COMO USAR\\n\\n1. Use “Sobrevoar” ou o controle de pontos para percorrer a rota preliminar.\\n2. Clique em “Adicionar equipe no mapa” e depois clique no local desejado.\\n3. Preencha equipe, tipo, efetivo, viatura e missão.\\n4. Selecione um recurso na lista para localizar, editar ou excluir.\\n5. Use “Street View” para abrir o panorama da posição selecionada no Google Maps, sem chave de API.\\n6. Exporte o JSON para guardar os dados.\\n\\nATENÇÃO: o traçado é aproximado e não representa uma rota oficial validada. As posições cadastradas são apenas planejamento. Confirme todos os dados com a organização e a coordenação operacional do CBMSE.');
+
+function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.lng,name:p.name}}
+function streetViewUrl(){
+ const p=selectedCoords();
+ return 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+encodeURIComponent(p.lat+','+p.lng);
+}
+function showStreetView(){
+ const p=selectedCoords();
+ $('streetViewPointTitle').textContent=p.name;
+ $('streetViewPanel').style.display='block';
+}
+function hideStreetView(){ $('streetViewPanel').style.display='none'; }
+function openStreetView(){window.open(streetViewUrl(),'_blank','noopener,noreferrer');}
+$('streetViewBtn').onclick=()=>{showStreetView();toast('Ponto selecionado: '+selectedCoords().name+'. Abra o panorama no Google Maps.');};
+$('streetViewClose').onclick=hideStreetView;
+$('streetViewOpen').onclick=openStreetView;
+$('streetViewOpenSecondary').onclick=openStreetView;
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();if(addMode){addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=''}if(drawRouteMode){drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawRouteBtn').textContent='✎ Desenhar percurso';toast('Desenho cancelado. O traçado anterior será mantido após recarregar.')}}if(e.key==='ArrowRight'&&$('formModal').style.display!=='flex')$('nextBtn').click();if(e.key==='ArrowLeft'&&$('formModal').style.display!=='flex')$('prevBtn').click();if(e.key.toLowerCase()==='p'&&$('formModal').style.display!=='flex')$('playBtn').click()});
+loadSaved();
+})();
+</script>
+</body>
+</html>
