@@ -128,7 +128,7 @@ const initialRoute=[
  {id:'r5',name:'Fim — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
 ];
 let route=structuredClone(initialRoute), resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawnCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
-let pointPopup=null;
+let pointPopup=null, imageMarkers=[];
 const $=id=>document.getElementById(id);
 const map=new maplibregl.Map({
  container:'map',
@@ -146,6 +146,7 @@ function loadSaved(){try{const v=JSON.parse(localStorage.getItem(STORAGE_KEY));i
 function sourceData(){return {type:'FeatureCollection',features:allPoints().map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.lng,p.lat]},properties:{id:p.id,name:p.name,kind:p.kind||'resource',type:p.type||''}}))}}
 function updateMapData(){
  if(!map.isStyleLoaded())return;
+ renderImageMarkers();
  const line=map.getSource('route-line');if(line)line.setData({type:'Feature',geometry:{type:'LineString',coordinates:route.map(p=>[p.lng,p.lat])}});
  const pts=map.getSource('all-points');if(pts)pts.setData(sourceData());
 }
@@ -168,24 +169,24 @@ function renderList(){
  $('flightSlider').max=Math.max(route.length-1,0);if(Number($('flightSlider').value)>=route.length)$('flightSlider').value=0;
  $('flightCount').textContent=`${Number($('flightSlider').value)+1}/${route.length}`;
 }
-function showPointPopup(p){
- if(pointPopup){pointPopup.remove();pointPopup=null}
- const image=p.imageData
-   ? '<img src="'+p.imageData+'" alt="Imagem da guarnição" style="display:block;width:76px;height:76px;max-width:76px;max-height:76px;object-fit:contain;margin:6px auto;border-radius:50%;background:transparent;opacity:.58;mix-blend-mode:screen">'
-   : '<div style="margin:6px auto;padding:6px 7px;border:1px dashed #6b8494;border-radius:6px;text-align:center;color:#d2e0e8;font-size:10px;opacity:.72">Imagem pendente</div>';
- const details=[
-   p.type?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Tipo:</b> '+safe(p.type)+'</div>':'',
-   p.team?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Efetivo:</b> '+safe(p.team)+'</div>':'',
-   p.vehicle?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Viatura:</b> '+safe(p.vehicle)+'</div>':'',
-   p.mission?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Missão:</b> '+safe(p.mission)+'</div>':''
- ].join('');
- const content='<div style="width:130px;max-width:40vw;background:rgba(12,34,49,.78);color:#eaf3f8;padding:6px;border-radius:8px;font-family:Arial,sans-serif;text-align:center"><div style="font-size:10px;font-weight:700;line-height:1.25">'+safe(p.name)+'</div>'+image+'<div style="font-size:9px;color:#a9bfce;margin-top:3px">CBMSE</div>'+details+'</div>';
- pointPopup=new maplibregl.Popup({closeButton:true,closeOnClick:false,offset:18,maxWidth:'290px',className:'crew-point-popup'})
-   .setLngLat([p.lng,p.lat]).setHTML(content).addTo(map);
+function renderImageMarkers(){
+ imageMarkers.forEach(m=>m.remove());imageMarkers=[];
+ allPoints().filter(p=>p.imageData).forEach(p=>{
+   const el=document.createElement('button');
+   el.type='button';el.title=p.name;
+   el.setAttribute('aria-label','Selecionar '+p.name);
+   el.style.cssText='width:34px;height:34px;padding:0;border:0;background:transparent;opacity:.62;cursor:pointer;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.75))';
+   const img=document.createElement('img');img.src=p.imageData;img.alt='';img.style.cssText='width:100%;height:100%;object-fit:contain;background:transparent;pointer-events:none';
+   el.appendChild(img);
+   el.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();selectPoint(p.id,true)});
+   const marker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([p.lng,p.lat]).addTo(map);
+   imageMarkers.push(marker);
+ });
 }
+
 function selectPoint(id,fly=true){
  selectedId=id;const p=selected();if(!p)return;
- showPointPopup(p);
+ renderImageMarkers();
  $('crewImageTitle').textContent='IMAGEM DA GUARNIÇÃO — '+p.name;
  const crewImg=$('crewImage'), crewPlaceholder=$('crewImagePlaceholder'), removeCrew=$('removeCrewImage');
  if(p.imageData){crewImg.src=p.imageData;crewImg.style.display='block';crewPlaceholder.style.display='none';removeCrew.style.display='block'}
@@ -249,7 +250,7 @@ $('crewImageFile').onchange=async e=>{
  const reader=new FileReader();
  reader.onload=()=>{
    p.imageData=reader.result;
-   persist();selectPoint(p.id,false);
+   persist();renderImageMarkers();selectPoint(p.id,false);
    toast('Imagem vinculada a "'+p.name+'". Ela será exibida ao selecionar este ponto.');
  };
  reader.onerror=()=>toast('Não foi possível ler a imagem.');
@@ -257,7 +258,7 @@ $('crewImageFile').onchange=async e=>{
 };
 $('removeCrewImage').onclick=()=>{
  const p=selected();if(!p||!p.imageData)return;
- delete p.imageData;persist();selectPoint(p.id,false);toast('Imagem removida deste ponto.');
+ delete p.imageData;persist();renderImageMarkers();selectPoint(p.id,false);toast('Imagem removida deste ponto.');
 };
 $('editBtn').onclick=()=>{const p=selected();if(p&&p.kind!=='route')openForm(null,p)};
 $('deleteBtn').onclick=()=>{const p=selected();if(!p||p.kind==='route')return;if(confirm(`Excluir o recurso "${p.name}"?`)){resources=resources.filter(x=>x.id!==p.id);selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);toast('Recurso excluído.')}};
