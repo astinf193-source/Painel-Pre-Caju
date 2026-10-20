@@ -171,15 +171,15 @@ function renderList(){
 function showPointPopup(p){
  if(pointPopup){pointPopup.remove();pointPopup=null}
  const image=p.imageData
-   ? '<img src="'+p.imageData+'" alt="Imagem da guarnição" style="display:block;width:100%;max-height:180px;object-fit:contain;margin:7px 0;border-radius:6px;background:#071a26">'
-   : '<div style="margin:7px 0;padding:14px 8px;border:1px dashed #6b8494;border-radius:6px;text-align:center;color:#d2e0e8;font-size:11px">Imagem da guarnição ainda não fornecida</div>';
+   ? '<img src="'+p.imageData+'" alt="Imagem da guarnição" style="display:block;width:76px;height:76px;max-width:76px;max-height:76px;object-fit:contain;margin:6px auto;border-radius:50%;background:transparent;opacity:.58;mix-blend-mode:screen">'
+   : '<div style="margin:6px auto;padding:6px 7px;border:1px dashed #6b8494;border-radius:6px;text-align:center;color:#d2e0e8;font-size:10px;opacity:.72">Imagem pendente</div>';
  const details=[
    p.type?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Tipo:</b> '+safe(p.type)+'</div>':'',
    p.team?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Efetivo:</b> '+safe(p.team)+'</div>':'',
    p.vehicle?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Viatura:</b> '+safe(p.vehicle)+'</div>':'',
    p.mission?'<div style="margin-top:4px;font-size:11px;color:#d2e0e8"><b>Missão:</b> '+safe(p.mission)+'</div>':''
  ].join('');
- const content='<div style="width:250px;max-width:65vw;background:#0c2231;color:#eaf3f8;padding:11px;border-radius:8px;font-family:Arial,sans-serif"><div style="font-size:13px;font-weight:700;line-height:1.35">'+safe(p.name)+'</div>'+image+details+'<div style="font-size:9px;color:#a9bfce;margin-top:7px">Ponto de planejamento • CBMSE</div></div>';
+ const content='<div style="width:130px;max-width:40vw;background:rgba(12,34,49,.78);color:#eaf3f8;padding:6px;border-radius:8px;font-family:Arial,sans-serif;text-align:center"><div style="font-size:10px;font-weight:700;line-height:1.25">'+safe(p.name)+'</div>'+image+'<div style="font-size:9px;color:#a9bfce;margin-top:3px">CBMSE</div>'+details+'</div>';
  pointPopup=new maplibregl.Popup({closeButton:true,closeOnClick:false,offset:18,maxWidth:'290px',className:'crew-point-popup'})
    .setLngLat([p.lng,p.lat]).setHTML(content).addTo(map);
 }
