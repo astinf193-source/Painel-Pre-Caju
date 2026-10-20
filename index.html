@@ -109,6 +109,12 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 </main>
 </div>
 <div id="toast"></div>
+<div id="pointFocus" style="display:none;position:absolute;z-index:15;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,88vw);max-height:78vh;overflow:auto;background:rgba(7,25,37,.94);border:1px solid #5b8197;border-radius:12px;padding:14px;box-shadow:0 18px 55px #000a;color:#eaf3f8">
+ <div style="display:flex;align-items:center;gap:10px"><strong id="focusTitle" style="font-size:15px;flex:1">Ponto selecionado</strong><button id="focusClose">✕</button></div>
+ <div id="focusImages" style="display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0"></div>
+ <div id="focusDetails" style="font-size:12px;line-height:1.5;color:#c9dce6"></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button id="focusStreet" class="primary">Abrir Street View ↗</button><button id="focusMap">Continuar no mapa</button></div>
+ </div>
 <div id="formModal"><div class="modal">
   <h2 id="modalTitle">Cadastrar recurso</h2><p id="modalSubtitle">Clique no mapa para definir a localização aproximada.</p>
   <div class="field"><label for="fName">Nome do ponto / equipe *</label><input id="fName" placeholder="Ex.: Posto APH 01"></div>
@@ -191,8 +197,16 @@ function renderImageMarkers(){
  });
 }
 
+function showPointFocus(p){
+ $('focusTitle').textContent=p.name;
+ const images=[p.imageData,p.imageData2].filter(Boolean);
+ $('focusImages').innerHTML=images.length?images.map((src,i)=>'<img src="'+src+'" alt="Imagem '+(i+1)+'" style="width:clamp(110px,22vw,180px);height:clamp(110px,22vw,180px);object-fit:contain;opacity:.9;background:transparent;filter:drop-shadow(0 2px 5px #000)">').join(''):'<div style="padding:16px;border:1px dashed #567487;border-radius:8px;color:#b7cbd8">Imagens de militares/viaturas ainda não cadastradas neste ponto.</div>';
+ $('focusDetails').innerHTML=[p.type?'<div><b>Tipo:</b> '+safe(p.type)+'</div>':'',p.team?'<div><b>Efetivo:</b> '+safe(p.team)+'</div>':'',p.vehicle?'<div><b>Viatura:</b> '+safe(p.vehicle)+'</div>':'',p.mission?'<div><b>Missão:</b> '+safe(p.mission)+'</div>':''].join('');
+ $('pointFocus').style.display='block';
+}
 function selectPoint(id,fly=true){
  selectedId=id;const p=selected();if(!p)return;
+ showPointFocus(p);
  renderImageMarkers();
  $('crewImageTitle').textContent='IMAGEM DA GUARNIÇÃO — '+p.name;
  const crewImg=$('crewImage'), crewPlaceholder=$('crewImagePlaceholder'), removeCrew=$('removeCrewImage');
@@ -281,7 +295,7 @@ $('removeCrewImage2').onclick=()=>{
 $('editBtn').onclick=()=>{const p=selected();if(p&&p.kind!=='route')openForm(null,p)};
 $('deleteBtn').onclick=()=>{const p=selected();if(!p||p.kind==='route')return;if(confirm(`Excluir o recurso "${p.name}"?`)){resources=resources.filter(x=>x.id!==p.id);selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);toast('Recurso excluído.')}};
 function stopFlight(){playing=false;clearInterval(playTimer);$('playBtn').textContent='▶ Sobrevoar'}
-function gotoRoute(i){i=Math.max(0,Math.min(route.length-1,i));$('flightSlider').value=i;const p=route[i];$('flightLabel').textContent=p.name;$('flightCount').textContent=`${i+1}/${route.length}`;selectedId=p.id;selectPoint(p.id,false);map.flyTo({center:[p.lng,p.lat],zoom:16.2,pitch:65,bearing:map.getBearing()+8,duration:1500,essential:true})}
+function gotoRoute(i){i=Math.max(0,Math.min(route.length-1,i));$('flightSlider').value=i;const p=route[i];$('flightLabel').textContent=p.name;$('flightCount').textContent=`${i+1}/${route.length}`;selectedId=p.id;selectPoint(p.id,false);map.flyTo({center:[p.lng,p.lat],zoom:17.4,pitch:65,bearing:map.getBearing()+8,duration:1500,essential:true})}
 $('flightSlider').oninput=e=>{stopFlight();gotoRoute(Number(e.target.value))};
 $('prevBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)-1)};
 $('nextBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)+1)};
@@ -319,6 +333,9 @@ function showStreetView(){
 function hideStreetView(){ $('streetViewPanel').style.display='none'; }
 function openStreetView(){window.open(streetViewUrl(),'_blank','noopener,noreferrer');}
 $('streetViewBtn').onclick=()=>{showStreetView();toast('Ponto selecionado: '+selectedCoords().name+'. Abra o panorama no Google Maps.');};
+$('focusClose').onclick=()=>{$('pointFocus').style.display='none'};
+$('focusMap').onclick=()=>{$('pointFocus').style.display='none'};
+$('focusStreet').onclick=()=>openStreetView();
 $('streetViewClose').onclick=hideStreetView;
 $('streetViewOpen').onclick=openStreetView;
 $('streetViewOpenSecondary').onclick=openStreetView;
