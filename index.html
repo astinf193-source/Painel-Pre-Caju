@@ -121,7 +121,7 @@ const initialRoute=[
  {id:'r5',name:'FINAL DO PERCURSO — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
 ];
 let route=structuredClone(initialRoute), resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawnCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
-let pointPopup=null, imageMarkers=[], activeTourLabelId=null;
+let pointPopup=null, imageMarkers=[], activeTourLabelId=null, tourNameMarker=null;
 const $=id=>document.getElementById(id);
 const map=new maplibregl.Map({
  container:'map',
@@ -357,6 +357,14 @@ $('removeCrewImage2').onclick=()=>{
 };
 $('editBtn').onclick=()=>{const p=selected();if(p&&p.kind!=='route')openForm(null,p)};
 $('deleteBtn').onclick=()=>{const p=selected();if(!p||p.kind==='route')return;if(confirm(`Excluir o recurso "${p.name}"?`)){resources=resources.filter(x=>x.id!==p.id);selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);toast('Recurso excluído.')}};
+function showTourName(p,label){
+ if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
+ if(!p||!label)return;
+ const el=document.createElement('div');
+ el.textContent=label;
+ el.style.cssText='padding:7px 12px;border:2px solid #ffe66d;border-radius:7px;background:rgba(4,22,36,.97);color:#fff;font:800 15px/1.2 Arial,sans-serif;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none';
+ tourNameMarker=new maplibregl.Marker({element:el,anchor:'bottom',offset:[0,-22]}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
+}
 function stopFlight(){playing=false;clearInterval(playTimer);clearTimeout(playTimer);$('playBtn').textContent='▶ Sobrevoar'}
 function flyToResource(p){
  if(!p||!Number.isFinite(Number(p.lng))||!Number.isFinite(Number(p.lat)))return;
@@ -378,13 +386,15 @@ $('playBtn').onclick=()=>{
  // Primeiro percorre o trajeto na ordem definida; depois visita cada equipe.
  const validResources=resources.filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
  const tour=[...route,...validResources];
- activeTourLabelId=null;updateMapData();
+ activeTourLabelId=null;updateMapData();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
  toast('Sobrevoo iniciado: início do percurso, fim do percurso e equipes.');
  let i=0,previousTourPoint=null;
  const nextStop=()=>{
   if(!playing)return;
+  if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
   if(i>=tour.length){stopFlight();activeTourLabelId=null;updateMapData();toast('Sobrevoo do percurso e de todas as equipes concluído.');return}
-  const p=tour[i++];activeTourLabelId=(p.id==='r0'||p.id==='r5')?p.id:null;updateMapData();
+  const p=tour[i++];activeTourLabelId=null;
+  if(p.id==='r0')showTourName(p,'INÍCIO DO PERCURSO');else if(p.id==='r5')showTourName(p,'FIM DO PERCURSO');
   $('flightLabel').textContent=p.name;
   if(p.kind==='route'){
    const ri=route.findIndex(x=>x.id===p.id);
