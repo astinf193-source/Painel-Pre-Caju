@@ -137,18 +137,17 @@ function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 const BACKUP_KEY=STORAGE_KEY+'-backup';
 function persist(){
  try{
-   // Preserve the last valid saved version before replacing it.
    const previous=localStorage.getItem(STORAGE_KEY);
+   const next=JSON.stringify({route,resources});
+   // Grava primeiro o estado atual. Se exceder a cota, o registro anterior permanece intacto.
+   localStorage.setItem(STORAGE_KEY,next);
    if(previous){
      try{
        const parsed=JSON.parse(previous);
-       if(parsed&&Array.isArray(parsed.route)&&Array.isArray(parsed.resources)){
-         localStorage.setItem(BACKUP_KEY,previous);
-       }
+       if(parsed&&Array.isArray(parsed.route)&&Array.isArray(parsed.resources))localStorage.setItem(BACKUP_KEY,previous);
      }catch(e){}
    }
-   localStorage.setItem(STORAGE_KEY,JSON.stringify({route,resources}));
- }catch(e){toast('Não foi possível salvar os dados localmente. Exporte um JSON para manter uma cópia.')}
+ }catch(e){toast('O armazenamento do navegador está cheio. As imagens podem ser grandes; exporte os dados antes de continuar.')}
 }
 function loadSaved(){
  try{
@@ -188,6 +187,13 @@ function renderList(){
  $('pointList').querySelectorAll('[data-select]').forEach(b=>b.onclick=()=>selectPoint(b.dataset.select,true));
  $('flightSlider').max=Math.max(route.length-1,0);if(Number($('flightSlider').value)>=route.length)$('flightSlider').value=0;
  $('flightCount').textContent=`${Number($('flightSlider').value)+1}/${route.length}`;
+}
+async function imageToCompactDataUrl(file){
+ const img=await new Promise((resolve,reject)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{URL.revokeObjectURL(u);resolve(im)};im.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('Imagem inválida'))};im.src=u});
+ const max=1100,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+ const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+ canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+ return canvas.toDataURL('image/jpeg',0.76);
 }
 function renderImageMarkers(){
  imageMarkers.forEach(m=>m.remove());imageMarkers=[];
@@ -271,7 +277,8 @@ $('addModeBtn').onclick=()=>{addMode=!addMode;$('addModeBtn').textContent=addMod
 $('saveBtn').onclick=()=>{
  const name=$('fName').value.trim();if(!name){toast('Informe o nome do ponto ou equipe.');$('fName').focus();return}
  const lat=Number($('fLat').value),lng=Number($('fLng').value);if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){toast('Latitude ou longitude inválida.');return}
- const p={id:editId||'u'+Date.now(),name,type:$('fType').value,team:$('fTeam').value.trim(),vehicle:$('fVehicle').value.trim(),mission:$('fMission').value.trim(),lat,lng,kind:'resource'};
+ const old=editId?resources.find(x=>x.id===editId):null;
+  const p={...(old||{}),id:editId||'u'+Date.now(),name,type:$('fType').value,team:$('fTeam').value.trim(),vehicle:$('fVehicle').value.trim(),mission:$('fMission').value.trim(),lat,lng,kind:'resource'};
  if(editId)resources=resources.map(x=>x.id===editId?p:x);else resources.push(p);
  selectedId=p.id;persist();closeForm();updateMapData();renderList();selectPoint(p.id);toast(editId?'Recurso atualizado.':'Recurso cadastrado localmente.');
 };
@@ -280,20 +287,17 @@ $('crewImageFile').onchange=async e=>{
  const file=e.target.files?.[0];if(!file)return;
  if(!file.type.startsWith('image/')){toast('Selecione um arquivo de imagem.');e.target.value='';return}
  const p=selected();if(!p){toast('Selecione um ponto do percurso primeiro.');e.target.value='';return}
- const reader=new FileReader();
- reader.onload=()=>{
-   p.imageData=reader.result;
-   persist();renderImageMarkers();selectPoint(p.id,false);
-   toast('Imagem vinculada a "'+p.name+'". Ela será exibida ao selecionar este ponto.');
- };
- reader.onerror=()=>toast('Não foi possível ler a imagem.');
- reader.readAsDataURL(file);e.target.value='';
+ imageToCompactDataUrl(file).then(data=>{
+    p.imageData=data;
+    persist();renderImageMarkers();selectPoint(p.id,false);
+    toast('Imagem otimizada e vinculada a "'+p.name+'".');
+  }).catch(()=>toast('Não foi possível processar esta imagem.')).finally(()=>{e.target.value=''});
 };
 $('crewImageFile2').onchange=e=>{
  const file=e.target.files?.[0];if(!file)return;
  if(!file.type.startsWith('image/')){toast('Selecione um arquivo de imagem.');e.target.value='';return}
  const p=selected();if(!p){toast('Selecione um ponto primeiro.');e.target.value='';return}
- const reader=new FileReader();reader.onload=()=>{p.imageData2=reader.result;persist();renderImageMarkers();selectPoint(p.id,false);toast('Segunda imagem vinculada a "'+p.name+'".')};reader.onerror=()=>toast('Não foi possível ler a imagem.');reader.readAsDataURL(file);e.target.value='';
+ imageToCompactDataUrl(file).then(data=>{p.imageData2=data;persist();renderImageMarkers();selectPoint(p.id,false);toast('Segunda imagem otimizada e vinculada a "'+p.name+'".')}).catch(()=>toast('Não foi possível processar esta imagem.')).finally(()=>{e.target.value=''});
 };
 $('removeCrewImage').onclick=()=>{
  const p=selected();if(!p||!p.imageData)return;
@@ -345,7 +349,7 @@ $('northBtn').onclick=()=>map.easeTo({bearing:0,pitch:0,duration:800});
 $('presentationBtn').onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){toast('Use F11 para ativar a tela cheia no navegador.')}};
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({project:'Painel Operacional Pré-Caju — CBMSE',status:'PROTOTIPO — VALIDAR PERCURSO E POSIÇÕES',exportedAt:new Date().toISOString(),route,resources},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='precaju-cbmse-dados.json';a.click();URL.revokeObjectURL(a.href);toast('JSON exportado.')};
 $('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.route)||!Array.isArray(d.resources))throw Error('Formato inválido');if(!confirm('A importação substituirá o traçado e os recursos atuais neste navegador. Continuar?'))return;route=d.route;resources=d.resources;selectedId=route[0]?.id;persist();updateMapData();renderList();selectPoint(selectedId);toast('Dados importados.')}catch(err){toast('Não foi possível importar: arquivo JSON inválido.')}e.target.value=''};
-$('resetBtn').onclick=()=>{if(confirm('Restaurar o traçado preliminar e apagar os recursos locais deste protótipo?')){route=structuredClone(initialRoute);resources=[];selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);$('flightSlider').value=0;toast('Protótipo restaurado.')}};
+$('resetBtn').onclick=()=>{if(confirm('Restaurar o traçado preliminar e apagar os recursos locais deste protótipo?')){route=structuredClone(initialRoute);resources=[];selectedId=route[0].id;localStorage.removeItem(BACKUP_KEY);persist();updateMapData();renderList();selectPoint(selectedId,false);$('flightSlider').value=0;toast('Protótipo restaurado.')}};
 $('helpBtn').onclick=()=>alert('COMO USAR\\n\\n1. Use “Sobrevoar” ou o controle de pontos para percorrer a rota preliminar.\\n2. Clique em “Adicionar equipe no mapa” e depois clique no local desejado.\\n3. Preencha equipe, tipo, efetivo, viatura e missão.\\n4. Selecione um recurso na lista para localizar, editar ou excluir.\\n5. Use “Street View” para abrir o panorama da posição selecionada no Google Maps, sem chave de API.\\n6. Exporte o JSON para guardar os dados.\\n\\nATENÇÃO: o traçado é aproximado e não representa uma rota oficial validada. As posições cadastradas são apenas planejamento. Confirme todos os dados com a organização e a coordenação operacional do CBMSE.');
 
 function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.lng,name:p.name}}
