@@ -243,7 +243,9 @@ function renderImageMarkers(){
    el.appendChild(imageRow);
    const label=document.createElement('span');
    label.textContent=p.name;
-   label.style.cssText='display:block;max-width:170px;padding:3px 7px;border:1px solid rgba(112,211,255,.8);border-radius:5px;background:rgba(4,22,36,.94);color:#fff;font:700 11px/1.25 Arial,sans-serif;text-align:center;white-space:normal;overflow-wrap:anywhere;text-shadow:0 1px 2px #000;pointer-events:none';
+   label.dataset.pointLabel=p.id;
+   const isActive=p.id===selectedId;
+   label.style.cssText='display:block;max-width:170px;padding:3px 7px;border:2px solid '+(isActive?'#ffe66d':'rgba(112,211,255,.8)')+';border-radius:5px;background:'+(isActive?'rgba(9,65,91,.98)':'rgba(4,22,36,.94)')+';color:#fff;font:700 '+(isActive?'13px':'11px')+'/1.25 Arial,sans-serif;text-align:center;white-space:normal;overflow-wrap:anywhere;text-shadow:0 1px 2px #000;pointer-events:none;box-shadow:'+(isActive?'0 0 12px rgba(255,230,109,.9)':'none');
    el.appendChild(label);
    el.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();selectPoint(p.id,true)});
    const marker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([p.lng,p.lat]).addTo(map);
