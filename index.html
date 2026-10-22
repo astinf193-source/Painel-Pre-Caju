@@ -220,7 +220,10 @@ async function imageToCompactDataUrl(file){
  const max=1100,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
  canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
- return canvas.toDataURL('image/jpeg',0.76);
+ // WebP mantém o canal alfa (transparência) e comprime a imagem.
+ const webp=canvas.toDataURL('image/webp',0.82);
+ // Fallback PNG também preserva transparência em navegadores sem suporte a WebP.
+ return webp.startsWith('data:image/webp')?webp:canvas.toDataURL('image/png');
 }
 function renderImageMarkers(){
  imageMarkers.forEach(m=>m.remove());imageMarkers=[];
@@ -244,7 +247,7 @@ function renderImageMarkers(){
 function showPointFocus(p){
  $('focusTitle').textContent=p.name;
  const images=[p.imageData,p.imageData2].filter(Boolean);
- $('focusImages').style.gap='18px';$('focusImages').innerHTML=images.length?images.map((src,i)=>'<img src="'+src+'" alt="Imagem '+(i+1)+' — militares e viaturas do ponto" style="width:clamp(180px,34vw,280px);height:clamp(180px,34vw,280px);object-fit:contain;opacity:1;background:rgba(255,255,255,.04);border:1px solid #45677c;border-radius:10px;padding:5px;filter:drop-shadow(0 3px 8px #000)">').join(''):'<div style="padding:16px;border:1px dashed #567487;border-radius:8px;color:#b7cbd8">Adicione as imagens dos bombeiros e das viaturas neste ponto para exibi-las juntas aqui.</div>';
+ $('focusImages').style.gap='18px';$('focusImages').innerHTML=images.length?images.map((src,i)=>'<img src="'+src+'" alt="Imagem '+(i+1)+' — militares e viaturas do ponto" style="width:clamp(180px,34vw,280px);height:clamp(180px,34vw,280px);object-fit:contain;opacity:1;background:transparent;border:1px solid #45677c;border-radius:10px;padding:5px;filter:drop-shadow(0 3px 8px #000)">').join(''):'<div style="padding:16px;border:1px dashed #567487;border-radius:8px;color:#b7cbd8">Adicione as imagens dos bombeiros e das viaturas neste ponto para exibi-las juntas aqui.</div>';
  $('focusDetails').innerHTML=[p.type?'<div><b>Tipo:</b> '+safe(p.type)+'</div>':'',p.team?'<div><b>Efetivo:</b> '+safe(p.team)+'</div>':'',p.vehicle?'<div><b>Viatura:</b> '+safe(p.vehicle)+'</div>':'',p.mission?'<div><b>Missão:</b> '+safe(p.mission)+'</div>':''].join('');
  $('pointFocus').style.display='none';
 }
