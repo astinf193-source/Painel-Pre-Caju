@@ -202,7 +202,7 @@ function buildLayers(){
  map.addLayer({id:'route-glow',type:'line',source:'route-line',paint:{'line-color':'#2478ff','line-width':12,'line-opacity':.30,'line-blur':2}});
  map.addLayer({id:'route-main',type:'line',source:'route-line',paint:{'line-color':'#2478ff','line-width':5,'line-dasharray':[2,1.3]}});
  map.addSource('all-points',{type:'geojson',data:sourceData()});
- map.addLayer({id:'point-circles',type:'circle',source:'all-points',paint:{'circle-radius':['case',['==',['get','kind'],'route'],7,10],'circle-color':['case',['==',['get','kind'],'route'],'#2478ff','#45d4ff'],'circle-stroke-color':'#071925','circle-stroke-width':2,'circle-opacity':.98}});
+ map.addLayer({id:'point-circles',type:'circle',source:'all-points',paint:{'circle-radius':['case',['==',['get','kind'],'route'],7,10],'circle-color':'#2478ff','circle-stroke-color':'#071925','circle-stroke-width':2,'circle-opacity':.98}});
  map.addLayer({id:'point-labels',type:'symbol',source:'all-points',layout:{'text-field':['get','name'],'text-size':11,'text-offset':[0,1.3],'text-anchor':'top','text-max-width':18},paint:{'text-color':'#ffffff','text-halo-color':'#061722','text-halo-width':1.5}});
  map.on('click','point-circles',e=>{const f=e.features?.[0];if(!f)return;selectPoint(f.properties.id);});
  map.on('mouseenter','point-circles',()=>map.getCanvas().style.cursor='pointer');
