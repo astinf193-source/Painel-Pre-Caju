@@ -394,7 +394,11 @@ $('playBtn').onclick=()=>{
   if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
   if(i>=tour.length){stopFlight();activeTourLabelId=null;updateMapData();toast('Sobrevoo do percurso e de todas as equipes concluído.');return}
   const p=tour[i++];activeTourLabelId=null;
-  if(p.id==='r0')showTourName(p,'INÍCIO DO PERCURSO');else if(p.id==='r5')showTourName(p,'FIM DO PERCURSO');
+  if(p.kind==='route'){
+   const routeIndex=route.findIndex(x=>x.id===p.id);
+   if(routeIndex===0)showTourName(p,'INÍCIO DO PERCURSO');
+   else if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');
+  }
   $('flightLabel').textContent=p.name;
   if(p.kind==='route'){
    const ri=route.findIndex(x=>x.id===p.id);
