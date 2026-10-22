@@ -249,7 +249,7 @@ function renderImageMarkers(){
    el.appendChild(label);
    el.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();selectPoint(p.id,true)});
    // Mantém as imagens e o nome acima da coordenada, deixando o círculo do ponto visível logo abaixo.
-   const marker=new maplibregl.Marker({element:el,anchor:'bottom',offset:[0,-96]}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
+   const marker=new maplibregl.Marker({element:el,anchor:'bottom',offset:[0,0]}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
    imageMarkers.push(marker);
  });
 }
