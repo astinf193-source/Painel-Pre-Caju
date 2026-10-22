@@ -217,12 +217,20 @@ function renderList(){
 }
 async function imageToCompactDataUrl(file){
  const img=await new Promise((resolve,reject)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{URL.revokeObjectURL(u);resolve(im)};im.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('Imagem inválida'))};im.src=u});
- const max=1100,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
- const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
- canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
- // WebP mantém o canal alfa (transparência) e comprime a imagem.
+ // Remove margens transparentes da imagem para aproximar visualmente os militares do círculo.
+ const source=document.createElement('canvas');source.width=img.naturalWidth;source.height=img.naturalHeight;
+ const sctx=source.getContext('2d',{willReadFrequently:true});sctx.drawImage(img,0,0);
+ let sx=0,sy=0,sw=source.width,sh=source.height;
+ try{
+  const d=sctx.getImageData(0,0,source.width,source.height).data;
+  let minX=source.width,minY=source.height,maxX=-1,maxY=-1;
+  for(let y=0;y<source.height;y++)for(let x=0;x<source.width;x++){if(d[(y*source.width+x)*4+3]>12){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y)}}
+  if(maxX>=minX&&maxY>=minY){const pad=Math.max(2,Math.round(Math.max(maxX-minX+1,maxY-minY+1)*.025));sx=Math.max(0,minX-pad);sy=Math.max(0,minY-pad);const ex=Math.min(source.width-1,maxX+pad),ey=Math.min(source.height-1,maxY+pad);sw=ex-sx+1;sh=ey-sy+1}
+ }catch(e){}
+ const max=1100,scale=Math.min(1,max/Math.max(sw,sh));
+ const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(sw*scale));canvas.height=Math.max(1,Math.round(sh*scale));
+ canvas.getContext('2d').drawImage(source,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
  const webp=canvas.toDataURL('image/webp',0.82);
- // Fallback PNG também preserva transparência em navegadores sem suporte a WebP.
  return webp.startsWith('data:image/webp')?webp:canvas.toDataURL('image/png');
 }
 function renderImageMarkers(){
@@ -249,7 +257,7 @@ function renderImageMarkers(){
    el.appendChild(label);
    el.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();selectPoint(p.id,true)});
    // Mantém as imagens e o nome acima da coordenada, deixando o círculo do ponto visível logo abaixo.
-   const marker=new maplibregl.Marker({element:el,anchor:'center',offset:[0,-58]}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
+   const marker=new maplibregl.Marker({element:el,anchor:'bottom',offset:[0,0]}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
    imageMarkers.push(marker);
  });
 }
