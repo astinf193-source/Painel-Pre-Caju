@@ -135,32 +135,59 @@ function allPoints(){return [...route,...resources]}
 function selected(){return allPoints().find(p=>p.id===selectedId)}
 function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 const BACKUP_KEY=STORAGE_KEY+'-backup';
-function persist(){
- try{
-   const previous=localStorage.getItem(STORAGE_KEY);
-   const next=JSON.stringify({route,resources});
-   // Grava primeiro o estado atual. Se exceder a cota, o registro anterior permanece intacto.
-   localStorage.setItem(STORAGE_KEY,next);
-   if(previous){
-     try{
-       const parsed=JSON.parse(previous);
-       if(parsed&&Array.isArray(parsed.route)&&Array.isArray(parsed.resources))localStorage.setItem(BACKUP_KEY,previous);
-     }catch(e){}
-   }
- }catch(e){toast('O armazenamento do navegador está cheio. As imagens podem ser grandes; exporte os dados antes de continuar.')}
+const DB_NAME='cbmse-precaju-db', DB_STORE='painel', DB_RECORD='dados';
+let dbPromise=null;
+function openDataDB(){
+ if(!('indexedDB' in window))return Promise.reject(new Error('IndexedDB indisponível'));
+ if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{
+  const req=indexedDB.open(DB_NAME,1);
+  req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(DB_STORE))req.result.createObjectStore(DB_STORE)};
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('Falha ao abrir banco local'));
+ });
+ return dbPromise;
 }
-function loadSaved(){
+async function readDB(key=DB_RECORD){
+ const db=await openDataDB();
+ return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readonly'),req=tx.objectStore(DB_STORE).get(key);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error)});
+}
+async function writeDB(value,key=DB_RECORD){
+ const db=await openDataDB();
+ return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(value,key);tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error||new Error('Falha ao gravar'));tx.onabort=()=>reject(tx.error||new Error('Gravação cancelada'))});
+}
+function persist(){
+ const snapshot={route:structuredClone(route),resources:structuredClone(resources),savedAt:new Date().toISOString()};
+ // IndexedDB accommodates much larger records than localStorage, including team images.
+ writeDB(snapshot).then(()=>{
+  try{
+   const compact={route:snapshot.route,resources:snapshot.resources.map(p=>{const q={...p};delete q.imageData;delete q.imageData2;return q})};
+   localStorage.setItem(STORAGE_KEY,JSON.stringify(compact));
+  }catch(e){}
+ }).catch(()=>toast('Não foi possível salvar os dados localmente. Exporte o JSON para não perder os dados.'));
+}
+async function loadSaved(){
+ let loaded=false;
  try{
-   const current=localStorage.getItem(STORAGE_KEY);
-   const v=current?JSON.parse(current):null;
-   if(v&&Array.isArray(v.route)&&Array.isArray(v.resources)){route=v.route;resources=v.resources;return}
-   // If the current record is missing/invalid, try the last valid backup.
-   const backup=localStorage.getItem(BACKUP_KEY);
-   if(backup){
-     const b=JSON.parse(backup);
-     if(b&&Array.isArray(b.route)&&Array.isArray(b.resources)){route=b.route;resources=b.resources;localStorage.setItem(STORAGE_KEY,backup);toast('Dados restaurados da cópia de segurança local.')}
-   }
+  const saved=await readDB();
+  if(saved&&Array.isArray(saved.route)&&Array.isArray(saved.resources)){route=saved.route;resources=saved.resources;loaded=true}
  }catch(e){}
+ if(!loaded){
+  try{
+   const current=localStorage.getItem(STORAGE_KEY),v=current?JSON.parse(current):null;
+   if(v&&Array.isArray(v.route)&&Array.isArray(v.resources)){route=v.route;resources=v.resources;loaded=true}
+   if(!loaded){
+    const backup=localStorage.getItem(BACKUP_KEY),b=backup?JSON.parse(backup):null;
+    if(b&&Array.isArray(b.route)&&Array.isArray(b.resources)){route=b.route;resources=b.resources;loaded=true;toast('Dados recuperados da cópia de segurança local.')}
+   }
+   if(loaded)await writeDB({route,resources,savedAt:new Date().toISOString()});
+  }catch(e){}
+ }
+ if(loaded&&map.isStyleLoaded()){
+  updateMapData();renderList();
+  if(!selected()||!allPoints().some(p=>p.id===selectedId))selectedId=route[0]?.id;
+  if(selectedId)selectPoint(selectedId,false);
+  const points=allPoints().filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
+  if(points.length)map.fitBounds(points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)])),{padding:{top:90,bottom:110,left:70,right:70},maxZoom:15.5,duration:500});
+ }
 }
 function sourceData(){return {type:'FeatureCollection',features:allPoints().map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.lng,p.lat]},properties:{id:p.id,name:p.name,kind:p.kind||'resource',type:p.type||''}}))}}
 function updateMapData(){
