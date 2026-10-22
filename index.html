@@ -134,8 +134,35 @@ function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';
 function allPoints(){return [...route,...resources]}
 function selected(){return allPoints().find(p=>p.id===selectedId)}
 function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({route,resources}))}catch(e){}}
-function loadSaved(){try{const v=JSON.parse(localStorage.getItem(STORAGE_KEY));if(v&&Array.isArray(v.route)&&Array.isArray(v.resources)){route=v.route;resources=v.resources}}catch(e){}}
+const BACKUP_KEY=STORAGE_KEY+'-backup';
+function persist(){
+ try{
+   // Preserve the last valid saved version before replacing it.
+   const previous=localStorage.getItem(STORAGE_KEY);
+   if(previous){
+     try{
+       const parsed=JSON.parse(previous);
+       if(parsed&&Array.isArray(parsed.route)&&Array.isArray(parsed.resources)){
+         localStorage.setItem(BACKUP_KEY,previous);
+       }
+     }catch(e){}
+   }
+   localStorage.setItem(STORAGE_KEY,JSON.stringify({route,resources}));
+ }catch(e){toast('Não foi possível salvar os dados localmente. Exporte um JSON para manter uma cópia.')}
+}
+function loadSaved(){
+ try{
+   const current=localStorage.getItem(STORAGE_KEY);
+   const v=current?JSON.parse(current):null;
+   if(v&&Array.isArray(v.route)&&Array.isArray(v.resources)){route=v.route;resources=v.resources;return}
+   // If the current record is missing/invalid, try the last valid backup.
+   const backup=localStorage.getItem(BACKUP_KEY);
+   if(backup){
+     const b=JSON.parse(backup);
+     if(b&&Array.isArray(b.route)&&Array.isArray(b.resources)){route=b.route;resources=b.resources;localStorage.setItem(STORAGE_KEY,backup);toast('Dados restaurados da cópia de segurança local.')}
+   }
+ }catch(e){}
+}
 function sourceData(){return {type:'FeatureCollection',features:allPoints().map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.lng,p.lat]},properties:{id:p.id,name:p.name,kind:p.kind||'resource',type:p.type||''}}))}}
 function updateMapData(){
  if(!map.isStyleLoaded())return;
