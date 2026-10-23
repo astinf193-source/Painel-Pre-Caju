@@ -121,7 +121,7 @@ const initialRoute=[
  {id:'r5',name:'FINAL DO PERCURSO — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
 ];
 let route=structuredClone(initialRoute), resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawnCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
-let pointPopup=null, imageMarkers=[], activeTourLabelId=null, tourNameMarker=null;
+let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null;
 const $=id=>document.getElementById(id);
 const map=new maplibregl.Map({
  container:'map',
@@ -189,7 +189,7 @@ async function loadSaved(){
   if(points.length)map.fitBounds(points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)])),{padding:{top:90,bottom:110,left:70,right:70},maxZoom:15.5,duration:500});
  }
 }
-function sourceData(){return {type:'FeatureCollection',features:allPoints().map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.lng,p.lat]},properties:{id:p.id,name:(p.id==='r0'||p.id==='r5')?(activeTourLabelId===p.id?(p.id==='r0'?'INÍCIO DO PERCURSO':'FIM DO PERCURSO'):''):p.name,kind:p.kind||'resource',type:p.type||''}}))}}
+function sourceData(){return {type:'FeatureCollection',features:allPoints().map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.lng,p.lat]},properties:{id:p.id,name:p.kind==='route'?((p.id==='r0'||p.id==='r5')?(activeTourLabelId===p.id?(p.id==='r0'?'INÍCIO DO PERCURSO':'FIM DO PERCURSO'):''):p.name):(activeTourResourceId===p.id?p.name:''),kind:p.kind||'resource',type:p.type||''}}))}}
 function updateMapData(){
  if(!map.isStyleLoaded())return;
  renderImageMarkers();
@@ -253,7 +253,7 @@ function renderImageMarkers(){
    label.textContent=p.name;
    label.dataset.pointLabel=p.id;
    const isActive=p.id===selectedId;
-   label.style.cssText='display:block;max-width:170px;padding:3px 7px;border:2px solid '+(isActive?'#ffe66d':'rgba(112,211,255,.8)')+';border-radius:5px;background:'+(isActive?'rgba(9,65,91,.98)':'rgba(4,22,36,.94)')+';color:#fff;font:700 '+(isActive?'13px':'11px')+'/1.25 Arial,sans-serif;text-align:center;white-space:normal;overflow-wrap:anywhere;text-shadow:0 1px 2px #000;pointer-events:none;box-shadow:'+(isActive?'0 0 12px rgba(255,230,109,.9)':'none');
+   label.style.cssText='display:'+(activeTourResourceId===p.id?'block':'none')+';max-width:170px;padding:3px 7px;border:2px solid '+(isActive?'#ffe66d':'rgba(112,211,255,.8)')+';border-radius:5px;background:'+(isActive?'rgba(9,65,91,.98)':'rgba(4,22,36,.94)')+';color:#fff;font:700 '+(isActive?'13px':'11px')+'/1.25 Arial,sans-serif;text-align:center;white-space:normal;overflow-wrap:anywhere;text-shadow:0 1px 2px #000;pointer-events:none;box-shadow:'+(isActive?'0 0 12px rgba(255,230,109,.9)':'none');
    el.appendChild(label);
    el.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();selectPoint(p.id,true)});
    // Mantém as imagens e o nome acima da coordenada, deixando o círculo do ponto visível logo abaixo.
@@ -386,14 +386,14 @@ $('playBtn').onclick=()=>{
  // Primeiro percorre o trajeto na ordem definida; depois visita cada equipe.
  const validResources=resources.filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
  const tour=[...route,...validResources];
- activeTourLabelId=null;updateMapData();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
+ activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
  toast('Sobrevoo iniciado: início do percurso, fim do percurso e equipes.');
  let i=0,previousTourPoint=null;
  const nextStop=()=>{
   if(!playing)return;
   if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
-  if(i>=tour.length){stopFlight();activeTourLabelId=null;updateMapData();toast('Sobrevoo do percurso e de todas as equipes concluído.');return}
-  const p=tour[i++];activeTourLabelId=null;
+  if(i>=tour.length){stopFlight();activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();toast('Sobrevoo do percurso e de todas as equipes concluído.');return}
+  const p=tour[i++];activeTourLabelId=null;activeTourResourceId=p.kind==='route'?null:p.id;updateMapData();renderImageMarkers();
   if(p.kind==='route'){
    const routeIndex=route.findIndex(x=>x.id===p.id);
    if(routeIndex===0)showTourName(p,'INÍCIO DO PERCURSO');
