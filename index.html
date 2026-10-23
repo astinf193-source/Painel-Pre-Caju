@@ -125,7 +125,7 @@ let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResource
 const $=id=>document.getElementById(id);
 const map=new maplibregl.Map({
  container:'map',
- style:{version:8,sources:{satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:17,attribution:'Imagery © Esri; map data © OpenStreetMap contributors'},openstreetmap:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'satellite',type:'raster',source:'satellite'},{id:'street-base',type:'raster',source:'openstreetmap',layout:{visibility:'none'}}]},
+ style:{version:8,sources:{satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,minzoom:0,maxzoom:19,attribution:'Imagery © Esri; map data © OpenStreetMap contributors'},openstreetmap:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'satellite',type:'raster',source:'satellite',paint:{'raster-fade-duration':0,'raster-contrast':0.08,'raster-saturation':0.05}},{id:'street-base',type:'raster',source:'openstreetmap',layout:{visibility:'none'}}]},
  center:[-37.041,-10.978],zoom:14.5,pitch:55,bearing:18,antialias:true
 });
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
