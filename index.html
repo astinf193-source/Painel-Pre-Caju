@@ -461,9 +461,11 @@ $('playBtn').onclick=()=>{
  }
  // Primeiro percorre o trajeto na ordem definida; depois visita cada equipe.
  const validResources=resources.filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
- const tour=[...route,...validResources];
+ const validExitStops=exitRoutes.flatMap((r,ri)=>(r.points||[]).map((p,pi)=>({...p,kind:'exit-route-tour',exitRouteId:r.id,exitRouteName:r.name,exitPointIndex:pi,exitRouteIndex:ri,name:`${r.name} — ${pi===0?'INÍCIO':pi===r.points.length-1?'FIM':'Ponto '+(pi+1)}`})));
+ const tour=[...route,...validExitStops,...validResources];
+ validExitStops.forEach(p=>{const rr=exitRoutes.find(r=>r.id===p.exitRouteId);p.exitRouteLength=rr?.points?.length||0});
  activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
- toast('Sobrevoo iniciado: início do percurso, fim do percurso e equipes.');
+ toast('Sobrevoo iniciado: percurso principal, saídas das ambulâncias e equipes.');
  let i=0,previousTourPoint=null;
  const nextStop=()=>{
   if(!playing)return;
@@ -474,15 +476,20 @@ $('playBtn').onclick=()=>{
    const routeIndex=route.findIndex(x=>x.id===p.id);
    if(routeIndex===0)showTourName(p,'INÍCIO DO PERCURSO');
    else if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');
+  }else if(p.kind==='exit-route-tour'){
+   showTourName(p,`${p.exitRouteName.toUpperCase()} — ${p.exitPointIndex===0?'INÍCIO':p.exitPointIndex===p.exitRouteLength-1?'FIM':'PONTO '+(p.exitPointIndex+1)}`);
   }
   $('flightLabel').textContent=p.name;
   if(p.kind==='route'){
    const ri=route.findIndex(x=>x.id===p.id);
-   $('flightCount').textContent=`${Math.max(0,ri)+1}/${route.length}`;
+   $('flightCount').textContent=`Percurso ${Math.max(0,ri)+1}/${route.length}`;
    $('flightSlider').value=Math.max(0,ri);selectedId=p.id;selectPoint(p.id,false);
    map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1500,essential:true});
+  }else if(p.kind==='exit-route-tour'){
+   $('flightCount').textContent=`Saída ${p.exitRouteIndex+1}/${exitRoutes.length} · Ponto ${p.exitPointIndex+1}/${p.exitRouteLength}`;
+   map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1500,essential:true});
   }else{
-   $('flightCount').textContent=`Equipe ${i-route.length}/${validResources.length}`;
+   $('flightCount').textContent=`Equipe ${i-route.length-validExitStops.length}/${validResources.length}`;
    flyToResource(p);
   }
   playTimer=setTimeout(nextStop,3200);
