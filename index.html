@@ -402,8 +402,11 @@ function showTourName(p,label){
 function ensureAmbulanceMarker(){
  const routeToAnimate=exitRoutes.find(r=>r.points.length>=2);if(ambulanceMarker||!routeToAnimate)return;
  const el=document.createElement('div');el.className='ambulance-moving-icon';
- el.setAttribute('aria-label','Ambulância em deslocamento pela rota de saída');el.textContent='🚑';
- el.style.cssText='font-size:34px;line-height:1;filter:drop-shadow(0 2px 3px #000) drop-shadow(0 0 2px #fff);pointer-events:none;white-space:nowrap';
+ el.setAttribute('aria-label','Ambulância em deslocamento pela rota de saída');
+ el.style.cssText='width:108px;height:58px;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:visible';
+ const img=document.createElement('img');img.src='images/ambulancia.webp';img.alt='Ambulância de resgate do CBMSE';img.draggable=false;
+ img.style.cssText='display:block;width:108px;height:auto;max-height:58px;object-fit:contain;filter:drop-shadow(0 2px 3px #0008);pointer-events:none';
+ el.appendChild(img);
  ambulanceMarker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([Number(routeToAnimate.points[0].lng),Number(routeToAnimate.points[0].lat)]).addTo(map);
 }
 function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}}
