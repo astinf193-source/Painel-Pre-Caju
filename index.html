@@ -128,7 +128,7 @@ const initialRoute=[
  {id:'r4',name:'Eixo da avenida — trecho 04 (aprox.)',lng:-37.0409,lat:-10.9763,kind:'route'},
  {id:'r5',name:'FINAL DO PERCURSO — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
 ];
-let route=structuredClone(initialRoute), exitRoute=[], resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawExitRouteMode=false, drawnCoords=[], drawnExitCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
+let route=structuredClone(initialRoute), exitRoute=[], exitRoutes=[], resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawExitRouteMode=false, drawnCoords=[], drawnExitCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
 let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null, ambulanceMarker=null, ambulanceAnimationFrame=null;
 const $=id=>document.getElementById(id);
 const map=new maplibregl.Map({
@@ -163,11 +163,11 @@ async function writeDB(value,key=DB_RECORD){
  return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(value,key);tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error||new Error('Falha ao gravar'));tx.onabort=()=>reject(tx.error||new Error('Gravação cancelada'))});
 }
 function persist(){
- const snapshot={route:structuredClone(route),exitRoute:structuredClone(exitRoute),resources:structuredClone(resources),savedAt:new Date().toISOString()};
+ const snapshot={route:structuredClone(route),exitRoute:structuredClone(exitRoute),exitRoutes:structuredClone(exitRoutes),resources:structuredClone(resources),savedAt:new Date().toISOString()};
  // IndexedDB accommodates much larger records than localStorage, including team images.
  writeDB(snapshot).then(()=>{
   try{
-   const compact={route:snapshot.route,exitRoute:snapshot.exitRoute,resources:snapshot.resources.map(p=>{const q={...p};delete q.imageData;delete q.imageData2;return q})};
+   const compact={route:snapshot.route,exitRoute:snapshot.exitRoute,exitRoutes:snapshot.exitRoutes,resources:snapshot.resources.map(p=>{const q={...p};delete q.imageData;delete q.imageData2;return q})};
    localStorage.setItem(STORAGE_KEY,JSON.stringify(compact));
   }catch(e){}
  }).catch(()=>toast('Não foi possível salvar os dados localmente. Exporte o JSON para não perder os dados.'));
@@ -176,12 +176,12 @@ async function loadSaved(){
  let loaded=false;
  try{
   const saved=await readDB();
-  if(saved&&Array.isArray(saved.route)&&Array.isArray(saved.resources)){route=saved.route;exitRoute=Array.isArray(saved.exitRoute)?saved.exitRoute:[];resources=saved.resources;loaded=true}
+  if(saved&&Array.isArray(saved.route)&&Array.isArray(saved.resources)){route=saved.route;exitRoute=Array.isArray(saved.exitRoute)?saved.exitRoute:[];exitRoutes=Array.isArray(saved.exitRoutes)?saved.exitRoutes:(exitRoute.length?[{id:'exit-legacy',name:'Saída 1',points:exitRoute}]:[]);resources=saved.resources;loaded=true}
  }catch(e){}
  if(!loaded){
   try{
    const current=localStorage.getItem(STORAGE_KEY),v=current?JSON.parse(current):null;
-   if(v&&Array.isArray(v.route)&&Array.isArray(v.resources)){route=v.route;exitRoute=Array.isArray(v.exitRoute)?v.exitRoute:[];resources=v.resources;loaded=true}
+   if(v&&Array.isArray(v.route)&&Array.isArray(v.resources)){route=v.route;exitRoute=Array.isArray(v.exitRoute)?v.exitRoute:[];exitRoutes=Array.isArray(v.exitRoutes)?v.exitRoutes:(exitRoute.length?[{id:'exit-legacy',name:'Saída 1',points:exitRoute}]:[]);resources=v.resources;loaded=true}
    if(!loaded){
     const backup=localStorage.getItem(BACKUP_KEY),b=backup?JSON.parse(backup):null;
     if(b&&Array.isArray(b.route)&&Array.isArray(b.resources)){route=b.route;resources=b.resources;loaded=true;toast('Dados recuperados da cópia de segurança local.')}
@@ -201,10 +201,10 @@ function sourceData(){return {type:'FeatureCollection',features:allPoints().map(
 function updateMapData(){
  if(!map.isStyleLoaded())return;
  renderImageMarkers();
- if(exitRoute.length>=2)ensureAmbulanceMarker();else if(ambulanceMarker){ambulanceMarker.remove();ambulanceMarker=null;stopAmbulanceAnimation()}
+ if(exitRoutes.some(r=>r.points.length>=2))ensureAmbulanceMarker();else if(ambulanceMarker){ambulanceMarker.remove();ambulanceMarker=null;stopAmbulanceAnimation()}
  const line=map.getSource('route-line');if(line)line.setData({type:'Feature',geometry:{type:'LineString',coordinates:route.map(p=>[p.lng,p.lat])}});
  const pts=map.getSource('all-points');if(pts)pts.setData(sourceData());
-  const exitLine=map.getSource('ambulance-exit-line');if(exitLine)exitLine.setData({type:'Feature',geometry:{type:'LineString',coordinates:exitRoute.map(p=>[p.lng,p.lat])}});
+  const exitLine=map.getSource('ambulance-exit-line');if(exitLine)exitLine.setData({type:'Feature',geometry:{type:'MultiLineString',coordinates:exitRoutes.map(r=>r.points.map(p=>[p.lng,p.lat]))}});
 }
 function buildLayers(){
  if(map.getSource('route-line'))return;
@@ -309,7 +309,6 @@ map.on('load',()=>{buildLayers();renderList();map.fitBounds(route.reduce((b,p)=>
 map.on('click',e=>{
  if(drawExitRouteMode){
   drawnExitCoords.push({lng:e.lngLat.lng,lat:e.lngLat.lat});
-  exitRoute=drawnExitCoords.map((p,i)=>({...p,id:'exit'+i,name:i===0?'Saída das ambulâncias — início':(i===drawnExitCoords.length-1?'Saída das ambulâncias — destino':'Saída — ponto '+(i+1)),kind:'exit-route'}));
   updateMapData();$('drawExitRouteBtn').textContent=`✓ Concluir saída (${drawnExitCoords.length} pontos)`;
   toast('Ponto da rota de saída adicionado. Continue clicando ao longo do trajeto.');return;
  }
@@ -351,8 +350,9 @@ $('drawExitRouteBtn').onclick=()=>{
   if(drawnExitCoords.length<2){toast('Marque pelo menos dois pontos para a rota de saída.');return}
   drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();
   exitRoute=drawnExitCoords.map((p,i)=>({...p,id:'exit'+i,name:i===0?'Saída das ambulâncias — início':(i===drawnExitCoords.length-1?'Saída das ambulâncias — destino':'Saída — ponto '+(i+1)),kind:'exit-route'}));
+  exitRoutes.push({id:'exit-'+Date.now(),name:'Saída '+(exitRoutes.length+1),points:structuredClone(exitRoute)});
   persist();updateMapData();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';
-  toast('Rota de saída das ambulâncias salva neste navegador. Exporte o JSON para guardar uma cópia.');
+  toast('Saída '+exitRoutes.length+' salva. Você pode desenhar outra rota sem apagar as anteriores.');
  }
 };
 $('addModeBtn').onclick=()=>{addMode=!addMode;$('addModeBtn').textContent=addMode?'Clique no mapa…':'＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=addMode?'crosshair':'';toast(addMode?'Clique no local aproximado para cadastrar o recurso.':'Modo de cadastro cancelado.')};
@@ -400,16 +400,16 @@ function showTourName(p,label){
  tourNameMarker=new maplibregl.Marker({element:el,anchor:'bottom',offset:[0,-22]}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
 }
 function ensureAmbulanceMarker(){
- if(ambulanceMarker||exitRoute.length<2)return;
+ const routeToAnimate=exitRoutes.find(r=>r.points.length>=2);if(ambulanceMarker||!routeToAnimate)return;
  const el=document.createElement('div');el.className='ambulance-moving-icon';
  el.setAttribute('aria-label','Ambulância em deslocamento pela rota de saída');el.textContent='🚑';
  el.style.cssText='font-size:34px;line-height:1;filter:drop-shadow(0 2px 3px #000) drop-shadow(0 0 2px #fff);pointer-events:none;white-space:nowrap';
- ambulanceMarker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([Number(exitRoute[0].lng),Number(exitRoute[0].lat)]).addTo(map);
+ ambulanceMarker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([Number(routeToAnimate.points[0].lng),Number(routeToAnimate.points[0].lat)]).addTo(map);
 }
 function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}}
 function startAmbulanceAnimation(){
- stopAmbulanceAnimation();if(exitRoute.length<2)return;ensureAmbulanceMarker();if(!ambulanceMarker)return;
- const coords=exitRoute.map(p=>[Number(p.lng),Number(p.lat)]),lengths=[];let total=0;
+ stopAmbulanceAnimation();const routeToAnimate=exitRoutes.find(r=>r.points.length>=2);if(!routeToAnimate)return;ensureAmbulanceMarker();if(!ambulanceMarker)return;
+ const coords=routeToAnimate.points.map(p=>[Number(p.lng),Number(p.lat)]),lengths=[];let total=0;
  for(let i=1;i<coords.length;i++){const dx=(coords[i][0]-coords[i-1][0])*Math.cos(coords[i][1]*Math.PI/180),dy=coords[i][1]-coords[i-1][1],d=Math.hypot(dx,dy);lengths.push(d);total+=d}
  if(total===0)return;
  const duration=Math.max(9000,Math.min(22000,total*900000)),started=performance.now();
@@ -435,7 +435,7 @@ $('prevBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)
 $('nextBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)+1)};
 $('playBtn').onclick=()=>{
  if(playing){stopFlight();return}
- playing=true;$('playBtn').textContent='Ⅱ Pausar';if(exitRoute.length>=2)startAmbulanceAnimation();else toast('Desenhe a rota de saída com pelo menos dois pontos para animar a ambulância.');
+ playing=true;$('playBtn').textContent='Ⅱ Pausar';if(exitRoutes.some(r=>r.points.length>=2))startAmbulanceAnimation();else toast('Desenhe a rota de saída com pelo menos dois pontos para animar a ambulância.');
  const points=allPoints().filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
  if(points.length){
   const bounds=points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)]));
@@ -482,9 +482,9 @@ $('baseMapBtn').onclick=()=>{
 $('routeBtn').onclick=()=>map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:90,bottom:110,left:50,right:50},duration:1200});
 $('northBtn').onclick=()=>map.easeTo({bearing:0,pitch:0,duration:800});
 $('presentationBtn').onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){toast('Use F11 para ativar a tela cheia no navegador.')}};
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({project:'Painel Operacional Pré-Caju — CBMSE',status:'PROTOTIPO — VALIDAR PERCURSO E POSIÇÕES',exportedAt:new Date().toISOString(),route,exitRoute,resources},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='precaju-cbmse-dados.json';a.click();URL.revokeObjectURL(a.href);toast('JSON exportado.')};
-$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.route)||!Array.isArray(d.resources))throw Error('Formato inválido');if(!confirm('A importação substituirá o traçado e os recursos atuais neste navegador. Continuar?'))return;route=d.route;exitRoute=Array.isArray(d.exitRoute)?d.exitRoute:[];resources=d.resources;selectedId=route[0]?.id;persist();updateMapData();renderList();selectPoint(selectedId);toast('Dados importados.')}catch(err){toast('Não foi possível importar: arquivo JSON inválido.')}e.target.value=''};
-$('resetBtn').onclick=()=>{if(confirm('Restaurar o traçado preliminar e apagar os recursos locais deste protótipo?')){route=structuredClone(initialRoute);exitRoute=[];resources=[];selectedId=route[0].id;localStorage.removeItem(BACKUP_KEY);persist();updateMapData();renderList();selectPoint(selectedId,false);$('flightSlider').value=0;toast('Protótipo restaurado.')}};
+$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({project:'Painel Operacional Pré-Caju — CBMSE',status:'PROTOTIPO — VALIDAR PERCURSO E POSIÇÕES',exportedAt:new Date().toISOString(),route,exitRoute,exitRoutes,resources},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='precaju-cbmse-dados.json';a.click();URL.revokeObjectURL(a.href);toast('JSON exportado.')};
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.route)||!Array.isArray(d.resources))throw Error('Formato inválido');if(!confirm('A importação substituirá o traçado e os recursos atuais neste navegador. Continuar?'))return;route=d.route;exitRoute=Array.isArray(d.exitRoute)?d.exitRoute:[];exitRoutes=Array.isArray(d.exitRoutes)?d.exitRoutes:(exitRoute.length?[{id:'exit-legacy',name:'Saída 1',points:exitRoute}]:[]);resources=d.resources;selectedId=route[0]?.id;persist();updateMapData();renderList();selectPoint(selectedId);toast('Dados importados.')}catch(err){toast('Não foi possível importar: arquivo JSON inválido.')}e.target.value=''};
+$('resetBtn').onclick=()=>{if(confirm('Restaurar o traçado preliminar e apagar os recursos locais deste protótipo?')){route=structuredClone(initialRoute);exitRoute=[];exitRoutes=[];resources=[];selectedId=route[0].id;localStorage.removeItem(BACKUP_KEY);persist();updateMapData();renderList();selectPoint(selectedId,false);$('flightSlider').value=0;toast('Protótipo restaurado.')}};
 $('helpBtn').onclick=()=>alert('COMO USAR\\n\\n1. Use “Sobrevoar” ou o controle de pontos para percorrer a rota preliminar.\\n2. Clique em “Adicionar equipe no mapa” e depois clique no local desejado.\\n3. Preencha equipe, tipo, efetivo, viatura e missão.\\n4. Selecione um recurso na lista para localizar, editar ou excluir.\\n5. Use “Street View” para abrir o panorama da posição selecionada no Google Maps, sem chave de API.\\n6. Exporte o JSON para guardar os dados.\\n\\nATENÇÃO: o traçado é aproximado e não representa uma rota oficial validada. As posições cadastradas são apenas planejamento. Confirme todos os dados com a organização e a coordenação operacional do CBMSE.');
 
 function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.lng,name:p.name}}
