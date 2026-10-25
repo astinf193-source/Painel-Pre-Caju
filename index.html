@@ -189,12 +189,16 @@ async function loadSaved(){
    if(loaded)await writeDB({route,resources,savedAt:new Date().toISOString()});
   }catch(e){}
  }
- if(loaded&&map.isStyleLoaded()){
-  updateMapData();renderList();
-  if(!selected()||!allPoints().some(p=>p.id===selectedId))selectedId=route[0]?.id;
-  if(selectedId)selectPoint(selectedId,false);
-  const points=allPoints().filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
-  if(points.length)map.fitBounds(points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)])),{padding:{top:90,bottom:110,left:70,right:70},maxZoom:15.5,duration:500});
+ if(loaded){
+  const applySavedData=()=>{
+   updateMapData();renderList();
+   if(!selected()||!allPoints().some(p=>p.id===selectedId))selectedId=route[0]?.id;
+   if(selectedId)selectPoint(selectedId,false);
+   const points=allPoints().filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
+   if(points.length)map.fitBounds(points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)])),{padding:{top:90,bottom:110,left:70,right:70},maxZoom:15.5,duration:500});
+  };
+  if(map.isStyleLoaded())applySavedData();
+  else map.once('load',applySavedData);
  }
 }
 function sourceData(){return {type:'FeatureCollection',features:allPoints().map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.lng,p.lat]},properties:{id:p.id,name:p.kind==='route'?((p.id==='r0'||p.id==='r5')?(activeTourLabelId===p.id?(p.id==='r0'?'INÍCIO DO PERCURSO':'FIM DO PERCURSO'):''):p.name):(activeTourResourceId===p.id?p.name:''),kind:p.kind||'resource',type:p.type||''}}))}}
