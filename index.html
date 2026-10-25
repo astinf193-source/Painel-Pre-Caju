@@ -50,7 +50,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
   <div id="map">
     <div id="mapControls">
       <div class="mapnote"><strong>VISUALIZAÇÃO DE PLANEJAMENTO</strong><br>Traçado ainda não validado. Use “Desenhar percurso” e clique ponto a ponto sobre a avenida. Se as imagens ficarem indisponíveis ao aproximar, reduza o zoom. Para o mapa de ruas sem chave, publique o site em um endereço HTTP/HTTPS; abrir como arquivo local pode provocar bloqueio de tiles.</div>
-      <div class="maptools"><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="baseMapBtn">Mapa de ruas</button></div>
+      <div class="maptools"><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="clearExitRoutesBtn" class="danger">✕ Limpar saídas cadastradas</button><button id="baseMapBtn">Mapa de ruas</button></div>
     </div>
     <div id="playbar">
       <button id="prevBtn" title="Ponto anterior">◀</button><button id="playBtn" class="primary">▶ Sobrevoar</button><button id="nextBtn" title="Próximo ponto">▶|</button>
@@ -339,6 +339,7 @@ $('drawRouteBtn').onclick=()=>{
    toast('Percurso desenhado e salvo neste navegador. Exporte JSON para guardar uma cópia.');
  }
 };
+$('clearExitRoutesBtn').onclick=()=>{if(!exitRoutes.length&&!exitRoute.length){toast('Não há saídas cadastradas para limpar.');return}if(!confirm('Apagar todas as saídas de ambulâncias cadastradas? Essa ação não poderá ser desfeita.'))return;stopAmbulanceAnimation();if(ambulanceMarker){ambulanceMarker.remove();ambulanceMarker=null}exitRoutes=[];exitRoute=[];drawnExitCoords=[];persist();updateMapData();toast('Todas as saídas de ambulâncias foram removidas. Você já pode cadastrá-las novamente.');};
 $('drawExitRouteBtn').onclick=()=>{
  if(!drawExitRouteMode){
   stopFlight();drawExitRouteMode=true;drawnExitCoords=[];addMode=false;drawRouteMode=false;
@@ -403,9 +404,9 @@ function ensureAmbulanceMarker(){
  const routeToAnimate=exitRoutes.find(r=>r.points.length>=2);if(ambulanceMarker||!routeToAnimate)return;
  const el=document.createElement('div');el.className='ambulance-moving-icon';
  el.setAttribute('aria-label','Ambulância em deslocamento pela rota de saída');
- el.style.cssText='width:108px;height:58px;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:visible';
+ el.style.cssText='width:54px;height:30px;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:visible';
  const img=document.createElement('img');img.src='images/ambulancia.webp';img.alt='Ambulância de resgate do CBMSE';img.draggable=false;
- img.style.cssText='display:block;width:108px;height:auto;max-height:58px;object-fit:contain;filter:drop-shadow(0 2px 3px #0008);pointer-events:none';
+ img.style.cssText='display:block;width:54px;height:30px;object-fit:contain;filter:drop-shadow(0 1px 2px #0008);pointer-events:none';
  el.appendChild(img);
  ambulanceMarker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([Number(routeToAnimate.points[0].lng),Number(routeToAnimate.points[0].lat)]).addTo(map);
 }
@@ -422,6 +423,8 @@ function startAmbulanceAnimation(){
   while(segment<lengths.length-1&&target>lengths[segment]){target-=lengths[segment];segment++}
   const fraction=lengths[segment]?Math.max(0,Math.min(1,target/lengths[segment])):0,a=coords[segment],b=coords[segment+1];
   ambulanceMarker.setLngLat([a[0]+(b[0]-a[0])*fraction,a[1]+(b[1]-a[1])*fraction]);
+  const angle=Math.atan2(b[1]-a[1],(b[0]-a[0])*Math.cos(a[1]*Math.PI/180))*180/Math.PI;
+  ambulanceMarker.getElement().style.transform='rotate('+(-angle)+'deg)';
   ambulanceAnimationFrame=requestAnimationFrame(tick);
  };
  ambulanceAnimationFrame=requestAnimationFrame(tick);
