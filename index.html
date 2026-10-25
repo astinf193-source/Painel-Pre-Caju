@@ -72,8 +72,10 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 .dash-nav{display:flex;gap:6px;overflow:auto;padding:8px 0 10px}.dash-nav span{flex:1;white-space:nowrap;text-align:center;padding:8px 9px;border:1px solid #05b9ff;border-radius:9px;background:linear-gradient(180deg,#10528e,#06274e);box-shadow:inset 0 0 12px #00bfff2b;font-size:10px;font-weight:900}
 .dash-layout{display:grid;grid-template-columns:minmax(165px,.72fr) minmax(0,3.1fr);gap:10px}
 .dash-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-content:start}
-.dash-cat{min-height:87px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:4px;padding:8px 4px;border:1px solid #00bfff;border-radius:11px;background:linear-gradient(145deg,#10518a,#061a37);box-shadow:inset 0 0 12px #00c8ff30,0 0 7px #008eff26}
-.dash-cat .dash-symbol{font-size:22px;color:#45eaff;text-shadow:0 0 12px #00bfff}.dash-cat strong{font-size:9px;text-transform:uppercase;line-height:1.2}.dash-cat b{font-size:18px;color:#fff}.dash-cat small{font-size:9px;color:#b5d9ef}
+.dash-cat{min-height:112px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;gap:4px;padding:9px 4px;border:2px solid #009dff;border-radius:18px;background:linear-gradient(145deg,#0755a0,#061a37 70%);box-shadow:inset 0 0 12px #00c8ff40,0 0 8px #008eff45;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;color:#f7fcff}
+.dash-cat:hover,.dash-cat:focus-visible{transform:translateY(-2px);box-shadow:inset 0 0 16px #00c8ff55,0 0 14px #00bfff80;outline:none}
+.dash-cat.active{border-color:#8bf8ff;box-shadow:inset 0 0 18px #00c8ff70,0 0 18px #00d9ff99}
+.dash-cat .dash-symbol{display:grid;place-items:center;flex:1;width:100%;font-size:clamp(28px,3.2vw,44px);color:#45eaff;text-shadow:0 0 12px #00bfff}.dash-cat strong{display:block;width:100%;padding:8px 3px 5px;border-top:2px solid #00bfff;background:linear-gradient(135deg,#0879d5,#063367);font-size:9px;text-transform:uppercase;line-height:1.2}.dash-cat b{font-size:18px;color:#fff}.dash-cat small{font-size:9px;color:#b5d9ef}
 .dash-main{min-width:0;display:flex;flex-direction:column;gap:8px}
 .dash-section-title{display:flex;align-items:center;justify-content:center;gap:9px;padding:10px 8px;border:1px solid #00bfff;border-radius:11px;background:linear-gradient(110deg,#0a2b51,#135a96 50%,#092342);box-shadow:inset 0 0 15px #00bfff28;font-size:clamp(13px,1.35vw,18px);font-weight:950;letter-spacing:.4px;text-transform:uppercase}.dash-section-title span{color:#4ce9ff;font-size:19px}
 .dash-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
@@ -82,35 +84,9 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 .dash-reports{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.dash-report{display:flex;gap:8px;padding:9px;border:1px solid #168de0;border-radius:9px;background:linear-gradient(150deg,#0c2e54ef,#061a33f5);color:#d9effb;font-size:10px;line-height:1.35;min-width:0}.dash-report-mark{font-size:18px;color:#5ceaff}.dash-report strong{display:block;margin-bottom:3px;color:#62eaff;font-size:9px;text-transform:uppercase}.dash-report p{margin:0;overflow-wrap:anywhere}.dash-empty{color:#a8cce5;font-size:10px;line-height:1.4;padding:10px}
 .dash-bottom{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.dash-resource{padding:8px 5px;text-align:center;border:1px solid #168de0;border-radius:11px;background:linear-gradient(155deg,#124d82,#071d3a);box-shadow:inset 0 0 12px #00bfff26}.dash-resource .dash-symbol{font-size:22px}.dash-resource strong{display:block;margin:3px 0;font-size:9px;text-transform:uppercase}.dash-resource b{font-size:20px}.dash-resource small{display:block;font-size:8px;color:#b8d9ed}
 .dash-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px;color:#92bad5;font-size:9px}
-@media(max-width:760px){.dash-layout{grid-template-columns:1fr}.dash-categories{grid-template-columns:repeat(4,minmax(0,1fr))}.dash-reports{grid-template-columns:1fr}}
+.dash-occurrence-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.dash-occurrence{padding:9px;border:1px solid #078fe0;border-radius:9px;background:#082747;color:#e8f8ff;font-size:11px}.dash-occurrence strong{float:right;color:#52eaff;font-size:17px}.dash-occurrence button{margin-top:5px;padding:4px 8px;font-size:10px}
+@media(max-width:760px){.dash-layout{grid-template-columns:1fr}.dash-categories{grid-template-columns:repeat(5,minmax(0,1fr))}.dash-cat{min-height:85px;border-radius:12px}.dash-cat .dash-symbol{font-size:24px}.dash-cat strong{font-size:8px}.dash-reports{grid-template-columns:1fr}}
 @media(max-width:520px){.dash-head{align-items:flex-start;flex-direction:column}.dash-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-feature-grid{grid-template-columns:1fr}.dash-bottom{grid-template-columns:repeat(3,minmax(0,1fr))}.dash-nav span{padding:7px;font-size:9px}}
-
-
-/* Dashboard operacional — composição inspirada no exemplo enviado */
-#executiveDashboard{position:fixed;inset:0;z-index:7900;display:none;overflow:auto;padding:clamp(10px,1.5vw,22px);color:#f5fbff;background:radial-gradient(ellipse at top,#10385f 0,#061a32 58%,#031020 100%)}
-#executiveDashboard.open{display:block}
-.dash-wrap{max-width:1700px;margin:0 auto}
-.dash-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 4px 14px;border-bottom:1px solid #087fc0}
-.dash-brand{display:flex;align-items:center;gap:12px}.dash-crest{display:grid;place-items:center;width:48px;height:48px;border:2px solid #15caff;border-radius:50%;background:#09274a;box-shadow:0 0 16px #00baff66;font-size:24px}
-.dash-eyebrow{font-size:10px;font-weight:900;letter-spacing:1.5px;color:#57eaff}.dash-head h2{font-size:clamp(20px,2.4vw,32px);margin:3px 0;text-transform:uppercase;line-height:1.05}.dash-head p{margin:4px 0 0;color:#b7d8ed;font-size:11px}.dash-actions{display:flex;gap:7px;flex-wrap:wrap}
-.dash-nav{display:flex;gap:7px;overflow:auto;padding:10px 0 13px}.dash-nav span{white-space:nowrap;text-align:center;padding:9px 12px;border:1px solid #05b9ff;border-radius:10px;background:linear-gradient(180deg,#10528e,#06274e);box-shadow:inset 0 0 12px #00bfff2b;font-size:11px;font-weight:900}
-.dash-layout{display:grid;grid-template-columns:minmax(190px,.78fr) minmax(0,3fr);gap:12px}
-.dash-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}
-.dash-cat{min-height:105px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:5px;padding:10px 5px;border:1px solid #00bfff;border-radius:12px;background:linear-gradient(145deg,#10518a,#061a37);box-shadow:inset 0 0 12px #00c8ff30,0 0 7px #008eff26}
-.dash-cat .dash-symbol{font-size:25px;color:#45eaff;text-shadow:0 0 12px #00bfff}.dash-cat strong{font-size:10px;text-transform:uppercase;line-height:1.2}.dash-cat b{font-size:20px;color:#fff}.dash-cat small{font-size:9px;color:#b5d9ef}
-.dash-main{min-width:0;display:flex;flex-direction:column;gap:10px}
-.dash-section-title{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 8px;border:1px solid #00bfff;border-radius:12px;background:linear-gradient(110deg,#0a2b51,#135a96 50%,#092342);box-shadow:inset 0 0 15px #00bfff28;font-size:clamp(14px,1.5vw,20px);font-weight:950;letter-spacing:.5px;text-transform:uppercase}.dash-section-title span{color:#4ce9ff;font-size:20px}
-.dash-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.dash-kpi{position:relative;overflow:hidden;padding:13px;border:1px solid #00c3ff;border-radius:12px;background:linear-gradient(145deg,#104c81,#061d3b);box-shadow:inset 0 0 13px #00bfff30}
-.dash-kpi .kpi-label{font-size:10px;text-transform:uppercase;font-weight:900;letter-spacing:.4px;color:#c5eaff}.dash-kpi strong{display:block;margin:7px 0;font-size:clamp(25px,2.7vw,38px);line-height:1;color:#fff;text-shadow:0 0 12px #3bbcff66}.dash-kpi small{font-size:10px;color:#b5d9ef;line-height:1.35}
-.dash-lower{display:grid;grid-template-columns:1fr 1.2fr;gap:9px}.dash-panel{min-width:0;padding:13px;border:1px solid #079fe8;border-radius:12px;background:linear-gradient(150deg,#0c2e54ef,#061a33f5);box-shadow:inset 0 0 12px #00bfff20}.dash-panel h3{margin:0 0 10px;color:#f0fbff;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
-.dash-bars{display:flex;flex-direction:column;gap:9px}.dash-bar-row{display:grid;grid-template-columns:minmax(60px,1fr) minmax(35px,1.1fr) 22px;gap:7px;align-items:center;font-size:10px;color:#d6ecfa}.dash-track{height:8px;background:#09203c;border-radius:9px;overflow:hidden}.dash-track i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#087bff,#1ff0ff);box-shadow:0 0 9px #00d9ff88}
-.dash-reports{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow:auto}.dash-report{padding:8px;border-left:3px solid #2ee6ff;border-radius:4px;background:#0c3a62;color:#d9effb;font-size:10px;line-height:1.35}.dash-report strong{display:block;margin-bottom:3px;color:#62eaff;font-size:9px;text-transform:uppercase}.dash-empty{color:#a8cce5;font-size:10px;line-height:1.4}
-.dash-bottom{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.dash-resource{padding:10px 6px;text-align:center;border:1px solid #168de0;border-radius:12px;background:linear-gradient(155deg,#124d82,#071d3a);box-shadow:inset 0 0 12px #00bfff26}.dash-resource .dash-symbol{font-size:23px}.dash-resource strong{display:block;margin:4px 0;font-size:10px;text-transform:uppercase}.dash-resource b{font-size:22px}.dash-resource small{display:block;font-size:9px;color:#b8d9ed}
-.dash-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;color:#92bad5;font-size:9px}
-@media(max-width:850px){.dash-layout{grid-template-columns:1fr}.dash-categories{grid-template-columns:repeat(4,minmax(0,1fr))}.dash-lower{grid-template-columns:1fr}.dash-bottom{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:560px){.dash-head{align-items:flex-start;flex-direction:column}.dash-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-bottom{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-nav span{padding:8px}.dash-crest{width:42px;height:42px}}
-
 </style>
 </head>
 <body>
@@ -175,15 +151,17 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
  <div class="dash-wrap">
   <header class="dash-head"><div class="dash-brand"><div class="dash-crest">✚</div><div><div class="dash-eyebrow">CORPO DE BOMBEIROS MILITAR · SERGIPE</div><h2>Operação <span style="color:#35e5ff">Pré-Caju 2026</span></h2><p>Dashboard de acompanhamento operacional</p></div></div><div class="dash-actions"><button id="dashRefresh">↻ Atualizar</button><button id="dashClose" class="danger">Fechar ✕</button></div></header>
   <nav class="dash-nav" aria-label="Áreas operacionais"><span>⌂ VISÃO GERAL</span><span>♟ RECURSOS</span><span>⌖ PERCURSO</span><span>🚑 SAÍDAS DE AMBULÂNCIA</span></nav>
-  <div class="dash-layout"><aside class="dash-categories" id="dashCategories" aria-label="Categorias operacionais"></aside><section class="dash-main">
-   <div class="dash-section-title"><span>▥</span> Resumo da operação</div>
+  <div class="dash-layout"><aside class="dash-categories" id="dashCategories" aria-label="Categorias de ocorrências"></aside><section class="dash-main">
+   <div class="dash-section-title"><span>▥</span> <span id="dashMainTitle" style="color:#fff">Resumo da operação</span></div>
    <div class="dash-feature-grid">
     <div class="dash-feature"><div class="dash-feature-icon">♟</div><div class="dash-feature-content"><small>Total de recursos cadastrados</small><strong id="dashResources">0</strong><em>Equipes e recursos registrados</em></div></div>
     <div class="dash-feature"><div class="dash-feature-icon">⌖</div><div class="dash-feature-content"><small>Efetivo informado</small><strong id="dashStaff">—</strong><em id="dashStaffNote">Efetivo informado nos recursos</em></div></div>
     <div class="dash-feature"><div class="dash-feature-icon">🚑</div><div class="dash-feature-content"><small>Saídas de ambulância</small><strong id="dashExits">0</strong><em>Rotas com pelo menos dois pontos</em></div></div>
     <div class="dash-feature"><div class="dash-feature-icon">➤</div><div class="dash-feature-content"><small>Pontos do percurso</small><strong id="dashRoutePoints">0</strong><em>Pontos no percurso principal</em></div></div>
    </div>
-   <div class="dash-section-title"><span>▤</span> Relato das ocorrências / missões</div><div class="dash-reports" id="dashReports"></div><div class="dash-empty" id="dashReportsEmpty" style="display:none">Não há relatos ou missões informados nos recursos cadastrados.</div>
+   <div class="dash-section-title"><span>▤</span> <span id="dashReportTitle" style="color:#fff">Relato das ocorrências / missões</span></div>
+   <div class="dash-reports" id="dashReports"></div><div class="dash-empty" id="dashReportsEmpty" style="display:none">Não há relatos ou missões informados nos recursos cadastrados.</div>
+   <div id="dashOccurrenceDetails" style="display:none"><div class="dash-section-title" style="margin-top:8px">Ocorrências por categoria</div><div class="dash-occurrence-list" id="dashOccurrenceList"></div></div>
   </section></div>
   <div class="dash-section-title" style="margin:9px 0"><span>✚</span> Recursos empregados</div><div class="dash-bottom" id="dashResourcesBottom"></div>
   <div class="dash-foot"><span>Fonte: dados cadastrados no painel</span><span>Planejamento preliminar — validar informações com a coordenação operacional.</span></div>
@@ -632,23 +610,48 @@ $('northBtn').onclick=()=>map.easeTo({bearing:0,pitch:0,duration:800});
  
 
 const executiveDashboard=$('executiveDashboard');
+let selectedOccurrenceCategory='Todos';
+const occurrenceCategories=[
+ {name:'Boca de urna',icon:'📢',color:'#00c8ff',terms:['boca de urna']},
+ {name:'Desobediência',icon:'👥',color:'#ffe600',terms:['desobediência','desobediencia']},
+ {name:'Agressão física',icon:'🥊',color:'#ff1744',terms:['agressão','agressao','briga']},
+ {name:'Tumulto',icon:'👥',color:'#ff7a00',terms:['tumulto']},
+ {name:'Extravio de urna',icon:'🗳️',color:'#eafaff',terms:['extravio de urna']},
+ {name:'Lesão corporal',icon:'🩹',color:'#ffffff',terms:['lesão corporal','lesao corporal']},
+ {name:'Invasão',icon:'👥',color:'#bd6cff',terms:['invasão','invasao']},
+ {name:'APH',icon:'🚑',color:'#ff3030',terms:['aph','atendimento pré-hospitalar','atendimento pre-hospitalar']},
+ {name:'Princípio de incêndio',icon:'🔥',color:'#43e047',terms:['princípio de incêndio','principio de incendio','incêndio','incendio']},
+ {name:'Outro',icon:'•••',color:'#ffffff',terms:[]}
+];
+function occurrenceText(p){return [p.name,p.type,p.mission,p.notes,p.description,p.occurrence,p.category].filter(Boolean).join(' ').toLowerCase()}
+function getOccurrenceCount(cat){
+ if(cat.name==='Outro')return resources.filter(p=>{const s=occurrenceText(p);return !occurrenceCategories.filter(c=>c.name!=='Outro').some(c=>c.terms.some(term=>s.includes(term)))&&(String(p.mission||'').trim()||String(p.type||'').trim())}).length;
+ return resources.filter(p=>{const s=occurrenceText(p);return cat.terms.some(term=>s.includes(term))}).length;
+}
+function renderOccurrenceCategories(){
+ $('dashCategories').innerHTML=occurrenceCategories.map((c,i)=>'<button type="button" class="dash-cat '+(selectedOccurrenceCategory===c.name?'active':'')+'" data-occurrence="'+i+'" aria-pressed="'+(selectedOccurrenceCategory===c.name)+'"><span class="dash-symbol" style="color:'+c.color+'">'+c.icon+'</span><strong>'+safe(c.name)+'</strong><b>'+getOccurrenceCount(c)+'</b></button>').join('');
+ $('dashCategories').querySelectorAll('[data-occurrence]').forEach(b=>b.onclick=()=>{selectedOccurrenceCategory=occurrenceCategories[Number(b.dataset.occurrence)].name;renderOccurrenceCategories();renderOccurrenceDetails()});
+}
+function renderOccurrenceDetails(){
+ const cat=occurrenceCategories.find(c=>c.name===selectedOccurrenceCategory);
+ $('dashOccurrenceDetails').style.display='block';
+ $('dashMainTitle').textContent=cat?cat.name:'Resumo da operação';
+ $('dashReportTitle').textContent=cat?'Ocorrências: '+cat.name:'Relato das ocorrências / missões';
+ const matching=cat?resources.filter(p=>{const s=occurrenceText(p);return cat.name==='Outro'?!occurrenceCategories.filter(c=>c.name!=='Outro').some(c=>c.terms.some(term=>s.includes(term))):cat.terms.some(term=>s.includes(term))}):resources.filter(p=>String(p.mission||'').trim());
+ $('dashReports').innerHTML=matching.length?matching.map(p=>'<div class="dash-report"><div class="dash-report-mark">'+(cat?cat.icon:'▤')+'</div><div><strong>'+safe(p.name||'Recurso sem nome')+' · '+safe(p.type||'Recurso')+'</strong><p>'+safe(p.mission||p.notes||p.description||'Registro sem relato textual.')+'</p></div></div>').join(''):'';
+ $('dashReportsEmpty').style.display=matching.length?'none':'block';
+ $('dashReportsEmpty').textContent=cat?'Nenhuma ocorrência desta categoria foi identificada nos cadastros atuais.':'Não há relatos ou missões informados nos recursos cadastrados.';
+ $('dashOccurrenceList').innerHTML=occurrenceCategories.map(c=>'<div class="dash-occurrence">'+safe(c.name)+'<strong>'+getOccurrenceCount(c)+'</strong></div>').join('');
+}
 function refreshExecutiveDashboard(){
  const validExits=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2);
  const numericTeam=p=>{const s=String(p.team??'').trim();if(!s)return null;const n=Number(s);return Number.isFinite(n)&&n>=0?n:null};
- const knownStaff=resources.filter(p=>numericTeam(p)!==null);
- const staffTotal=knownStaff.reduce((n,p)=>n+numericTeam(p),0);
+ const knownStaff=resources.filter(p=>numericTeam(p)!==null),staffTotal=knownStaff.reduce((n,p)=>n+numericTeam(p),0);
  $('dashResources').textContent=resources.length.toLocaleString('pt-BR');
  $('dashStaff').textContent=knownStaff.length?staffTotal.toLocaleString('pt-BR'):'—';
  $('dashStaffNote').textContent=knownStaff.length?knownStaff.length+' de '+resources.length+' recursos com efetivo numérico':'Efetivo ainda não informado em formato numérico';
- $('dashExits').textContent=validExits.length.toLocaleString('pt-BR');
- $('dashRoutePoints').textContent=route.length.toLocaleString('pt-BR');
- const counts={};resources.forEach(p=>{const k=String(p.type||'Não classificado').trim()||'Não classificado';counts[k]=(counts[k]||0)+1});
- const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
- const symbolFor=name=>{const s=String(name).toLowerCase();if(/ambul|aph|saúde|medic/.test(s))return '🚑';if(/drone|aérea|aereo/.test(s))return '🚁';if(/aquát|aquat|embarca|marít/.test(s))return '🚤';if(/comando|coordena/.test(s))return '★';if(/viatura|terrest|auto/.test(s))return '🚒';if(/militar|equipe|guarni/.test(s))return '♟';return '✚'};
- $('dashCategories').innerHTML=entries.length?entries.map(([name,count])=>'<div class="dash-cat"><div class="dash-symbol">'+symbolFor(name)+'</div><strong>'+safe(name)+'</strong><b>'+count+'</b><small>recurso(s)</small></div>').join(''):'<div class="dash-empty">Nenhum recurso cadastrado.</div>';
- const reports=resources.filter(p=>String(p.mission||'').trim()).map(p=>({name:p.name||'Recurso sem nome',type:p.type||'Recurso',mission:p.mission}));
- $('dashReports').innerHTML=reports.map(p=>'<div class="dash-report"><div class="dash-report-mark">▤</div><div><strong>'+safe(p.name)+' · '+safe(p.type)+'</strong><p>'+safe(p.mission)+'</p></div></div>').join('');
- $('dashReportsEmpty').style.display=reports.length?'none':'block';
+ $('dashExits').textContent=validExits.length.toLocaleString('pt-BR');$('dashRoutePoints').textContent=route.length.toLocaleString('pt-BR');
+ renderOccurrenceCategories();renderOccurrenceDetails();
  const types=[['🚒','Terrestre',/terrest|viatura|auto/],['🚁','Drone',/drone|aérea|aereo/],['🚤','Aquática',/aquát|aquat|embarca|marít/],['♟','Militares',/militar|equipe|guarni/],['＋','Outros',null]];
  $('dashResourcesBottom').innerHTML=types.map(([icon,label,re])=>{const n=resources.filter(p=>re?re.test(String(p.type||'')):!types.slice(0,4).some(x=>x[2].test(String(p.type||'')))).length;return '<div class="dash-resource"><div class="dash-symbol">'+icon+'</div><strong>'+label+'</strong><b>'+n+'</b><small>recurso(s)</small></div>'}).join('');
 }
