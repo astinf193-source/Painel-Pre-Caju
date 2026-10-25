@@ -62,22 +62,31 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 @media(max-width:700px){.pres-cards{grid-template-columns:1fr}.pres-slide h2{font-size:34px}.pres-bottom{align-items:flex-start;flex-direction:column}#institutionalPresentation{padding:18px}}
 
 
-#executiveDashboard{position:fixed;inset:0;z-index:7900;display:none;overflow:auto;background:radial-gradient(ellipse at top right,#173e55 0,#091b29 52%,#06131e 100%);padding:clamp(16px,3vw,38px);color:#f4f8fb}
+/* Dashboard operacional inspirada no painel de referência Eleições 2026 */
+#executiveDashboard{position:fixed;inset:0;z-index:7900;display:none;overflow:auto;padding:clamp(10px,1.7vw,24px);color:#f4fbff;background:radial-gradient(ellipse at 50% 0,#123b64 0,#071b34 48%,#041020 100%)}
 #executiveDashboard.open{display:block}
-.dash-wrap{max-width:1500px;margin:0 auto}.dash-head{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid #31556a;padding-bottom:20px;margin-bottom:22px}
-.dash-eyebrow{font-size:11px;letter-spacing:2px;font-weight:800;color:#ffc857}.dash-head h2{font-size:clamp(25px,4vw,42px);margin:8px 0}.dash-head p{margin:0;color:#a9bfce;font-size:13px;line-height:1.5}
-.dash-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.dash-kpi{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(26,65,86,.92),rgba(10,31,45,.98));border:1px solid #34586c;border-radius:14px;padding:20px;min-height:140px}
-.dash-kpi:after{content:"";position:absolute;width:90px;height:90px;right:-25px;top:-25px;border:1px solid #72d2f233;border-radius:50%;box-shadow:0 0 0 12px #72d2f20b,0 0 0 24px #72d2f207}
-.dash-kpi .kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#b5ccda;font-weight:750}
-.dash-kpi strong{display:block;font-size:clamp(32px,4vw,48px);line-height:1.1;margin:14px 0 8px;color:#fff;font-variant-numeric:tabular-nums}
-.dash-kpi small{color:#9fb7c6;font-size:11px;line-height:1.4}.dash-lower{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-top:14px}
-.dash-panel{background:#0b2231dd;border:1px solid #294b60;border-radius:14px;padding:20px;min-width:0}.dash-panel h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#d6e8f2;margin:0 0 16px}
-.dash-bars{display:flex;flex-direction:column;gap:13px}.dash-bar-row{display:grid;grid-template-columns:minmax(80px,1fr) minmax(60px,2fr) 34px;gap:10px;align-items:center;font-size:12px;color:#c5d9e5}.dash-track{height:8px;background:#18384a;border-radius:8px;overflow:hidden}.dash-track i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#2478ff,#72d2f2)}
-.dash-list{display:flex;flex-direction:column;gap:0}.dash-list-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #254456;font-size:12px;color:#c5d9e5}.dash-list-row:last-child{border-bottom:0}.dash-list-row strong{color:#fff;text-align:right}
-.dash-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px;color:#91aab9;font-size:11px}.dash-actions{display:flex;gap:8px;flex-wrap:wrap}
-@media(max-width:900px){.dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-lower{grid-template-columns:1fr}}
-@media(max-width:500px){.dash-grid{grid-template-columns:1fr}.dash-head{align-items:flex-start;flex-direction:column}.dash-kpi{min-height:115px}}
+.dash-wrap{max-width:1600px;margin:0 auto}
+.dash-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 4px 18px;border-bottom:1px solid #126aa8}
+.dash-brand{display:flex;align-items:center;gap:14px}.dash-crest{display:grid;place-items:center;width:58px;height:58px;border:2px solid #19c9ff;border-radius:50%;background:linear-gradient(145deg,#143e70,#071629);box-shadow:0 0 18px #00baff66;font-size:27px}
+.dash-eyebrow{font-size:10px;font-weight:900;letter-spacing:2px;color:#52e6ff}.dash-head h2{font-size:clamp(22px,3vw,38px);margin:4px 0;text-transform:uppercase;line-height:1.05}.dash-head p{margin:5px 0 0;color:#badcf3;font-size:12px}.dash-actions{display:flex;gap:8px;flex-wrap:wrap}
+.dash-nav{display:flex;gap:8px;overflow:auto;padding:13px 0 16px}.dash-nav span{white-space:nowrap;padding:10px 15px;border:1px solid #1688d5;border-radius:9px;background:linear-gradient(180deg,#12528d,#082448);box-shadow:inset 0 0 12px #00baff30;font-size:11px;font-weight:900;letter-spacing:.5px}
+.dash-layout{display:grid;grid-template-columns:minmax(190px,.82fr) minmax(0,2.8fr);gap:14px}
+.dash-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;align-content:start}
+.dash-cat{min-height:112px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:7px;padding:12px 7px;border:1px solid #159cf2;border-radius:13px;background:linear-gradient(145deg,#103d72,#061a36);box-shadow:inset 0 0 12px #00c8ff30,0 0 8px #008eff26}
+.dash-cat .dash-symbol{font-size:27px;color:#39e6ff;text-shadow:0 0 12px #00bfff}.dash-cat strong{font-size:11px;text-transform:uppercase;line-height:1.2}.dash-cat b{font-size:21px;color:#fff}.dash-cat small{font-size:10px;color:#b5d9ef}
+.dash-main{min-width:0;display:flex;flex-direction:column;gap:12px}
+.dash-section-title{display:flex;align-items:center;justify-content:center;gap:12px;padding:13px 10px;border:1px solid #159cf2;border-radius:12px;background:linear-gradient(110deg,#0a2b51,#135a96 50%,#092342);box-shadow:inset 0 0 15px #00bfff28;font-size:clamp(14px,1.6vw,21px);font-weight:950;letter-spacing:.7px;text-transform:uppercase}
+.dash-section-title span{color:#4ce9ff;font-size:22px}
+.dash-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.dash-kpi{position:relative;overflow:hidden;padding:15px;border:1px solid #0eb9fa;border-radius:12px;background:linear-gradient(145deg,#104c81,#061d3b);box-shadow:inset 0 0 13px #00bfff30}
+.dash-kpi .kpi-label{font-size:10px;text-transform:uppercase;font-weight:900;letter-spacing:.6px;color:#c5eaff}.dash-kpi strong{display:block;margin:8px 0;font-size:clamp(25px,3vw,40px);line-height:1;color:#fff;text-shadow:0 0 12px #3bbcff66}.dash-kpi small{font-size:10px;color:#b5d9ef;line-height:1.4}
+.dash-lower{display:grid;grid-template-columns:1fr 1.25fr;gap:10px}.dash-panel{min-width:0;padding:15px;border:1px solid #149ce6;border-radius:12px;background:linear-gradient(150deg,#0c2e54eF,#061a33f5);box-shadow:inset 0 0 12px #00bfff20}.dash-panel h3{margin:0 0 12px;color:#f0fbff;font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+.dash-bars{display:flex;flex-direction:column;gap:10px}.dash-bar-row{display:grid;grid-template-columns:minmax(70px,1fr) minmax(45px,1.2fr) 25px;gap:8px;align-items:center;font-size:10px;color:#d6ecfa}.dash-track{height:8px;background:#09203c;border-radius:9px;overflow:hidden}.dash-track i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#087bff,#1ff0ff);box-shadow:0 0 9px #00d9ff88}
+.dash-reports{display:flex;flex-direction:column;gap:8px;max-height:230px;overflow:auto}.dash-report{padding:9px 10px;border-left:3px solid #2ee6ff;border-radius:4px;background:#0c3a62;color:#d9effb;font-size:11px;line-height:1.4}.dash-report strong{display:block;margin-bottom:4px;color:#62eaff;font-size:10px;text-transform:uppercase}.dash-empty{color:#a8cce5;font-size:11px;line-height:1.5}
+.dash-bottom{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.dash-resource{padding:13px 8px;text-align:center;border:1px solid #168de0;border-radius:12px;background:linear-gradient(155deg,#124d82,#071d3a);box-shadow:inset 0 0 12px #00bfff26}.dash-resource .dash-symbol{font-size:24px}.dash-resource strong{display:block;margin:5px 0 3px;font-size:11px;text-transform:uppercase}.dash-resource b{font-size:25px}.dash-resource small{display:block;font-size:9px;color:#b8d9ed}
+.dash-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;color:#92bad5;font-size:10px}
+@media(max-width:900px){.dash-layout{grid-template-columns:1fr}.dash-categories{grid-template-columns:repeat(4,minmax(0,1fr))}.dash-lower{grid-template-columns:1fr}.dash-bottom{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.dash-head{align-items:flex-start;flex-direction:column}.dash-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-bottom{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-nav span{padding:8px 10px}.dash-crest{width:46px;height:46px}}
 
 </style>
 </head>
@@ -87,7 +96,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 <header>
   <div class="crest">✚</div>
   <div class="brand"><h1>PRÉ-CAJU 2026 | CBMSE</h1><p>PAINEL DE PLANEJAMENTO OPERACIONAL</p></div>
-  <div class="header-right"><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Indicadores</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
+  <div class="header-right"><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Dashboard</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
 </header>
 <main>
   <div id="map">
@@ -139,20 +148,32 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 </div>
 <div id="toast"></div>
 
-<div id="executiveDashboard" aria-label="Painel executivo de indicadores operacionais">
+<div id="executiveDashboard" aria-label="Dashboard operacional Pré-Caju 2026">
  <div class="dash-wrap">
-  <div class="dash-head"><div><div class="dash-eyebrow">CBMSE · PAINEL EXECUTIVO</div><h2>Visão Operacional <span style="color:#ffc857">Pré-Caju 2026</span></h2><p>Resumo dos recursos cadastrados para planejamento e apresentação de comando.</p></div><div class="dash-actions"><button id="dashRefresh">↻ Atualizar indicadores</button><button id="dashClose" class="danger">Fechar ✕</button></div></div>
-  <div class="dash-grid">
-   <div class="dash-kpi"><div class="kpi-label">Recursos cadastrados</div><strong id="dashResources">0</strong><small>Equipes e recursos registrados no painel</small></div>
-   <div class="dash-kpi"><div class="kpi-label">Efetivo informado</div><strong id="dashStaff">—</strong><small id="dashStaffNote">Soma dos efetivos preenchidos</small></div>
-   <div class="dash-kpi"><div class="kpi-label">Saídas de ambulância</div><strong id="dashExits">0</strong><small>Rotas com pelo menos dois pontos</small></div>
-   <div class="dash-kpi"><div class="kpi-label">Pontos do percurso</div><strong id="dashRoutePoints">0</strong><small>Pontos cadastrados no percurso principal</small></div>
+  <header class="dash-head">
+   <div class="dash-brand"><div class="dash-crest">✚</div><div><div class="dash-eyebrow">CORPO DE BOMBEIROS MILITAR · SERGIPE</div><h2>Operação <span style="color:#35e5ff">Pré-Caju 2026</span></h2><p>Dashboard de acompanhamento e planejamento operacional</p></div></div>
+   <div class="dash-actions"><button id="dashRefresh">↻ Atualizar</button><button id="dashClose" class="danger">Fechar ✕</button></div>
+  </header>
+  <nav class="dash-nav" aria-label="Seções da dashboard"><span>⌂ VISÃO GERAL</span><span>♟ RECURSOS</span><span>⌖ PERCURSO PRINCIPAL</span><span>🚑 SAÍDAS DE AMBULÂNCIA</span><span>▤ RELATOS OPERACIONAIS</span></nav>
+  <div class="dash-layout">
+   <aside class="dash-categories" id="dashCategories" aria-label="Distribuição de recursos"></aside>
+   <section class="dash-main">
+    <div class="dash-section-title"><span>▥</span> Resumo da operação</div>
+    <div class="dash-kpis">
+     <div class="dash-kpi"><div class="kpi-label">Recursos cadastrados</div><strong id="dashResources">0</strong><small>Equipes e recursos registrados no painel</small></div>
+     <div class="dash-kpi"><div class="kpi-label">Efetivo informado</div><strong id="dashStaff">—</strong><small id="dashStaffNote">Efetivo cadastrado nos recursos</small></div>
+     <div class="dash-kpi"><div class="kpi-label">Saídas de ambulância</div><strong id="dashExits">0</strong><small>Traçados com pelo menos dois pontos</small></div>
+     <div class="dash-kpi"><div class="kpi-label">Pontos do percurso</div><strong id="dashRoutePoints">0</strong><small>Pontos no percurso principal</small></div>
+    </div>
+    <div class="dash-lower">
+     <section class="dash-panel"><h3>Distribuição por tipo de recurso</h3><div class="dash-bars" id="dashTypeBars"></div><p class="dash-empty" id="dashTypeEmpty" style="display:none">Ainda não há recursos classificados. Cadastre os recursos no mapa para compor esta visualização.</p></section>
+     <section class="dash-panel"><h3>Relatos e missões cadastradas</h3><div class="dash-reports" id="dashReports"></div><p class="dash-empty" id="dashReportsEmpty" style="display:none">Nenhuma missão ou observação foi informada nos recursos cadastrados.</p></section>
+    </div>
+   </section>
   </div>
-  <div class="dash-lower">
-   <section class="dash-panel"><h3>Distribuição por tipo de recurso</h3><div class="dash-bars" id="dashTypeBars"></div><p class="small" id="dashTypeEmpty" style="display:none">Cadastre equipes e classifique o tipo de recurso para visualizar a distribuição.</p></section>
-   <section class="dash-panel"><h3>Composição operacional</h3><div class="dash-list" id="dashComposition"></div></section>
-  </div>
-  <div class="dash-foot"><span>Fonte: dados cadastrados neste navegador · Atualizado sob demanda</span><span>Indicadores de planejamento — confirmar com a coordenação operacional.</span></div>
+  <div class="dash-section-title" style="margin:12px 0"><span>✚</span> Recursos operacionais cadastrados</div>
+  <div class="dash-bottom" id="dashResourcesBottom"></div>
+  <div class="dash-foot"><span>Fonte: informações cadastradas neste navegador · Atualização sob demanda</span><span>Planejamento preliminar — validar dados e posições com a coordenação operacional.</span></div>
  </div>
 </div>
  
@@ -600,23 +621,25 @@ $('northBtn').onclick=()=>map.easeTo({bearing:0,pitch:0,duration:800});
 const executiveDashboard=$('executiveDashboard');
 function refreshExecutiveDashboard(){
  const validExits=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2);
- const knownStaff=resources.filter(p=>String(p.team??'').trim()!==''&&Number.isFinite(Number(p.team)));
- const staffTotal=knownStaff.reduce((n,p)=>n+Math.max(0,Number(p.team)||0),0);
- $('dashResources').textContent=resources.length;
+ const numericTeam=p=>{const s=String(p.team??'').trim();if(!s)return null;const n=Number(s);return Number.isFinite(n)&&n>=0?n:null};
+ const knownStaff=resources.filter(p=>numericTeam(p)!==null);
+ const staffTotal=knownStaff.reduce((n,p)=>n+numericTeam(p),0);
+ $('dashResources').textContent=resources.length.toLocaleString('pt-BR');
  $('dashStaff').textContent=knownStaff.length?staffTotal.toLocaleString('pt-BR'):'—';
- $('dashStaffNote').textContent=knownStaff.length?knownStaff.length+' de '+resources.length+' recursos com efetivo informado':'Efetivo ainda não informado';
- $('dashExits').textContent=validExits.length;
- $('dashRoutePoints').textContent=route.length;
+ $('dashStaffNote').textContent=knownStaff.length?knownStaff.length+' de '+resources.length+' recursos com efetivo numérico':'Efetivo ainda não informado em formato numérico';
+ $('dashExits').textContent=validExits.length.toLocaleString('pt-BR');
+ $('dashRoutePoints').textContent=route.length.toLocaleString('pt-BR');
  const counts={};resources.forEach(p=>{const k=String(p.type||'Não classificado').trim()||'Não classificado';counts[k]=(counts[k]||0)+1});
  const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);const max=Math.max(1,...entries.map(x=>x[1]));
+ const symbolFor=name=>{const s=String(name).toLowerCase();if(/ambul|aph|saúde|medic/.test(s))return '🚑';if(/drone|aérea|aereo/.test(s))return '🚁';if(/aquát|aquat|embarca|marít/.test(s))return '🚤';if(/comando|coordena/.test(s))return '★';if(/viatura|terrest|auto/.test(s))return '🚒';if(/militar|equipe|guarni/.test(s))return '♟';return '✚'};
+ $('dashCategories').innerHTML=entries.length?entries.map(([name,count])=>'<div class="dash-cat"><div class="dash-symbol">'+symbolFor(name)+'</div><strong>'+safe(name)+'</strong><b>'+count+'</b><small>recurso(s)</small></div>').join(''):'<div class="dash-empty">Nenhum recurso cadastrado.</div>';
  $('dashTypeBars').innerHTML=entries.map(([name,count])=>'<div class="dash-bar-row"><span title="'+safe(name)+'">'+safe(name)+'</span><div class="dash-track"><i style="width:'+(count/max*100)+'%"></i></div><strong>'+count+'</strong></div>').join('');
  $('dashTypeEmpty').style.display=entries.length?'none':'block';
- const withVehicle=resources.filter(p=>String(p.vehicle||'').trim()).length;
- const withMission=resources.filter(p=>String(p.mission||'').trim()).length;
- const missingStaff=resources.length-knownStaff.length;
- const exitPoints=validExits.reduce((n,r)=>n+r.points.length,0);
- const rows=[['Recursos com viatura informada',withVehicle],['Recursos com missão informada',withMission],['Recursos sem efetivo informado',missingStaff],['Pontos nas saídas de ambulância',exitPoints],['Pontos no percurso principal',route.length]];
- $('dashComposition').innerHTML=rows.map(([label,value])=>'<div class="dash-list-row"><span>'+label+'</span><strong>'+value+'</strong></div>').join('');
+ const reports=resources.filter(p=>String(p.mission||'').trim()).map(p=>({name:p.name||'Recurso sem nome',type:p.type||'Recurso',mission:p.mission}));
+ $('dashReports').innerHTML=reports.map(p=>'<div class="dash-report"><strong>'+safe(p.name)+' · '+safe(p.type)+'</strong>'+safe(p.mission)+'</div>').join('');
+ $('dashReportsEmpty').style.display=reports.length?'none':'block';
+ const types=[['🚒','Terrestre',/terrest|viatura|auto/],['🚁','Drone',/drone|aérea|aereo/],['🚤','Aquática',/aquát|aquat|embarca|marít/],['♟','Militares',/militar|equipe|guarni/],['＋','Outros',null]];
+ $('dashResourcesBottom').innerHTML=types.map(([icon,label,re])=>{const n=resources.filter(p=>re?re.test(String(p.type||'')):!types.slice(0,4).some(x=>x[2].test(String(p.type||'')))).length;return '<div class="dash-resource"><div class="dash-symbol">'+icon+'</div><strong>'+label+'</strong><b>'+n+'</b><small>recurso(s) cadastrado(s)</small></div>'}).join('');
 }
 $('dashboardBtn').onclick=()=>{refreshExecutiveDashboard();executiveDashboard.classList.add('open');document.body.style.overflow='hidden'};
 $('dashClose').onclick=()=>{executiveDashboard.classList.remove('open');document.body.style.overflow=''};
