@@ -105,7 +105,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 </style>
 </head>
 <body>
-<div id="openingOverlay" aria-label="Abertura Pré-Caju 2026"><video id="openingVideo" autoplay muted playsinline preload="auto"><source src="videos/abertura.mp4" type="video/mp4">Seu navegador não consegue reproduzir este vídeo.</video><button id="skipOpening" type="button">Entrar no painel ⟶</button></div>
+<div id="openingOverlay" aria-label="Abertura Pré-Caju 2026"><video id="openingVideo" autoplay muted playsinline preload="auto"><source src="videos/abertura.mp4" type="video/mp4">Seu navegador não consegue reproduzir este vídeo.</video><button id="skipOpening" type="button" onclick="document.getElementById(\'openingOverlay\').classList.add(\'hidden\');document.body.style.overflow=\'auto\'">Entrar no painel ⟶</button></div>
 <div id="app">
 <header>
   <div class="crest">✚</div>
