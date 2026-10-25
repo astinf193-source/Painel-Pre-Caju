@@ -84,6 +84,10 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 .dash-cat:nth-child(8)::before{background-image:url('https://www.ilnazionale.it/fileadmin/archivio/ilnazionale/immagini/imported/www.targatocn.it_fileadmin_archivio_campioni_vigili_fuoco.jpg.jpeg')}
 .dash-cat:nth-child(9)::before{background-image:url('https://www.imprensananet.com.br/painel/modulos/artigos/images/1740858312IMG-20250301-WA0397.jpg')}
 .dash-cat:hover,.dash-cat:focus-visible{transform:translateY(-2px);box-shadow:0 0 18px #00bfffaa;outline:none}.dash-cat:hover::before{transform:scale(1.05)}.dash-cat.active{border-color:#b7fbff;box-shadow:inset 0 0 18px #00c8ff70,0 0 20px #00d9ffcc}
+.dash-card-photo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(2,12,28,.12),rgba(2,12,28,.28) 55%,rgba(2,12,28,.8));color:#d8f5ff;text-align:center;padding:8px;font:900 11px Inter,Arial,sans-serif;letter-spacing:.5px;text-transform:uppercase;text-shadow:0 2px 6px #000}
+.dash-card-photo:empty{display:none}
+.dash-card-photo img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.dash-card-photo span{position:relative;z-index:1;background:#031b36c9;border:1px dashed #52dfff;border-radius:6px;padding:8px}
 .dash-cat .dash-symbol{display:none}.dash-cat strong{position:relative;display:flex;align-items:center;justify-content:space-between;gap:4px;width:100%;min-height:44px;padding:7px 10px;border-top:2px solid #00bfff;background:linear-gradient(110deg,rgba(4,35,78,.98),rgba(2,19,49,.97));font-size:clamp(9px,.95vw,14px);text-transform:uppercase;line-height:1.15;text-shadow:0 1px 3px #000}.dash-cat b{font-size:clamp(17px,2.2vw,32px);color:#fff;margin-left:4px;text-shadow:0 2px 5px #000}.dash-cat small{font-size:9px;color:#b5d9ef}
 .dash-main{min-width:0;display:flex;flex-direction:column;gap:8px}
 .dash-section-title{display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:10px 12px;border:1px solid #00bfff;border-radius:10px;background:linear-gradient(100deg,#052449,#0b3968 65%,#061d3c);box-shadow:inset 0 0 15px #00bfff28;font-size:clamp(13px,1.35vw,21px);font-weight:950;letter-spacing:.4px;text-transform:uppercase;text-shadow:0 2px 4px #000}.dash-section-title>span:first-child{color:#32eaff;font-size:24px}
@@ -641,9 +645,22 @@ function getOccurrenceCount(cat){
  if(cat.name==='Outras')return all.filter(p=>{const s=occurrenceText(p);return !occurrenceCategories.filter(c=>c.name!=='Outras').some(c=>c.terms.some(term=>s.includes(term)))}).length;
  return all.filter(p=>{const s=occurrenceText(p);return cat.terms.some(term=>s.includes(term))}).length;
 }
+function getDashCardImageKey(name){return 'precaju_card_image_'+name.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_')}
+function openDashCardImagePicker(cat){
+ const key=getDashCardImageKey(cat.name);
+ let oldSrc='';try{oldSrc=localStorage.getItem(key)||''}catch(e){}
+ const modal=document.createElement('div');modal.style.cssText='position:fixed;inset:0;z-index:10020;background:#000c;display:flex;align-items:center;justify-content:center;padding:18px';
+ modal.innerHTML='<div style="width:min(440px,100%);background:#071d38;border:1px solid #00caff;border-radius:14px;padding:20px;box-shadow:0 0 25px #00aaff66;color:#f5fbff;font-family:Inter,Arial,sans-serif"><h2 style="margin:0 0 8px;font-size:19px">Imagem do card · '+safe(cat.name)+'</h2><p style="color:#b9d9ec;font-size:12px;line-height:1.5">Selecione uma imagem do computador. Ela será usada somente neste card, neste navegador.</p><input id="dashCardImageFile" type="file" accept="image/*" style="width:100%;margin:10px 0;color:#eaf7ff"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" id="dashCardImageSave" class="primary">Aplicar imagem</button><button type="button" id="dashCardImageClear">Remover imagem</button><button type="button" id="dashCardImageCancel">Cancelar</button></div><p id="dashCardImageError" style="font-size:11px;color:#ffd2a8;margin:10px 0 0"></p></div>';
+ document.body.appendChild(modal);
+ const close=()=>modal.remove();
+ modal.querySelector('#dashCardImageCancel').onclick=close;
+ modal.querySelector('#dashCardImageClear').onclick=()=>{try{localStorage.removeItem(key)}catch(e){}close();renderOccurrenceCategories();};
+ modal.querySelector('#dashCardImageSave').onclick=()=>{const file=modal.querySelector('#dashCardImageFile').files[0];if(!file){modal.querySelector('#dashCardImageError').textContent='Escolha um arquivo de imagem primeiro.';return}if(!file.type.startsWith('image/')){modal.querySelector('#dashCardImageError').textContent='Selecione um arquivo de imagem válido.';return}if(file.size>4*1024*1024){modal.querySelector('#dashCardImageError').textContent='A imagem deve ter até 4 MB.';return}const reader=new FileReader();reader.onload=()=>{try{localStorage.setItem(key,String(reader.result));close();renderOccurrenceCategories()}catch(e){modal.querySelector('#dashCardImageError').textContent='Não foi possível guardar a imagem. Tente uma imagem menor.'}};reader.readAsDataURL(file)};
+}
 function renderOccurrenceCategories(){
- $('dashCategories').innerHTML=occurrenceCategories.map((c,i)=>'<button type="button" class="dash-cat '+(selectedOccurrenceCategory===c.name?'active':'')+'" data-occurrence="'+i+'" aria-pressed="'+(selectedOccurrenceCategory===c.name)+'"><span class="dash-symbol" style="color:'+c.color+'">'+c.icon+'</span><strong><span>'+safe(c.name)+'</span><b>'+getOccurrenceCount(c)+'</b></strong></button>').join('');
+ $('dashCategories').innerHTML=occurrenceCategories.map((c,i)=>{const key=getDashCardImageKey(c.name);let src='';try{src=localStorage.getItem(key)||''}catch(e){}const photo=src?'<img src="'+src.replace(/"/g,'&quot;')+'" alt="Imagem de '+safe(c.name)+'">':'<span>＋ Inserir imagem<br>'+safe(c.name)+'</span>';return '<button type="button" class="dash-cat '+(selectedOccurrenceCategory===c.name?'active':'')+'" data-occurrence="'+i+'" aria-pressed="'+(selectedOccurrenceCategory===c.name)+'"><span class="dash-symbol" style="color:'+c.color+'">'+c.icon+'</span><span class="dash-card-photo" data-photo="'+i+'">'+photo+'</span><strong><span>'+safe(c.name)+'</span><b>'+getOccurrenceCount(c)+'</b></strong></button>'}).join('');
  $('dashCategories').querySelectorAll('[data-occurrence]').forEach(b=>b.onclick=()=>{selectedOccurrenceCategory=occurrenceCategories[Number(b.dataset.occurrence)].name;renderOccurrenceCategories();renderOccurrenceDetails()});
+ $('dashCategories').querySelectorAll('.dash-card-photo').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const idx=Number(el.dataset.photo),cat=occurrenceCategories[idx];openDashCardImagePicker(cat)}));
 }
 function renderOccurrenceDetails(){
  const cat=occurrenceCategories.find(c=>c.name===selectedOccurrenceCategory);
