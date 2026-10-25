@@ -63,6 +63,30 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 
 
 /* Dashboard operacional — composição inspirada no exemplo enviado */
+/* Dashboard no formato do exemplo enviado */
+#executiveDashboard{position:fixed;inset:0;z-index:7900;display:none;overflow:auto;padding:clamp(8px,1.2vw,18px);color:#f5fbff;background:radial-gradient(ellipse at top,#123d68 0,#061a32 58%,#031020 100%)}
+#executiveDashboard.open{display:block}.dash-wrap{max-width:1750px;margin:0 auto}
+.dash-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 3px 10px;border-bottom:1px solid #087fc0}
+.dash-brand{display:flex;align-items:center;gap:10px}.dash-crest{display:grid;place-items:center;width:43px;height:43px;border:2px solid #15caff;border-radius:50%;background:#09274a;box-shadow:0 0 14px #00baff66;font-size:22px}
+.dash-eyebrow{font-size:9px;font-weight:900;letter-spacing:1.2px;color:#57eaff}.dash-head h2{font-size:clamp(18px,2vw,28px);margin:3px 0;text-transform:uppercase;line-height:1.05}.dash-head p{margin:3px 0 0;color:#b7d8ed;font-size:10px}.dash-actions{display:flex;gap:6px;flex-wrap:wrap}
+.dash-nav{display:flex;gap:6px;overflow:auto;padding:8px 0 10px}.dash-nav span{flex:1;white-space:nowrap;text-align:center;padding:8px 9px;border:1px solid #05b9ff;border-radius:9px;background:linear-gradient(180deg,#10528e,#06274e);box-shadow:inset 0 0 12px #00bfff2b;font-size:10px;font-weight:900}
+.dash-layout{display:grid;grid-template-columns:minmax(165px,.72fr) minmax(0,3.1fr);gap:10px}
+.dash-categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-content:start}
+.dash-cat{min-height:87px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:4px;padding:8px 4px;border:1px solid #00bfff;border-radius:11px;background:linear-gradient(145deg,#10518a,#061a37);box-shadow:inset 0 0 12px #00c8ff30,0 0 7px #008eff26}
+.dash-cat .dash-symbol{font-size:22px;color:#45eaff;text-shadow:0 0 12px #00bfff}.dash-cat strong{font-size:9px;text-transform:uppercase;line-height:1.2}.dash-cat b{font-size:18px;color:#fff}.dash-cat small{font-size:9px;color:#b5d9ef}
+.dash-main{min-width:0;display:flex;flex-direction:column;gap:8px}
+.dash-section-title{display:flex;align-items:center;justify-content:center;gap:9px;padding:10px 8px;border:1px solid #00bfff;border-radius:11px;background:linear-gradient(110deg,#0a2b51,#135a96 50%,#092342);box-shadow:inset 0 0 15px #00bfff28;font-size:clamp(13px,1.35vw,18px);font-weight:950;letter-spacing:.4px;text-transform:uppercase}.dash-section-title span{color:#4ce9ff;font-size:19px}
+.dash-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.dash-feature{display:grid;grid-template-columns:50px minmax(0,1fr);align-items:stretch;overflow:hidden;min-height:70px;border:1px solid #00c3ff;border-radius:11px;background:linear-gradient(145deg,#104c81,#061d3b);box-shadow:inset 0 0 13px #00bfff30}
+.dash-feature-icon{display:grid;place-items:center;margin:6px;border:1px solid #00d7ff;border-radius:8px;color:#48edff;font-size:24px;background:#062c50}.dash-feature-content{display:flex;flex-direction:column;justify-content:center;padding:8px 9px;min-width:0}.dash-feature-content small{font-size:9px;text-transform:uppercase;font-weight:900;letter-spacing:.35px;color:#c5eaff}.dash-feature-content strong{display:block;margin-top:5px;font-size:clamp(15px,2vw,24px);line-height:1.1;color:#fff;overflow-wrap:anywhere}.dash-feature-content em{font-style:normal;font-size:9px;color:#b5d9ef;margin-top:3px;line-height:1.25}
+.dash-reports{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.dash-report{display:flex;gap:8px;padding:9px;border:1px solid #168de0;border-radius:9px;background:linear-gradient(150deg,#0c2e54ef,#061a33f5);color:#d9effb;font-size:10px;line-height:1.35;min-width:0}.dash-report-mark{font-size:18px;color:#5ceaff}.dash-report strong{display:block;margin-bottom:3px;color:#62eaff;font-size:9px;text-transform:uppercase}.dash-report p{margin:0;overflow-wrap:anywhere}.dash-empty{color:#a8cce5;font-size:10px;line-height:1.4;padding:10px}
+.dash-bottom{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.dash-resource{padding:8px 5px;text-align:center;border:1px solid #168de0;border-radius:11px;background:linear-gradient(155deg,#124d82,#071d3a);box-shadow:inset 0 0 12px #00bfff26}.dash-resource .dash-symbol{font-size:22px}.dash-resource strong{display:block;margin:3px 0;font-size:9px;text-transform:uppercase}.dash-resource b{font-size:20px}.dash-resource small{display:block;font-size:8px;color:#b8d9ed}
+.dash-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px;color:#92bad5;font-size:9px}
+@media(max-width:760px){.dash-layout{grid-template-columns:1fr}.dash-categories{grid-template-columns:repeat(4,minmax(0,1fr))}.dash-reports{grid-template-columns:1fr}}
+@media(max-width:520px){.dash-head{align-items:flex-start;flex-direction:column}.dash-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-feature-grid{grid-template-columns:1fr}.dash-bottom{grid-template-columns:repeat(3,minmax(0,1fr))}.dash-nav span{padding:7px;font-size:9px}}
+
+
+/* Dashboard operacional — composição inspirada no exemplo enviado */
 #executiveDashboard{position:fixed;inset:0;z-index:7900;display:none;overflow:auto;padding:clamp(10px,1.5vw,22px);color:#f5fbff;background:radial-gradient(ellipse at top,#10385f 0,#061a32 58%,#031020 100%)}
 #executiveDashboard.open{display:block}
 .dash-wrap{max-width:1700px;margin:0 auto}
@@ -149,30 +173,20 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 
 <div id="executiveDashboard" aria-label="Dashboard operacional Pré-Caju 2026">
  <div class="dash-wrap">
-  <header class="dash-head">
-   <div class="dash-brand"><div class="dash-crest">✚</div><div><div class="dash-eyebrow">CORPO DE BOMBEIROS MILITAR · SERGIPE</div><h2>Operação <span style="color:#35e5ff">Pré-Caju 2026</span></h2><p>Dashboard operacional · CBMSE</p></div></div>
-   <div class="dash-actions"><button id="dashRefresh">↻ Atualizar</button><button id="dashClose" class="danger">Fechar ✕</button></div>
-  </header>
-  <nav class="dash-nav" aria-label="Seções da dashboard"><span>⌂ VISÃO GERAL</span><span>♟ RECURSOS</span><span>⌖ PERCURSO PRINCIPAL</span><span>🚑 SAÍDAS DE AMBULÂNCIA</span><span>▤ RELATOS OPERACIONAIS</span></nav>
-  <div class="dash-layout">
-   <aside class="dash-categories" id="dashCategories" aria-label="Recursos por tipo"></aside>
-   <section class="dash-main">
-    <div class="dash-section-title"><span>▥</span> Resumo da operação</div>
-    <div class="dash-kpis">
-     <div class="dash-kpi"><div class="kpi-label">Recursos cadastrados</div><strong id="dashResources">0</strong><small>Equipes e recursos registrados</small></div>
-     <div class="dash-kpi"><div class="kpi-label">Efetivo informado</div><strong id="dashStaff">—</strong><small id="dashStaffNote">Efetivo informado nos recursos</small></div>
-     <div class="dash-kpi"><div class="kpi-label">Saídas de ambulância</div><strong id="dashExits">0</strong><small>Rotas com pelo menos dois pontos</small></div>
-     <div class="dash-kpi"><div class="kpi-label">Pontos do percurso</div><strong id="dashRoutePoints">0</strong><small>Pontos do percurso principal</small></div>
-    </div>
-    <div class="dash-lower">
-     <section class="dash-panel"><h3>Distribuição por tipo de recurso</h3><div class="dash-bars" id="dashTypeBars"></div><p class="dash-empty" id="dashTypeEmpty" style="display:none">Nenhum recurso classificado.</p></section>
-     <section class="dash-panel"><h3>Relatos das missões</h3><div class="dash-reports" id="dashReports"></div><p class="dash-empty" id="dashReportsEmpty" style="display:none">Não há missões informadas nos recursos cadastrados.</p></section>
-    </div>
-   </section>
-  </div>
-  <div class="dash-section-title" style="margin:11px 0"><span>✚</span> Recursos operacionais</div>
-  <div class="dash-bottom" id="dashResourcesBottom"></div>
-  <div class="dash-foot"><span>Fonte: dados cadastrados no painel · Atualização sob demanda</span><span>Planejamento preliminar — validar informações com a coordenação operacional.</span></div>
+  <header class="dash-head"><div class="dash-brand"><div class="dash-crest">✚</div><div><div class="dash-eyebrow">CORPO DE BOMBEIROS MILITAR · SERGIPE</div><h2>Operação <span style="color:#35e5ff">Pré-Caju 2026</span></h2><p>Dashboard de acompanhamento operacional</p></div></div><div class="dash-actions"><button id="dashRefresh">↻ Atualizar</button><button id="dashClose" class="danger">Fechar ✕</button></div></header>
+  <nav class="dash-nav" aria-label="Áreas operacionais"><span>⌂ VISÃO GERAL</span><span>♟ RECURSOS</span><span>⌖ PERCURSO</span><span>🚑 SAÍDAS DE AMBULÂNCIA</span></nav>
+  <div class="dash-layout"><aside class="dash-categories" id="dashCategories" aria-label="Categorias operacionais"></aside><section class="dash-main">
+   <div class="dash-section-title"><span>▥</span> Resumo da operação</div>
+   <div class="dash-feature-grid">
+    <div class="dash-feature"><div class="dash-feature-icon">♟</div><div class="dash-feature-content"><small>Total de recursos cadastrados</small><strong id="dashResources">0</strong><em>Equipes e recursos registrados</em></div></div>
+    <div class="dash-feature"><div class="dash-feature-icon">⌖</div><div class="dash-feature-content"><small>Efetivo informado</small><strong id="dashStaff">—</strong><em id="dashStaffNote">Efetivo informado nos recursos</em></div></div>
+    <div class="dash-feature"><div class="dash-feature-icon">🚑</div><div class="dash-feature-content"><small>Saídas de ambulância</small><strong id="dashExits">0</strong><em>Rotas com pelo menos dois pontos</em></div></div>
+    <div class="dash-feature"><div class="dash-feature-icon">➤</div><div class="dash-feature-content"><small>Pontos do percurso</small><strong id="dashRoutePoints">0</strong><em>Pontos no percurso principal</em></div></div>
+   </div>
+   <div class="dash-section-title"><span>▤</span> Relato das ocorrências / missões</div><div class="dash-reports" id="dashReports"></div><div class="dash-empty" id="dashReportsEmpty" style="display:none">Não há relatos ou missões informados nos recursos cadastrados.</div>
+  </section></div>
+  <div class="dash-section-title" style="margin:9px 0"><span>✚</span> Recursos empregados</div><div class="dash-bottom" id="dashResourcesBottom"></div>
+  <div class="dash-foot"><span>Fonte: dados cadastrados no painel</span><span>Planejamento preliminar — validar informações com a coordenação operacional.</span></div>
  </div>
 </div>
 
@@ -629,16 +643,14 @@ function refreshExecutiveDashboard(){
  $('dashExits').textContent=validExits.length.toLocaleString('pt-BR');
  $('dashRoutePoints').textContent=route.length.toLocaleString('pt-BR');
  const counts={};resources.forEach(p=>{const k=String(p.type||'Não classificado').trim()||'Não classificado';counts[k]=(counts[k]||0)+1});
- const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);const max=Math.max(1,...entries.map(x=>x[1]));
+ const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
  const symbolFor=name=>{const s=String(name).toLowerCase();if(/ambul|aph|saúde|medic/.test(s))return '🚑';if(/drone|aérea|aereo/.test(s))return '🚁';if(/aquát|aquat|embarca|marít/.test(s))return '🚤';if(/comando|coordena/.test(s))return '★';if(/viatura|terrest|auto/.test(s))return '🚒';if(/militar|equipe|guarni/.test(s))return '♟';return '✚'};
  $('dashCategories').innerHTML=entries.length?entries.map(([name,count])=>'<div class="dash-cat"><div class="dash-symbol">'+symbolFor(name)+'</div><strong>'+safe(name)+'</strong><b>'+count+'</b><small>recurso(s)</small></div>').join(''):'<div class="dash-empty">Nenhum recurso cadastrado.</div>';
- $('dashTypeBars').innerHTML=entries.map(([name,count])=>'<div class="dash-bar-row"><span title="'+safe(name)+'">'+safe(name)+'</span><div class="dash-track"><i style="width:'+(count/max*100)+'%"></i></div><strong>'+count+'</strong></div>').join('');
- $('dashTypeEmpty').style.display=entries.length?'none':'block';
  const reports=resources.filter(p=>String(p.mission||'').trim()).map(p=>({name:p.name||'Recurso sem nome',type:p.type||'Recurso',mission:p.mission}));
- $('dashReports').innerHTML=reports.map(p=>'<div class="dash-report"><strong>'+safe(p.name)+' · '+safe(p.type)+'</strong>'+safe(p.mission)+'</div>').join('');
+ $('dashReports').innerHTML=reports.map(p=>'<div class="dash-report"><div class="dash-report-mark">▤</div><div><strong>'+safe(p.name)+' · '+safe(p.type)+'</strong><p>'+safe(p.mission)+'</p></div></div>').join('');
  $('dashReportsEmpty').style.display=reports.length?'none':'block';
  const types=[['🚒','Terrestre',/terrest|viatura|auto/],['🚁','Drone',/drone|aérea|aereo/],['🚤','Aquática',/aquát|aquat|embarca|marít/],['♟','Militares',/militar|equipe|guarni/],['＋','Outros',null]];
- $('dashResourcesBottom').innerHTML=types.map(([icon,label,re])=>{const n=resources.filter(p=>re?re.test(String(p.type||'')):!types.slice(0,4).some(x=>x[2].test(String(p.type||'')))).length;return '<div class="dash-resource"><div class="dash-symbol">'+icon+'</div><strong>'+label+'</strong><b>'+n+'</b><small>recurso(s) cadastrado(s)</small></div>'}).join('');
+ $('dashResourcesBottom').innerHTML=types.map(([icon,label,re])=>{const n=resources.filter(p=>re?re.test(String(p.type||'')):!types.slice(0,4).some(x=>x[2].test(String(p.type||'')))).length;return '<div class="dash-resource"><div class="dash-symbol">'+icon+'</div><strong>'+label+'</strong><b>'+n+'</b><small>recurso(s)</small></div>'}).join('');
 }
 $('dashboardBtn').onclick=()=>{refreshExecutiveDashboard();executiveDashboard.classList.add('open');document.body.style.overflow='hidden'};
 $('dashClose').onclick=()=>{executiveDashboard.classList.remove('open');document.body.style.overflow=''};
