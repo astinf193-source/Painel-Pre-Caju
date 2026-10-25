@@ -129,7 +129,7 @@ const initialRoute=[
  {id:'r5',name:'FINAL DO PERCURSO — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
 ];
 let route=structuredClone(initialRoute), exitRoute=[], resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawExitRouteMode=false, drawnCoords=[], drawnExitCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
-let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null;
+let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null, ambulanceMarker=null, ambulanceAnimationFrame=null;
 const $=id=>document.getElementById(id);
 const map=new maplibregl.Map({
  container:'map',
@@ -201,6 +201,7 @@ function sourceData(){return {type:'FeatureCollection',features:allPoints().map(
 function updateMapData(){
  if(!map.isStyleLoaded())return;
  renderImageMarkers();
+ if(exitRoute.length>=2)ensureAmbulanceMarker();else if(ambulanceMarker){ambulanceMarker.remove();ambulanceMarker=null;stopAmbulanceAnimation()}
  const line=map.getSource('route-line');if(line)line.setData({type:'Feature',geometry:{type:'LineString',coordinates:route.map(p=>[p.lng,p.lat])}});
  const pts=map.getSource('all-points');if(pts)pts.setData(sourceData());
   const exitLine=map.getSource('ambulance-exit-line');if(exitLine)exitLine.setData({type:'Feature',geometry:{type:'LineString',coordinates:exitRoute.map(p=>[p.lng,p.lat])}});
@@ -398,7 +399,31 @@ function showTourName(p,label){
  el.style.cssText='padding:7px 12px;border:2px solid #ffe66d;border-radius:7px;background:rgba(4,22,36,.97);color:#fff;font:800 15px/1.2 Arial,sans-serif;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none';
  tourNameMarker=new maplibregl.Marker({element:el,anchor:'bottom',offset:[0,-22]}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
 }
-function stopFlight(){playing=false;clearInterval(playTimer);clearTimeout(playTimer);$('playBtn').textContent='▶ Sobrevoar'}
+function ensureAmbulanceMarker(){
+ if(ambulanceMarker||exitRoute.length<2)return;
+ const el=document.createElement('div');el.className='ambulance-moving-icon';
+ el.setAttribute('aria-label','Ambulância em deslocamento pela rota de saída');el.textContent='🚑';
+ el.style.cssText='font-size:34px;line-height:1;filter:drop-shadow(0 2px 3px #000) drop-shadow(0 0 2px #fff);pointer-events:none;white-space:nowrap';
+ ambulanceMarker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([Number(exitRoute[0].lng),Number(exitRoute[0].lat)]).addTo(map);
+}
+function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}}
+function startAmbulanceAnimation(){
+ stopAmbulanceAnimation();if(exitRoute.length<2)return;ensureAmbulanceMarker();if(!ambulanceMarker)return;
+ const coords=exitRoute.map(p=>[Number(p.lng),Number(p.lat)]),lengths=[];let total=0;
+ for(let i=1;i<coords.length;i++){const dx=(coords[i][0]-coords[i-1][0])*Math.cos(coords[i][1]*Math.PI/180),dy=coords[i][1]-coords[i-1][1],d=Math.hypot(dx,dy);lengths.push(d);total+=d}
+ if(total===0)return;
+ const duration=Math.max(9000,Math.min(22000,total*900000)),started=performance.now();
+ const tick=now=>{
+  if(!playing||!ambulanceMarker)return;
+  let target=((now-started)%duration)/duration*total,segment=0;
+  while(segment<lengths.length-1&&target>lengths[segment]){target-=lengths[segment];segment++}
+  const fraction=lengths[segment]?Math.max(0,Math.min(1,target/lengths[segment])):0,a=coords[segment],b=coords[segment+1];
+  ambulanceMarker.setLngLat([a[0]+(b[0]-a[0])*fraction,a[1]+(b[1]-a[1])*fraction]);
+  ambulanceAnimationFrame=requestAnimationFrame(tick);
+ };
+ ambulanceAnimationFrame=requestAnimationFrame(tick);
+}
+function stopFlight(){playing=false;stopAmbulanceAnimation();clearInterval(playTimer);clearTimeout(playTimer);$('playBtn').textContent='▶ Sobrevoar'}
 function flyToResource(p){
  if(!p||!Number.isFinite(Number(p.lng))||!Number.isFinite(Number(p.lat)))return;
  selectedId=p.id;selectPoint(p.id,false);
@@ -410,7 +435,7 @@ $('prevBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)
 $('nextBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)+1)};
 $('playBtn').onclick=()=>{
  if(playing){stopFlight();return}
- playing=true;$('playBtn').textContent='Ⅱ Pausar';
+ playing=true;$('playBtn').textContent='Ⅱ Pausar';if(exitRoute.length>=2)startAmbulanceAnimation();else toast('Desenhe a rota de saída com pelo menos dois pontos para animar a ambulância.');
  const points=allPoints().filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
  if(points.length){
   const bounds=points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)]));
