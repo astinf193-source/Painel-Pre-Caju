@@ -310,6 +310,7 @@ function openForm(coords,existing=null){
 }
 function closeForm(){$('formModal').style.display='none';editId=null;draftCoords=null}
 map.on('load',()=>{buildLayers();renderList();updateMapData();map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:100,bottom:100,left:60,right:60},duration:0});selectPoint('r0',false);map.easeTo({center:[route[0].lng,route[0].lat],zoom:17.4,pitch:65,bearing:18,duration:900});});
+map.on('idle',()=>{if(exitRoutes.some(r=>Array.isArray(r.points)&&r.points.length>=2))ensureAmbulanceMarkers()});
 map.on('click',e=>{
  if(drawExitRouteMode){
   drawnExitCoords.push({lng:e.lngLat.lng,lat:e.lngLat.lat});
