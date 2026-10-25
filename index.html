@@ -491,7 +491,7 @@ $('playBtn').onclick=()=>{
    $('flightSlider').value=Math.max(0,ri);selectedId=p.id;selectPoint(p.id,false);
    map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1500,essential:true});
   }else if(p.kind==='exit-route-tour'){
-   $('flightCount').textContent=`Saída ${p.exitRouteIndex+1}/${exitRoutes.length} · Ponto ${p.exitPointIndex+1}/${p.exitRouteLength}`;
+   $('flightCount').textContent=p.exitRouteName;
    map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1500,essential:true});
   }else{
    $('flightCount').textContent=`Equipe ${i-route.length-validExitStops.length}/${validResources.length}`;
