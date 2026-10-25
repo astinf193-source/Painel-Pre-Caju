@@ -612,21 +612,21 @@ $('northBtn').onclick=()=>map.easeTo({bearing:0,pitch:0,duration:800});
 const executiveDashboard=$('executiveDashboard');
 let selectedOccurrenceCategory='Todos';
 const occurrenceCategories=[
- {name:'Boca de urna',icon:'📢',color:'#00c8ff',terms:['boca de urna']},
- {name:'Desobediência',icon:'👥',color:'#ffe600',terms:['desobediência','desobediencia']},
- {name:'Agressão física',icon:'🥊',color:'#ff1744',terms:['agressão','agressao','briga']},
- {name:'Tumulto',icon:'👥',color:'#ff7a00',terms:['tumulto']},
- {name:'Extravio de urna',icon:'🗳️',color:'#eafaff',terms:['extravio de urna']},
- {name:'Lesão corporal',icon:'🩹',color:'#ffffff',terms:['lesão corporal','lesao corporal']},
- {name:'Invasão',icon:'👥',color:'#bd6cff',terms:['invasão','invasao']},
- {name:'APH',icon:'🚑',color:'#ff3030',terms:['aph','atendimento pré-hospitalar','atendimento pre-hospitalar']},
- {name:'Princípio de incêndio',icon:'🔥',color:'#43e047',terms:['princípio de incêndio','principio de incendio','incêndio','incendio']},
- {name:'Outro',icon:'•••',color:'#ffffff',terms:[]}
+ {name:'APH',icon:'🚑',color:'#13d8ff',terms:['aph','atendimento pré-hospitalar','atendimento pre-hospitalar','socorro médico','socorro medico']},
+ {name:'Incêndio',icon:'🔥',color:'#ff3b30',terms:['incêndio','incendio','fogo','princípio de incêndio','principio de incendio']},
+ {name:'Acidente Veicular',icon:'🚒',color:'#ffb02e',terms:['acidente veicular','acidente automobilístico','acidente automobilistico','colisão','colisao','capotamento','atropelamento']},
+ {name:'Superlotação',icon:'👥',color:'#ff7b18',terms:['superlotação','superlotacao','superlotado','superlotação','aglomeração excessiva','aglomeracao excessiva']},
+ {name:'Prevenção',icon:'🦺',color:'#38e15b',terms:['prevenção','prevencao','preventivo','prevenção','orientação preventiva','orientacao preventiva']},
+ {name:'Afogamento',icon:'🌊',color:'#32c8ff',terms:['afogamento','submersão','submersao','salvamento aquático','salvamento aquatico']},
+ {name:'Vítima fatal',icon:'🕊️',color:'#f4f7ff',terms:['vítima fatal','vitima fatal','óbito','obito','morte confirmada','fatalidade']},
+ {name:'Criança Perdida',icon:'🧒',color:'#ffb2ed',terms:['criança perdida','crianca perdida','menor perdido','criança desaparecida','crianca desaparecida']},
+ {name:'Outras',icon:'•••',color:'#f5fbff',terms:[]}
 ];
 function occurrenceText(p){return [p.name,p.type,p.mission,p.notes,p.description,p.occurrence,p.category].filter(Boolean).join(' ').toLowerCase()}
 function getOccurrenceCount(cat){
- if(cat.name==='Outro')return resources.filter(p=>{const s=occurrenceText(p);return !occurrenceCategories.filter(c=>c.name!=='Outro').some(c=>c.terms.some(term=>s.includes(term)))&&(String(p.mission||'').trim()||String(p.type||'').trim())}).length;
- return resources.filter(p=>{const s=occurrenceText(p);return cat.terms.some(term=>s.includes(term))}).length;
+ const all=resources.filter(p=>String(p.mission||'').trim()||String(p.type||'').trim()||String(p.name||'').trim());
+ if(cat.name==='Outras')return all.filter(p=>{const s=occurrenceText(p);return !occurrenceCategories.filter(c=>c.name!=='Outras').some(c=>c.terms.some(term=>s.includes(term)))}).length;
+ return all.filter(p=>{const s=occurrenceText(p);return cat.terms.some(term=>s.includes(term))}).length;
 }
 function renderOccurrenceCategories(){
  $('dashCategories').innerHTML=occurrenceCategories.map((c,i)=>'<button type="button" class="dash-cat '+(selectedOccurrenceCategory===c.name?'active':'')+'" data-occurrence="'+i+'" aria-pressed="'+(selectedOccurrenceCategory===c.name)+'"><span class="dash-symbol" style="color:'+c.color+'">'+c.icon+'</span><strong>'+safe(c.name)+'</strong><b>'+getOccurrenceCount(c)+'</b></button>').join('');
