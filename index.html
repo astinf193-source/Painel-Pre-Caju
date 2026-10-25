@@ -466,7 +466,7 @@ $('playBtn').onclick=()=>{
  }
  // Primeiro percorre o trajeto na ordem definida; depois visita cada equipe.
  const validResources=resources.filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
- const validExitStops=exitRoutes.flatMap((r,ri)=>(r.points||[]).map((p,pi)=>({...p,kind:'exit-route-tour',exitRouteId:r.id,exitRouteName:r.name,exitPointIndex:pi,exitRouteIndex:ri,name:`${r.name} — ${pi===0?'INÍCIO':pi===r.points.length-1?'FIM':'Ponto '+(pi+1)}`})));
+ const validExitStops=exitRoutes.flatMap((r,ri)=>(r.points||[]).map((p,pi)=>({...p,kind:'exit-route-tour',exitRouteId:r.id,exitRouteName:r.name,exitPointIndex:pi,exitRouteIndex:ri,name:r.name})));
  const tour=[...route,...validExitStops,...validResources];
  validExitStops.forEach(p=>{const rr=exitRoutes.find(r=>r.id===p.exitRouteId);p.exitRouteLength=rr?.points?.length||0});
  activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
@@ -482,7 +482,7 @@ $('playBtn').onclick=()=>{
    if(routeIndex===0)showTourName(p,'INÍCIO DO PERCURSO');
    else if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');
   }else if(p.kind==='exit-route-tour'){
-   showTourName(p,`${p.exitRouteName.toUpperCase()} — ${p.exitPointIndex===0?'INÍCIO':p.exitPointIndex===p.exitRouteLength-1?'FIM':'PONTO '+(p.exitPointIndex+1)}`);
+   showTourName(p,p.exitRouteName.toUpperCase());
   }
   $('flightLabel').textContent=p.name;
   if(p.kind==='route'){
