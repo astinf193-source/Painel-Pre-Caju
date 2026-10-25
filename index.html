@@ -61,6 +61,24 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 @keyframes presIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:700px){.pres-cards{grid-template-columns:1fr}.pres-slide h2{font-size:34px}.pres-bottom{align-items:flex-start;flex-direction:column}#institutionalPresentation{padding:18px}}
 
+
+#executiveDashboard{position:fixed;inset:0;z-index:7900;display:none;overflow:auto;background:radial-gradient(ellipse at top right,#173e55 0,#091b29 52%,#06131e 100%);padding:clamp(16px,3vw,38px);color:#f4f8fb}
+#executiveDashboard.open{display:block}
+.dash-wrap{max-width:1500px;margin:0 auto}.dash-head{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid #31556a;padding-bottom:20px;margin-bottom:22px}
+.dash-eyebrow{font-size:11px;letter-spacing:2px;font-weight:800;color:#ffc857}.dash-head h2{font-size:clamp(25px,4vw,42px);margin:8px 0}.dash-head p{margin:0;color:#a9bfce;font-size:13px;line-height:1.5}
+.dash-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.dash-kpi{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(26,65,86,.92),rgba(10,31,45,.98));border:1px solid #34586c;border-radius:14px;padding:20px;min-height:140px}
+.dash-kpi:after{content:"";position:absolute;width:90px;height:90px;right:-25px;top:-25px;border:1px solid #72d2f233;border-radius:50%;box-shadow:0 0 0 12px #72d2f20b,0 0 0 24px #72d2f207}
+.dash-kpi .kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#b5ccda;font-weight:750}
+.dash-kpi strong{display:block;font-size:clamp(32px,4vw,48px);line-height:1.1;margin:14px 0 8px;color:#fff;font-variant-numeric:tabular-nums}
+.dash-kpi small{color:#9fb7c6;font-size:11px;line-height:1.4}.dash-lower{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-top:14px}
+.dash-panel{background:#0b2231dd;border:1px solid #294b60;border-radius:14px;padding:20px;min-width:0}.dash-panel h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#d6e8f2;margin:0 0 16px}
+.dash-bars{display:flex;flex-direction:column;gap:13px}.dash-bar-row{display:grid;grid-template-columns:minmax(80px,1fr) minmax(60px,2fr) 34px;gap:10px;align-items:center;font-size:12px;color:#c5d9e5}.dash-track{height:8px;background:#18384a;border-radius:8px;overflow:hidden}.dash-track i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#2478ff,#72d2f2)}
+.dash-list{display:flex;flex-direction:column;gap:0}.dash-list-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #254456;font-size:12px;color:#c5d9e5}.dash-list-row:last-child{border-bottom:0}.dash-list-row strong{color:#fff;text-align:right}
+.dash-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px;color:#91aab9;font-size:11px}.dash-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:900px){.dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-lower{grid-template-columns:1fr}}
+@media(max-width:500px){.dash-grid{grid-template-columns:1fr}.dash-head{align-items:flex-start;flex-direction:column}.dash-kpi{min-height:115px}}
+
 </style>
 </head>
 <body>
@@ -69,7 +87,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 <header>
   <div class="crest">✚</div>
   <div class="brand"><h1>PRÉ-CAJU 2026 | CBMSE</h1><p>PAINEL DE PLANEJAMENTO OPERACIONAL</p></div>
-  <div class="header-right"><span class="tag">Traçado preliminar</span><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
+  <div class="header-right"><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Indicadores</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
 </header>
 <main>
   <div id="map">
@@ -120,6 +138,23 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 </main>
 </div>
 <div id="toast"></div>
+
+<div id="executiveDashboard" aria-label="Painel executivo de indicadores operacionais">
+ <div class="dash-wrap">
+  <div class="dash-head"><div><div class="dash-eyebrow">CBMSE · PAINEL EXECUTIVO</div><h2>Visão Operacional <span style="color:#ffc857">Pré-Caju 2026</span></h2><p>Resumo dos recursos cadastrados para planejamento e apresentação de comando.</p></div><div class="dash-actions"><button id="dashRefresh">↻ Atualizar indicadores</button><button id="dashClose" class="danger">Fechar ✕</button></div></div>
+  <div class="dash-grid">
+   <div class="dash-kpi"><div class="kpi-label">Recursos cadastrados</div><strong id="dashResources">0</strong><small>Equipes e recursos registrados no painel</small></div>
+   <div class="dash-kpi"><div class="kpi-label">Efetivo informado</div><strong id="dashStaff">—</strong><small id="dashStaffNote">Soma dos efetivos preenchidos</small></div>
+   <div class="dash-kpi"><div class="kpi-label">Saídas de ambulância</div><strong id="dashExits">0</strong><small>Rotas com pelo menos dois pontos</small></div>
+   <div class="dash-kpi"><div class="kpi-label">Pontos do percurso</div><strong id="dashRoutePoints">0</strong><small>Pontos cadastrados no percurso principal</small></div>
+  </div>
+  <div class="dash-lower">
+   <section class="dash-panel"><h3>Distribuição por tipo de recurso</h3><div class="dash-bars" id="dashTypeBars"></div><p class="small" id="dashTypeEmpty" style="display:none">Cadastre equipes e classifique o tipo de recurso para visualizar a distribuição.</p></section>
+   <section class="dash-panel"><h3>Composição operacional</h3><div class="dash-list" id="dashComposition"></div></section>
+  </div>
+  <div class="dash-foot"><span>Fonte: dados cadastrados neste navegador · Atualizado sob demanda</span><span>Indicadores de planejamento — confirmar com a coordenação operacional.</span></div>
+ </div>
+</div>
  
 <div id="institutionalPresentation" aria-label="Apresentação institucional Pré-Caju 2026">
  <div class="pres-top"><div><div class="pres-brand">CBMSE · ASTINF</div><div style="font-size:11px;color:#9fb7c6;margin-top:5px;letter-spacing:1px">PLANEJAMENTO OPERACIONAL · PRÉ-CAJU 2026</div></div><div class="pres-counter" id="presCounter">01 / 04</div></div>
@@ -561,6 +596,32 @@ $('baseMapBtn').onclick=()=>{
 $('routeBtn').onclick=()=>map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:90,bottom:110,left:50,right:50},duration:1200});
 $('northBtn').onclick=()=>map.easeTo({bearing:0,pitch:0,duration:800});
  
+
+const executiveDashboard=$('executiveDashboard');
+function refreshExecutiveDashboard(){
+ const validExits=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2);
+ const knownStaff=resources.filter(p=>String(p.team??'').trim()!==''&&Number.isFinite(Number(p.team)));
+ const staffTotal=knownStaff.reduce((n,p)=>n+Math.max(0,Number(p.team)||0),0);
+ $('dashResources').textContent=resources.length;
+ $('dashStaff').textContent=knownStaff.length?staffTotal.toLocaleString('pt-BR'):'—';
+ $('dashStaffNote').textContent=knownStaff.length?knownStaff.length+' de '+resources.length+' recursos com efetivo informado':'Efetivo ainda não informado';
+ $('dashExits').textContent=validExits.length;
+ $('dashRoutePoints').textContent=route.length;
+ const counts={};resources.forEach(p=>{const k=String(p.type||'Não classificado').trim()||'Não classificado';counts[k]=(counts[k]||0)+1});
+ const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);const max=Math.max(1,...entries.map(x=>x[1]));
+ $('dashTypeBars').innerHTML=entries.map(([name,count])=>'<div class="dash-bar-row"><span title="'+safe(name)+'">'+safe(name)+'</span><div class="dash-track"><i style="width:'+(count/max*100)+'%"></i></div><strong>'+count+'</strong></div>').join('');
+ $('dashTypeEmpty').style.display=entries.length?'none':'block';
+ const withVehicle=resources.filter(p=>String(p.vehicle||'').trim()).length;
+ const withMission=resources.filter(p=>String(p.mission||'').trim()).length;
+ const missingStaff=resources.length-knownStaff.length;
+ const exitPoints=validExits.reduce((n,r)=>n+r.points.length,0);
+ const rows=[['Recursos com viatura informada',withVehicle],['Recursos com missão informada',withMission],['Recursos sem efetivo informado',missingStaff],['Pontos nas saídas de ambulância',exitPoints],['Pontos no percurso principal',route.length]];
+ $('dashComposition').innerHTML=rows.map(([label,value])=>'<div class="dash-list-row"><span>'+label+'</span><strong>'+value+'</strong></div>').join('');
+}
+$('dashboardBtn').onclick=()=>{refreshExecutiveDashboard();executiveDashboard.classList.add('open');document.body.style.overflow='hidden'};
+$('dashClose').onclick=()=>{executiveDashboard.classList.remove('open');document.body.style.overflow=''};
+$('dashRefresh').onclick=refreshExecutiveDashboard;
+
 const presOverlay=$('institutionalPresentation');let presIndex=0,presAutoTimer=null;
 function refreshPresStats(){
  const exits=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2).length;
