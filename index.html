@@ -36,6 +36,31 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 .maplibregl-ctrl-group{background:#102b3d!important}.maplibregl-ctrl-group button{background-color:#102b3d!important}.maplibregl-ctrl-group button span{filter:invert(1)}
 @media(max-width:800px){main{grid-template-columns:1fr;grid-template-rows:minmax(300px,1fr) 42vh}.sidebar{border-left:0;border-top:1px solid var(--line)}header{padding:9px 11px}.brand h1{font-size:14px}.header-right .tag{display:none}#playbar{bottom:8px;left:8px;right:8px}#mapControls{top:8px;left:8px}}
 @media print{header,.sidebar,#mapControls,#playbar{display:none!important}main{display:block}#map{height:100vh}}
+ 
+#institutionalPresentation{position:fixed;inset:0;z-index:8000;display:none;color:#f4f8fb;background:linear-gradient(135deg,rgba(4,15,25,.96),rgba(9,36,53,.93));backdrop-filter:blur(8px);padding:clamp(18px,4vw,58px);flex-direction:column}
+#institutionalPresentation.open{display:flex}
+.pres-top{display:flex;justify-content:space-between;align-items:center;gap:14px;border-bottom:1px solid #42657b;padding-bottom:15px}
+.pres-brand{font-size:12px;letter-spacing:2px;color:#ffc857;font-weight:800}.pres-counter{font-size:12px;color:#a9bfce}
+.pres-content{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:18px 0}
+.pres-slide{display:none;width:min(1100px,100%);animation:presIn .45s ease}
+.pres-slide.active{display:block}
+.pres-kicker{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#72d2f2;font-weight:800;margin-bottom:12px}
+.pres-slide h2{font-size:clamp(30px,5vw,62px);line-height:1.04;margin:0 0 18px;max-width:950px}
+.pres-lead{font-size:clamp(15px,2vw,22px);line-height:1.55;color:#c6d8e3;max-width:850px}
+.pres-line{width:100px;height:4px;background:#ffc857;margin:24px 0}
+.pres-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:28px}
+.pres-card{background:linear-gradient(145deg,#16394d,#0c2231);border:1px solid #31576d;border-radius:14px;padding:clamp(16px,2vw,26px)}
+.pres-card strong{display:block;font-size:clamp(30px,4vw,48px);color:#fff;margin-bottom:7px}
+.pres-card span{font-size:12px;color:#b7d0df;letter-spacing:.5px;text-transform:uppercase}
+.pres-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #315064;padding-top:14px}
+.pres-controls{display:flex;gap:8px;flex-wrap:wrap}.pres-controls button{padding:11px 16px}
+.pres-progress{height:3px;background:#29485b;margin-top:12px}.pres-progress span{display:block;height:100%;width:25%;background:#ffc857;transition:width .25s}
+.pres-note{font-size:11px;color:#9fb7c6;line-height:1.4;margin-top:14px}
+.pres-map-window{border:1px solid #477087;border-radius:14px;padding:22px;background:linear-gradient(120deg,rgba(10,35,51,.92),rgba(16,55,76,.75));margin-top:22px}
+.pres-points{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.pres-pill{border:1px solid #42677c;border-radius:30px;padding:9px 13px;color:#d5e7f1;font-size:12px}
+@keyframes presIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){.pres-cards{grid-template-columns:1fr}.pres-slide h2{font-size:34px}.pres-bottom{align-items:flex-start;flex-direction:column}#institutionalPresentation{padding:18px}}
+
 </style>
 </head>
 <body>
@@ -95,6 +120,27 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 </main>
 </div>
 <div id="toast"></div>
+ 
+<div id="institutionalPresentation" aria-label="Apresentação institucional Pré-Caju 2026">
+ <div class="pres-top"><div><div class="pres-brand">CBMSE · ASTINF</div><div style="font-size:11px;color:#9fb7c6;margin-top:5px;letter-spacing:1px">PLANEJAMENTO OPERACIONAL · PRÉ-CAJU 2026</div></div><div class="pres-counter" id="presCounter">01 / 04</div></div>
+ <div class="pres-content">
+  <section class="pres-slide active" data-slide="0">
+   <div class="pres-kicker">Apresentação institucional</div><h2>OPERAÇÃO<br><span style="color:#ffc857">PRÉ-CAJU 2026</span></h2><div class="pres-line"></div><p class="pres-lead">Planejamento, distribuição de recursos e mobilidade operacional do Corpo de Bombeiros Militar do Estado de Sergipe.</p><div class="pres-points"><span class="pres-pill">CBMSE</span><span class="pres-pill">Planejamento integrado</span><span class="pres-pill">Visualização geográfica</span></div><p class="pres-note">Material de planejamento. Percursos e posições devem ser confirmados pela coordenação operacional antes do uso oficial.</p>
+  </section>
+  <section class="pres-slide" data-slide="1">
+   <div class="pres-kicker">01 · Área de atuação</div><h2>Visão territorial<br>da operação</h2><p class="pres-lead">Visualização geográfica do percurso de referência, com possibilidade de aproximar os trechos, verificar acessos e percorrer os pontos cadastrados.</p><div class="pres-map-window"><div style="font-size:12px;color:#72d2f2;letter-spacing:2px;font-weight:800">MAPA OPERACIONAL</div><div class="pres-points"><span class="pres-pill">Percurso principal</span><span class="pres-pill">Setores e recursos cadastrados</span><span class="pres-pill">Pontos de referência</span></div></div>
+  </section>
+  <section class="pres-slide" data-slide="2">
+   <div class="pres-kicker">02 · Mobilidade e resposta</div><h2>Rotas de saída<br><span style="color:#72d2f2">e acesso operacional</span></h2><p class="pres-lead">Demonstração das saídas de ambulâncias cadastradas e dos pontos de passagem do sobrevoo, para apoiar a análise de deslocamento e acesso.</p><div class="pres-map-window"><div class="pres-cards" style="margin-top:0"><div class="pres-card"><strong id="presExitCount">0</strong><span>Rotas de saída cadastradas</span></div><div class="pres-card"><strong id="presRouteCount">0</strong><span>Pontos no percurso</span></div><div class="pres-card"><strong id="presResourceCount">0</strong><span>Recursos cadastrados</span></div></div></div>
+  </section>
+  <section class="pres-slide" data-slide="3">
+   <div class="pres-kicker">03 · Síntese para decisão</div><h2>Recursos visíveis.<br><span style="color:#ffc857">Planejamento integrado.</span></h2><p class="pres-lead">Consolidação dos dados cadastrados para apoiar a apresentação da distribuição de equipes, viaturas, pontos de atendimento e rotas.</p><div class="pres-cards"><div class="pres-card"><strong id="presTeamCount">0</strong><span>Recursos cadastrados</span></div><div class="pres-card"><strong id="presStaffCount">—</strong><span>Efetivo informado</span></div><div class="pres-card"><strong id="presExitCount2">0</strong><span>Saídas de ambulância</span></div></div><p class="pres-note">Os indicadores refletem os dados cadastrados no painel; não representam confirmação em tempo real nem substituem validação operacional.</p>
+  </section>
+ </div>
+ <div class="pres-bottom"><div class="pres-controls"><button id="presPrev">← Anterior</button><button id="presNext" class="primary">Próximo →</button><button id="presAuto">▶ Apresentação automática</button></div><div class="pres-controls"><button id="presMapTour">▶ Iniciar sobrevoo</button><button id="presClose" class="danger">Fechar apresentação ✕</button></div></div>
+ <div class="pres-progress"><span id="presProgress"></span></div>
+</div>
+
 <div id="pointFocus" style="display:none;position:absolute;z-index:15;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,88vw);max-height:78vh;overflow:auto;background:rgba(7,25,37,.94);border:1px solid #5b8197;border-radius:12px;padding:14px;box-shadow:0 18px 55px #000a;color:#eaf3f8">
  <div style="display:flex;align-items:center;gap:10px"><strong id="focusTitle" style="font-size:15px;flex:1">Ponto selecionado</strong><button id="focusClose">✕</button></div>
  <div id="focusImages" style="display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0"></div>
@@ -514,7 +560,31 @@ $('baseMapBtn').onclick=()=>{
 };
 $('routeBtn').onclick=()=>map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:90,bottom:110,left:50,right:50},duration:1200});
 $('northBtn').onclick=()=>map.easeTo({bearing:0,pitch:0,duration:800});
-$('presentationBtn').onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){toast('Use F11 para ativar a tela cheia no navegador.')}};
+ 
+const presOverlay=$('institutionalPresentation');let presIndex=0,presAutoTimer=null;
+function refreshPresStats(){
+ const exits=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2).length;
+ const staff=resources.reduce((n,p)=>n+(Number(p.team)||0),0);
+ $('presExitCount').textContent=exits;$('presExitCount2').textContent=exits;
+ $('presRouteCount').textContent=route.length;$('presResourceCount').textContent=resources.length;
+ $('presTeamCount').textContent=resources.length;$('presStaffCount').textContent=resources.some(p=>Number(p.team)>0)?staff:'—';
+}
+function showPresSlide(n){
+ const slides=[...presOverlay.querySelectorAll('.pres-slide')];presIndex=(n+slides.length)%slides.length;
+ slides.forEach((s,i)=>s.classList.toggle('active',i===presIndex));
+ $('presCounter').textContent=String(presIndex+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+ $('presProgress').style.width=((presIndex+1)/slides.length*100)+'%';
+ $('presPrev').disabled=presIndex===0;$('presNext').textContent=presIndex===slides.length-1?'Voltar ao início ↺':'Próximo →';
+ refreshPresStats();
+}
+function stopPresAuto(){if(presAutoTimer){clearInterval(presAutoTimer);presAutoTimer=null}$('presAuto').textContent='▶ Apresentação automática'}
+function openPres(){refreshPresStats();showPresSlide(0);presOverlay.classList.add('open');document.body.style.overflow='hidden'}
+function closePres(){stopPresAuto();presOverlay.classList.remove('open');document.body.style.overflow='';}
+$('presentationBtn').onclick=async()=>{openPres();try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen()}catch(e){}};
+$('presClose').onclick=closePres;$('presPrev').onclick=()=>showPresSlide(presIndex-1);$('presNext').onclick=()=>showPresSlide(presIndex+1);
+$('presAuto').onclick=()=>{if(presAutoTimer){stopPresAuto();return}$('presAuto').textContent='Ⅱ Pausar apresentação';presAutoTimer=setInterval(()=>{if(presIndex>=3){stopPresAuto();return}showPresSlide(presIndex+1)},8000)};
+$('presMapTour').onclick=()=>{closePres();if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});$('playBtn').click()};
+
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({project:'Painel Operacional Pré-Caju — CBMSE',status:'PROTOTIPO — VALIDAR PERCURSO E POSIÇÕES',exportedAt:new Date().toISOString(),route,exitRoute,exitRoutes,resources},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='precaju-cbmse-dados.json';a.click();URL.revokeObjectURL(a.href);toast('JSON exportado.')};
 $('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.route)||!Array.isArray(d.resources))throw Error('Formato inválido');if(!confirm('A importação substituirá o traçado e os recursos atuais neste navegador. Continuar?'))return;route=d.route;exitRoute=Array.isArray(d.exitRoute)?d.exitRoute:[];exitRoutes=Array.isArray(d.exitRoutes)?d.exitRoutes:(exitRoute.length?[{id:'exit-legacy',name:'Saída 1',points:exitRoute}]:[]);resources=d.resources;selectedId=route[0]?.id;persist();updateMapData();renderList();selectPoint(selectedId);toast('Dados importados.')}catch(err){toast('Não foi possível importar: arquivo JSON inválido.')}e.target.value=''};
 $('resetBtn').onclick=()=>{if(confirm('Restaurar o traçado preliminar e apagar os recursos locais deste protótipo?')){route=structuredClone(initialRoute);exitRoute=[];exitRoutes=[];resources=[];selectedId=route[0].id;localStorage.removeItem(BACKUP_KEY);persist();updateMapData();renderList();selectPoint(selectedId,false);$('flightSlider').value=0;toast('Protótipo restaurado.')}};
