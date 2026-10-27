@@ -150,12 +150,6 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
       <div class="legend"><span><i style="background:#2478ff"></i>Traçado preliminar</span><span><i style="background:#45d4ff"></i>Recurso CBMSE</span></div>
       <div id="pointList" class="point-list" style="margin-top:10px"></div>
     </section>
-    <section class="card">
-      <h2>Dados e apresentação</h2>
-      <div class="actions"><button id="exportBtn">Exportar JSON</button><label class="file-label" for="importFile" style="text-align:center">Importar JSON</label><input id="importFile" type="file" accept=".json,application/json" hidden></div>
-      <div class="actions" style="margin-top:7px"><button id="resetBtn" class="danger">Restaurar protótipo</button><button id="helpBtn">Como usar</button></div>
-    </section>
-    <footer>Protótipo demonstrativo • CBMSE / ASTINF • Street View externo sem API<br>Não contém posições reais ou confirmadas de equipes. Verifique a licença e a disponibilidade da base cartográfica antes da publicação institucional.</footer>
   </aside>
 </main>
 </div>
@@ -277,7 +271,7 @@ function persist(){
    const compact={route:snapshot.route,exitRoute:snapshot.exitRoute,exitRoutes:snapshot.exitRoutes,resources:snapshot.resources.map(p=>{const q={...p};delete q.imageData;delete q.imageData2;return q})};
    localStorage.setItem(STORAGE_KEY,JSON.stringify(compact));
   }catch(e){}
- }).catch(()=>toast('Não foi possível salvar os dados localmente. Exporte o JSON para não perder os dados.'));
+ }).catch(()=>toast('Não foi possível salvar os dados localmente. Faça uma cópia dos dados antes de limpar o navegador.'));
 }
 async function loadSaved(){
  let loaded=false;
