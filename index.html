@@ -223,12 +223,6 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 (() => {
-const openingOverlay=document.getElementById('openingOverlay');
-const openingVideo=document.getElementById('openingVideo');
-const closeOpening=()=>{if(!openingOverlay||openingOverlay.classList.contains('hidden'))return;openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();openingVideo.currentTime=0}};
-if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{const b=document.getElementById('skipOpening');if(b)b.textContent='Entrar no painel ⟶'});}
-const skipOpening=document.getElementById('skipOpening');if(skipOpening)skipOpening.addEventListener('click',closeOpening);
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&openingOverlay&&!openingOverlay.classList.contains('hidden'))closeOpening()});
 const STORAGE_KEY='cbmse-precaju-prototipo-v1';
 const initialRoute=[
  {id:'r0',name:'INÍCIO DO PERCURSO — Passarela do Caranguejo (aprox.)',lng:-37.0429,lat:-10.9875,kind:'route'},
@@ -511,16 +505,6 @@ $('removeCrewImage2').onclick=()=>{
 };
 $('editBtn').onclick=()=>{const p=selected();if(p&&p.kind!=='route')openForm(null,p)};
 $('deleteBtn').onclick=()=>{const p=selected();if(!p||p.kind==='route')return;if(confirm(`Excluir o recurso "${p.name}"?`)){resources=resources.filter(x=>x.id!==p.id);selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);toast('Recurso excluído.')}};
-function showStreetViewForPoint(p){
- const panel=$('streetViewPanel'),frame=$('streetViewFrame'),open=$('streetViewOpen');
- if(!p||!Number.isFinite(Number(p.lat))||!Number.isFinite(Number(p.lng))||!panel||!frame)return;
- const lat=Number(p.lat),lng=Number(p.lng);
- const panoUrl='https://maps.google.com/maps?q=&layer=c&cbll='+lat+','+lng+'&cbp=12,0,0,0,0&output=svembed';
- const mapsUrl='https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+lat+','+lng;
- frame.src=panoUrl;open.onclick=()=>window.open(mapsUrl,'_blank','noopener');panel.classList.add('open');
-}
-function hideStreetView(){const panel=$('streetViewPanel');if(panel)panel.classList.remove('open')}
-$('streetViewClose').onclick=hideStreetView;
 function showTourName(p,label){
  if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
  if(!p||!label)return;
