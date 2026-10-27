@@ -8,8 +8,7 @@
 <style>
 :root{--navy:#0b1d2b;--navy2:#12344a;--blue:#1e6388;--cyan:#72d2f2;--gold:#ffc857;--text:#eaf3f8;--muted:#a9bfce;--panel:#102838;--line:#29485b}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--navy);color:var(--text);overflow:hidden}
- #openingOverlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#02080d;overflow:hidden}#openingVideo{display:block;width:100%;height:100%;object-fit:contain;background:#02080d}#skipOpening{position:absolute;right:22px;bottom:22px;z-index:2;background:rgba(9,32,47,.9);border:1px solid #ffc857;color:#fff;padding:12px 18px;border-radius:7px;font-size:14px;font-weight:750;box-shadow:0 4px 18px #0008}#skipOpening:hover{background:#1b526e}#openingOverlay.hidden{display:none}
-#app{height:100%;display:grid;grid-template-rows:auto 1fr}
+ #app{height:100%;display:grid;grid-template-rows:auto 1fr}
 header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:linear-gradient(110deg,#071521,#12374f);border-bottom:1px solid #31556a;z-index:5}
 .crest{width:42px;height:42px;border:2px solid var(--gold);border-radius:50%;display:grid;place-items:center;font-size:21px;color:var(--gold);flex:none}
 .brand{min-width:0}.brand h1{margin:0;font-size:17px;letter-spacing:.7px}.brand p{margin:4px 0 0;color:var(--muted);font-size:11px;letter-spacing:1.1px}
@@ -103,19 +102,10 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 @media(max-width:1000px){.dash-layout{grid-template-columns:1fr}.dash-categories{grid-auto-rows:clamp(120px,20vw,175px)}.dash-upper{grid-template-columns:1fr}.dash-zone-panel{min-height:unset}.dash-nav span{font-size:9px}}
 @media(max-width:600px){.dash-head{align-items:flex-start;flex-direction:column}.dash-crest{width:54px;height:54px}.dash-categories{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:clamp(100px,29vw,130px);gap:5px}.dash-cat{border-radius:10px}.dash-cat strong{font-size:8px;padding:6px 5px}.dash-cat b{font-size:16px}.dash-feature-grid{grid-template-columns:1fr}.dash-bottom{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-report{grid-template-columns:75px 40px minmax(0,1fr);font-size:9px}.dash-report strong:nth-child(2){display:none}.dash-nav span{padding:8px 6px}}
 
-#streetViewPanel{display:none;position:fixed;z-index:10020;right:18px;bottom:18px;width:min(520px,calc(100vw - 36px));background:#071827;border:1px solid #59c8f2;border-radius:12px;box-shadow:0 14px 45px #000b;color:#fff;overflow:hidden}
-#streetViewPanel.open{display:block}
-#streetViewPanel .sv-head{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0b2940;font:700 13px Arial,sans-serif}
-#streetViewPanel .sv-head strong{flex:1}
-#streetViewPanel .sv-head button{border:0;border-radius:6px;background:#25475b;color:#fff;padding:6px 10px;cursor:pointer}
-#streetViewFrame{display:block;width:100%;height:290px;border:0;background:#102b3b}
-#streetViewPanel .sv-foot{padding:7px 10px;color:#b9d2df;font:11px Arial,sans-serif}
-@media(max-width:600px){#streetViewPanel{right:8px;bottom:8px;width:calc(100vw - 16px)}#streetViewFrame{height:230px}}
 
 </style>
 </head>
 <body>
-<div id="openingOverlay" aria-label="Abertura Pré-Caju 2026"><video id="openingVideo" autoplay muted playsinline preload="auto"><source src="videos/abertura.mp4" type="video/mp4">Seu navegador não consegue reproduzir este vídeo.</video><button id="skipOpening" type="button" onclick="var o=document.getElementById('openingOverlay');if(o){o.classList.add('hidden');o.style.display='none';}var v=document.getElementById('openingVideo');if(v){v.pause();v.currentTime=0;}">Entrar no painel ⟶</button></div>
 <div id="app">
 <header>
   <div class="crest">✚</div>
@@ -215,7 +205,6 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
  <div class="pres-progress"><span id="presProgress"></span></div>
 </div>
 
-<div id="streetViewPanel" aria-label="Street View do início do percurso"><div class="sv-head"><strong>📍 Street View — início do percurso</strong><button id="streetViewOpen">Abrir no Google Maps ↗</button><button id="streetViewClose" aria-label="Fechar Street View">✕</button></div><iframe id="streetViewFrame" title="Imagem Street View do início do percurso" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe><div class="sv-foot">A imagem depende da cobertura Street View disponível para as coordenadas iniciais.</div></div>
 <div id="pointFocus" style="display:none;position:absolute;z-index:15;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,88vw);max-height:78vh;overflow:auto;background:rgba(7,25,37,.94);border:1px solid #5b8197;border-radius:12px;padding:14px;box-shadow:0 18px 55px #000a;color:#eaf3f8">
  <div style="display:flex;align-items:center;gap:10px"><strong id="focusTitle" style="font-size:15px;flex:1">Ponto selecionado</strong><button id="focusClose">✕</button></div>
  <div id="focusImages" style="display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;margin:12px 0"></div>
@@ -611,13 +600,13 @@ $('playBtn').onclick=()=>{
  const nextStop=()=>{
   if(!playing)return;
   if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
-  if(i>=tour.length){stopFlight();activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(route.length){const startPoint=route[0];selectedId=startPoint.id;$('flightSlider').value=0;$('flightLabel').textContent=startPoint.name;$('flightCount').textContent='1/'+route.length;selectPoint(startPoint.id,false);map.flyTo({center:[Number(startPoint.lng),Number(startPoint.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1800,essential:true});showTourName(startPoint,'INÍCIO DO PERCURSO');showStreetViewForPoint(startPoint);}toast('Sobrevoo concluído. Retornando ao início do percurso.');return}
+  if(i>=tour.length){stopFlight();activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(route.length){const startPoint=route[0];selectedId=startPoint.id;$('flightSlider').value=0;$('flightLabel').textContent=startPoint.name;$('flightCount').textContent='1/'+route.length;selectPoint(startPoint.id,false);map.flyTo({center:[Number(startPoint.lng),Number(startPoint.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1800,essential:true});showTourName(startPoint,'INÍCIO DO PERCURSO');}toast('Sobrevoo concluído. Retornando ao início do percurso.');return}
   const p=tour[i++];
   if(p.kind==='exit-route-tour')startAmbulanceAnimation(p.exitRouteId);else stopAmbulanceAnimation();
   activeTourLabelId=null;activeTourResourceId=p.kind==='route'?null:p.id;updateMapData();renderImageMarkers();
   if(p.kind==='route'){
    const routeIndex=route.findIndex(x=>x.id===p.id);
-   if(routeIndex===0){showTourName(p,'INÍCIO DO PERCURSO');showStreetViewForPoint(p)}else{hideStreetView();if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');}
+   if(routeIndex===0){showTourName(p,'INÍCIO DO PERCURSO')}else if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');
   }else if(p.kind==='exit-route-tour'){
    showTourName(p,p.exitRouteName.toUpperCase());
   }
