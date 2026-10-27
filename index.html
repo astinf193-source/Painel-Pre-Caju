@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Painel Operacional Pré-Caju — CBMSE</title>
-<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <style>
 :root{--navy:#0b1d2b;--navy2:#12344a;--blue:#1e6388;--cyan:#72d2f2;--gold:#ffc857;--text:#eaf3f8;--muted:#a9bfce;--panel:#102838;--line:#29485b}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--navy);color:var(--text);overflow:hidden}
@@ -231,7 +231,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
   <div class="row"><div class="field"><label for="fLat">Latitude</label><input id="fLat" type="number" step="any"></div><div class="field"><label for="fLng">Longitude</label><input id="fLng" type="number" step="any"></div></div>
   <div class="actions"><button id="saveBtn" class="primary">Salvar recurso</button><button id="cancelBtn">Cancelar</button></div>
 </div></div>
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 (() => {
 const openingOverlay=document.getElementById('openingOverlay');
@@ -254,7 +254,7 @@ let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResource
 const $=id=>document.getElementById(id);
 const map=new maplibregl.Map({
  container:'map',
- style:{version:8,sources:{satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,minzoom:0,maxzoom:17,attribution:'Imagery © Esri; map data © OpenStreetMap contributors'},openstreetmap:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'satellite',type:'raster',source:'satellite',paint:{'raster-fade-duration':250,'raster-contrast':0,'raster-saturation':0}},{id:'street-base',type:'raster',source:'openstreetmap',layout:{visibility:'none'}}]},
+ style:{version:8,sources:{satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,minzoom:0,maxzoom:17,attribution:'Imagery © Esri; map data © OpenStreetMap contributors'},openstreetmap:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'street-base',type:'raster',source:'openstreetmap',layout:{visibility:'visible'}},{id:'satellite',type:'raster',source:'satellite',layout:{visibility:'none'},paint:{'raster-fade-duration':250,'raster-contrast':0,'raster-saturation':0}}]},
  center:[-37.041,-10.978],zoom:14.5,pitch:55,bearing:18,antialias:true
 });
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
