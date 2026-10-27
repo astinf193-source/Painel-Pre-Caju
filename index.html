@@ -16,7 +16,7 @@ header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:lin
 .header-right{margin-left:auto;display:flex;gap:8px;align-items:center}.tag{font-size:10px;text-transform:uppercase;letter-spacing:.7px;padding:6px 9px;border-radius:5px;border:1px solid #956f28;background:#3e321a;color:#ffe1a0;font-weight:700}
 button,.file-label{border:1px solid #42647a;background:#1a4058;color:var(--text);border-radius:7px;padding:9px 11px;font-weight:650;cursor:pointer;font-size:12px}button:hover,.file-label:hover{background:#245b78}button.primary{background:#087eaa;border-color:#36a5cf}button.danger{background:#572d31;border-color:#8c4b50}button:disabled{opacity:.45;cursor:not-allowed}
 main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 330px;position:relative}
-#map{height:100%;width:100%;background:#142b39}
+#map{height:100%;width:100%;min-width:0;min-height:0;position:relative;overflow:hidden;background:#142b39}
 .sidebar{overflow:auto;background:var(--panel);border-left:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:13px}
 .card{border:1px solid var(--line);border-radius:10px;padding:12px;background:#0c2231}.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:#b8d8e8;margin:0 0 10px}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#17394d;border-radius:7px;padding:10px}.stat strong{display:block;font-size:20px;color:white}.stat span{font-size:10px;color:var(--muted)}
@@ -259,6 +259,10 @@ const map=new maplibregl.Map({
 });
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
 map.addControl(new maplibregl.ScaleControl({maxWidth:120,unit:'metric'}),'bottom-right');
+// Garante que o mapa calcule o tamanho correto após o layout do painel.
+map.on('load',()=>{requestAnimationFrame(()=>map.resize());});
+window.addEventListener('resize',()=>map.resize());
+map.on('error',e=>{console.warn('Erro ao carregar o mapa Pré-Caju:',e.error||e);});
 function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').style.display='none',3200)}
 function allPoints(){return [...route,...resources]}
 function selected(){return allPoints().find(p=>p.id===selectedId)}
