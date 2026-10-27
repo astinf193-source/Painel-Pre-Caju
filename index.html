@@ -586,7 +586,7 @@ $('playBtn').onclick=()=>{
  const nextStop=()=>{
   if(!playing)return;
   if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
-  if(i>=tour.length){stopFlight();activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();toast('Sobrevoo do percurso e de todas as equipes concluído.');return}
+  if(i>=tour.length){stopFlight();activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(route.length){const startPoint=route[0];selectedId=startPoint.id;$('flightSlider').value=0;$('flightLabel').textContent=startPoint.name;$('flightCount').textContent='1/'+route.length;selectPoint(startPoint.id,false);map.flyTo({center:[Number(startPoint.lng),Number(startPoint.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1800,essential:true});}toast('Sobrevoo concluído. Retornando ao início do percurso.');return}
   const p=tour[i++];
   if(p.kind==='exit-route-tour')startAmbulanceAnimation(p.exitRouteId);else stopAmbulanceAnimation();
   activeTourLabelId=null;activeTourResourceId=p.kind==='route'?null:p.id;updateMapData();renderImageMarkers();
