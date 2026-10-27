@@ -617,8 +617,7 @@ $('playBtn').onclick=()=>{
   activeTourLabelId=null;activeTourResourceId=p.kind==='route'?null:p.id;updateMapData();renderImageMarkers();
   if(p.kind==='route'){
    const routeIndex=route.findIndex(x=>x.id===p.id);
-   if(routeIndex===0){showTourName(p,'INÍCIO DO PERCURSO');showStreetViewForPoint(p)}else hideStreetView();
-   else if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');
+   if(routeIndex===0){showTourName(p,'INÍCIO DO PERCURSO');showStreetViewForPoint(p)}else{hideStreetView();if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');}
   }else if(p.kind==='exit-route-tour'){
    showTourName(p,p.exitRouteName.toUpperCase());
   }
