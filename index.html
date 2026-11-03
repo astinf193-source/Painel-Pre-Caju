@@ -209,7 +209,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 <header>
   <div class="crest">✚</div>
   <div class="brand"><h1>PRÉ-CAJU 2026 | CBMSE</h1><p>PAINEL DE PLANEJAMENTO OPERACIONAL</p></div>
-  <div class="header-right"><span id="authUser"></span><span id="cloudStatus" style="font-size:10px;color:#a9bfce"></span><button id="syncLocalBtn" type="button" class="primary" style="display:none;padding:7px 9px;font-size:10px">Enviar dados locais</button><button id="loginMenuBtn" type="button">Entrar / Administração</button><button id="authSignOut" type="button" style="display:none">Sair</button><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Dashboard</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
+  <div class="header-right"><span id="authUser"></span><span id="cloudStatus" style="font-size:10px;color:#a9bfce"></span><button id="syncLocalBtn" type="button" class="primary" style="display:none;padding:7px 9px;font-size:10px">Enviar dados locais</button><button id="loginMenuBtn" type="button">Entrar / Administração</button><button id="authSignOut" type="button" style="display:none">Sair</button><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Dashboard</button></div>
 </header>
 <main>
   <div id="map">
@@ -1027,7 +1027,7 @@ function showPresSlide(n){
 function stopPresAuto(){if(presAutoTimer){clearInterval(presAutoTimer);presAutoTimer=null}$('presAuto').textContent='▶ Apresentação automática'}
 function openPres(){refreshPresStats();showPresSlide(0);presOverlay.classList.add('open');document.body.style.overflow='hidden'}
 function closePres(){stopPresAuto();presOverlay.classList.remove('open');document.body.style.overflow='';}
-$('presentationBtn').onclick=async()=>{openPres();try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen()}catch(e){}};
+
 $('presClose').onclick=closePres;$('presPrev').onclick=()=>showPresSlide(presIndex-1);$('presNext').onclick=()=>showPresSlide(presIndex+1);
 $('presAuto').onclick=()=>{if(presAutoTimer){stopPresAuto();return}$('presAuto').textContent='Ⅱ Pausar apresentação';presAutoTimer=setInterval(()=>{if(presIndex>=3){stopPresAuto();return}showPresSlide(presIndex+1)},8000)};
 $('presMapTour').onclick=()=>{closePres();if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});$('playBtn').click()};
