@@ -446,6 +446,7 @@ async function activateAuthenticatedUser(user){
  $('loginMenuBtn').style.display='none';
  $('authSignOut').style.display='inline-flex';
  $('authGate').classList.remove('open');
+ $('authGate').style.display='none';
  $('app').style.display='grid';
  $('authUser').textContent=profile.nome+' · '+profile.papel;
  $('syncLocalBtn').style.display='none';
@@ -466,6 +467,7 @@ async function initializeAuthentication(){
    authenticatedUser=null;
    authenticatedProfile={nome:'Consulta pública',papel:'visualizador',ativo:true};
    $('authGate').classList.remove('open');
+   $('authGate').style.display='none';
    $('app').style.display='grid';
    $('authUser').textContent='Visualização pública';
    $('loginMenuBtn').style.display='inline-flex';
@@ -491,11 +493,20 @@ $('authCard').addEventListener('submit',async event=>{
  finally{$('authLoginBtn').disabled=false;}
 });
 $('loginMenuBtn').addEventListener('click',()=>{
- $('authGate').classList.add('open');
+ const gate=$('authGate');
+ gate.classList.add('open');
+ gate.style.display='flex';
+ gate.style.visibility='visible';
+ gate.style.opacity='1';
  $('authMessage').textContent='Acesso administrativo: entre com seu e-mail e senha.';
  $('authEmail').focus();
 });
-$('closeAuthGate').addEventListener('click',()=>{$('authGate').classList.remove('open');$('authPassword').value='';});
+$('closeAuthGate').addEventListener('click',()=>{
+ const gate=$('authGate');
+ gate.classList.remove('open');
+ gate.style.display='none';
+ $('authPassword').value='';
+});
 $('authSignOut').addEventListener('click',async()=>{
  await supabaseClient.auth.signOut();
  authenticatedUser=null;
