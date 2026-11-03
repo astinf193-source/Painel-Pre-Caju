@@ -59,7 +59,12 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
  #toast{bottom:8px;max-width:calc(100% - 20px)}
  .modal{max-height:85dvh}
 }
-body[data-role="visualizador"] #mapControls{display:none!important}
+body[data-role="visualizador"] #mapControls,
+body[data-role="visualizador"] #editBtn,
+body[data-role="visualizador"] #deleteBtn,
+body[data-role="visualizador"] #syncLocalBtn,
+body[data-role="visualizador"] #authSignOut,
+body[data-role="visualizador"] #formModal{display:none!important}
 @media(max-width:520px){
  header{align-items:center}
  .brand h1{font-size:12px}.brand p{font-size:8px}
@@ -437,7 +442,19 @@ async function initializeAuthentication(){
   const {data:{session},error}=await supabaseClient.auth.getSession();
   if(error)throw error;
   if(session?.user){await activateAuthenticatedUser(session.user);}
- }catch(error){showAuthMessage(error.message||'Não foi possível validar o acesso.');}
+  else{
+   document.body.dataset.role='visualizador';
+   authenticatedUser=null;
+   authenticatedProfile={nome:'Consulta pública',papel:'visualizador',ativo:true};
+   $('authGate').style.display='none';
+   $('app').style.display='grid';
+   $('authUser').textContent='Visualização pública';
+   $('authSignOut').style.display='none';
+   $('syncLocalBtn').style.display='none';
+   await startCloudSync(authenticatedProfile);
+   requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
+  }
+ }catch(error){showAuthMessage(error.message||'Não foi possível carregar a visualização pública.');}
  $('authLoginBtn').disabled=false;
 }
 $('authCard').addEventListener('submit',async event=>{
