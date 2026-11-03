@@ -64,7 +64,14 @@ body[data-role="visualizador"] #editBtn,
 body[data-role="visualizador"] #deleteBtn,
 body[data-role="visualizador"] #syncLocalBtn,
 body[data-role="visualizador"] #authSignOut,
-body[data-role="visualizador"] #formModal{display:none!important}
+body[data-role="visualizador"] #formModal,
+body[data-role="visualizador"] .file-label,
+body[data-role="visualizador"] #crewImageFile,
+body[data-role="visualizador"] #crewImageFile2,
+body[data-role="visualizador"] #removeCrewImage,
+body[data-role="visualizador"] #removeCrewImage2{display:none!important}
+body[data-role="visualizador"] .dash-card-photo{pointer-events:none!important;cursor:default!important}
+body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 @media(max-width:520px){
  header{align-items:center}
  .brand h1{font-size:12px}.brand p{font-size:8px}
@@ -933,7 +940,7 @@ async function openDashResourceImagePicker(label){
 function renderOccurrenceCategories(){
  $('dashCategories').innerHTML=occurrenceCategories.map((c,i)=>{const key=getDashCardImageKey(c.name);let src='';try{src=localStorage.getItem(key)||''}catch(e){}const photo=src?'<img src="'+src.replace(/"/g,'&quot;')+'" alt="Imagem de '+safe(c.name)+'">':'<span>＋ Inserir imagem<br>'+safe(c.name)+'</span>';return '<button type="button" class="dash-cat '+(selectedOccurrenceCategory===c.name?'active':'')+'" data-occurrence="'+i+'" aria-pressed="'+(selectedOccurrenceCategory===c.name)+'"><span class="dash-symbol" style="color:'+c.color+'">'+c.icon+'</span><span class="dash-card-photo" data-photo="'+i+'">'+photo+'</span><strong><span>'+safe(c.name)+'</span><b>'+getOccurrenceCount(c)+'</b></strong></button>'}).join('');
  $('dashCategories').querySelectorAll('[data-occurrence]').forEach(b=>b.onclick=()=>{selectedOccurrenceCategory=occurrenceCategories[Number(b.dataset.occurrence)].name;renderOccurrenceCategories();renderOccurrenceDetails()});
- $('dashCategories').querySelectorAll('.dash-card-photo').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();const idx=Number(el.dataset.photo),cat=occurrenceCategories[idx];openDashCardImagePicker(cat)}));
+ $('dashCategories').querySelectorAll('.dash-card-photo').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();if(document.body.dataset.role==='visualizador')return;const idx=Number(el.dataset.photo),cat=occurrenceCategories[idx];openDashCardImagePicker(cat)}));
 }
 function renderOccurrenceDetails(){
  const cat=occurrenceCategories.find(c=>c.name===selectedOccurrenceCategory);
