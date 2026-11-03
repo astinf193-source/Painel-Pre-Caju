@@ -291,6 +291,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 <script>
 (() => {
 const STORAGE_KEY='cbmse-precaju-prototipo-v1';
+const $=id=>document.getElementById(id);
 
 const SUPABASE_URL='https://ygenmazbaruesdeeasbz.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_W1ohdVWf67fmUK1UnJF0cw_G7sRweep';
@@ -360,7 +361,6 @@ const initialRoute=[
 ];
 let route=structuredClone(initialRoute), exitRoute=[], exitRoutes=[], resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawExitRouteMode=false, drawnCoords=[], drawnExitCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
 let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null, ambulanceMarkers=[], ambulanceAnimationFrame=null;
-const $=id=>document.getElementById(id);
 const map=new maplibregl.Map({
  container:'map',
  style:{version:8,sources:{satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,minzoom:0,maxzoom:17,attribution:'Imagery © Esri; map data © OpenStreetMap contributors'},openstreetmap:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'street-base',type:'raster',source:'openstreetmap',layout:{visibility:'visible'}},{id:'satellite',type:'raster',source:'satellite',layout:{visibility:'none'},paint:{'raster-fade-duration':250,'raster-contrast':0,'raster-saturation':0}}]},
