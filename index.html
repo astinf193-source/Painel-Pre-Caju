@@ -24,7 +24,11 @@ main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 330px;positio
 .point-list{display:flex;flex-direction:column;gap:7px}.point{border:1px solid #294a5f;border-radius:7px;padding:9px;display:flex;gap:8px;align-items:center}.point .pin{width:10px;height:10px;border-radius:50%;background:var(--cyan);border:2px solid #d7f7ff;flex:none}.point .ptxt{min-width:0;flex:1}.point strong{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.point span{font-size:10px;color:var(--muted)}.point button{padding:6px 8px}
 #toast{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;background:#071925;border:1px solid #4a738b;padding:10px 14px;border-radius:8px;box-shadow:0 6px 24px #0007;font-size:12px;display:none;max-width:80vw}
 #mapControls{position:absolute;top:12px;left:12px;z-index:3;display:flex;flex-direction:column;gap:7px;max-width:calc(100% - 24px)}
-#toolsToggleBtn{display:none;background:#0b2434ed;border:1px solid #42647a;border-radius:8px;padding:9px 12px;color:#fff;font-weight:700;align-self:flex-start}
+#loginMenuBtn{background:#0d709c;border:1px solid #3ab9e8;border-radius:8px;padding:8px 12px;color:#fff;font-weight:800}
+ body[data-role="visualizador"] #authGate{display:none}
+ body[data-role="visualizador"] #loginMenuBtn{display:inline-flex}
+ body:not([data-role="visualizador"]) #loginMenuBtn{display:none}
+ #toolsToggleBtn{display:none;background:#0b2434ed;border:1px solid #42647a;border-radius:8px;padding:9px 12px;color:#fff;font-weight:700;align-self:flex-start}
  .mapnote{background:#081c29eF;border:1px solid #34566a;border-radius:8px;padding:9px 11px;font-size:11px;line-height:1.4;max-width:300px}
 .maptools{display:flex;gap:6px;flex-wrap:wrap}.maptools button{background:#0b2434eF}#drawExitRouteBtn{border-color:#f59e0b;color:#ffdf9a}
 #playbar{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;display:flex;align-items:center;gap:8px;background:#071925ee;border:1px solid #36566b;border-radius:10px;padding:10px;max-width:700px}
@@ -201,7 +205,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 <header>
   <div class="crest">✚</div>
   <div class="brand"><h1>PRÉ-CAJU 2026 | CBMSE</h1><p>PAINEL DE PLANEJAMENTO OPERACIONAL</p></div>
-  <div class="header-right"><span id="authUser"></span><span id="cloudStatus" style="font-size:10px;color:#a9bfce"></span><button id="syncLocalBtn" type="button" class="primary" style="display:none;padding:7px 9px;font-size:10px">Enviar dados locais</button><button id="authSignOut" type="button">Sair</button><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Dashboard</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
+  <div class="header-right"><span id="authUser"></span><span id="cloudStatus" style="font-size:10px;color:#a9bfce"></span><button id="syncLocalBtn" type="button" class="primary" style="display:none;padding:7px 9px;font-size:10px">Enviar dados locais</button><button id="loginMenuBtn" type="button">Entrar / Administração</button><button id="authSignOut" type="button" style="display:none">Sair</button><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Dashboard</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
 </header>
 <main>
   <div id="map">
@@ -433,6 +437,8 @@ async function activateAuthenticatedUser(user){
  }
  authenticatedUser=user;
  document.body.dataset.role=profile.papel;
+ $('loginMenuBtn').style.display='none';
+ $('authSignOut').style.display='inline-flex';
  $('authGate').style.display='none';
  $('app').style.display='grid';
  $('authUser').textContent=profile.nome+' · '+profile.papel;
@@ -456,6 +462,7 @@ async function initializeAuthentication(){
    $('authGate').style.display='none';
    $('app').style.display='grid';
    $('authUser').textContent='Visualização pública';
+   $('loginMenuBtn').style.display='inline-flex';
    $('authSignOut').style.display='none';
    $('syncLocalBtn').style.display='none';
    await startCloudSync(authenticatedProfile);
@@ -476,6 +483,11 @@ $('authCard').addEventListener('submit',async event=>{
   await activateAuthenticatedUser(data.user);
  }catch(error){showAuthMessage(error.message||'Falha ao entrar. Confira o e-mail e a senha.');}
  finally{$('authLoginBtn').disabled=false;}
+});
+$('loginMenuBtn').addEventListener('click',()=>{
+ $('authGate').style.display='flex';
+ $('authMessage').textContent='Acesso administrativo: entre com seu e-mail e senha.';
+ $('authEmail').focus();
 });
 $('authSignOut').addEventListener('click',async()=>{
  await supabaseClient.auth.signOut();
@@ -505,7 +517,7 @@ let route=structuredClone(initialRoute), exitRoute=[], exitRoutes=[], resources=
 let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null, ambulanceMarkers=[], ambulanceAnimationFrame=null;
 const map=new maplibregl.Map({
  container:'map',
- style:{version:8,sources:{satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,minzoom:0,maxzoom:17,attribution:'Imagery © Esri; map data © OpenStreetMap contributors'},openstreetmap:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'street-base',type:'raster',source:'openstreetmap',layout:{visibility:'visible'}},{id:'satellite',type:'raster',source:'satellite',layout:{visibility:'none'},paint:{'raster-fade-duration':250,'raster-contrast':0,'raster-saturation':0}}]},
+ style:{version:8,sources:{satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,minzoom:0,maxzoom:17,attribution:'Imagery © Esri; map data © OpenStreetMap contributors'},openstreetmap:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'street-base',type:'raster',source:'openstreetmap',layout:{visibility:'none'}},{id:'satellite',type:'raster',source:'satellite',layout:{visibility:'visible'},paint:{'raster-fade-duration':250,'raster-contrast':0,'raster-saturation':0}}]},
  center:[-37.041,-10.978],zoom:14.5,pitch:55,bearing:18,antialias:true
 });
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
