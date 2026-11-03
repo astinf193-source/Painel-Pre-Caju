@@ -24,7 +24,8 @@ main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 330px;positio
 .point-list{display:flex;flex-direction:column;gap:7px}.point{border:1px solid #294a5f;border-radius:7px;padding:9px;display:flex;gap:8px;align-items:center}.point .pin{width:10px;height:10px;border-radius:50%;background:var(--cyan);border:2px solid #d7f7ff;flex:none}.point .ptxt{min-width:0;flex:1}.point strong{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.point span{font-size:10px;color:var(--muted)}.point button{padding:6px 8px}
 #toast{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;background:#071925;border:1px solid #4a738b;padding:10px 14px;border-radius:8px;box-shadow:0 6px 24px #0007;font-size:12px;display:none;max-width:80vw}
 #mapControls{position:absolute;top:12px;left:12px;z-index:3;display:flex;flex-direction:column;gap:7px;max-width:calc(100% - 24px)}
-.mapnote{background:#081c29eF;border:1px solid #34566a;border-radius:8px;padding:9px 11px;font-size:11px;line-height:1.4;max-width:300px}
+#toolsToggleBtn{display:none;background:#0b2434ed;border:1px solid #42647a;border-radius:8px;padding:9px 12px;color:#fff;font-weight:700;align-self:flex-start}
+ .mapnote{background:#081c29eF;border:1px solid #34566a;border-radius:8px;padding:9px 11px;font-size:11px;line-height:1.4;max-width:300px}
 .maptools{display:flex;gap:6px;flex-wrap:wrap}.maptools button{background:#0b2434eF}#drawExitRouteBtn{border-color:#f59e0b;color:#ffdf9a}
 #playbar{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;display:flex;align-items:center;gap:8px;background:#071925ee;border:1px solid #36566b;border-radius:10px;padding:10px;max-width:700px}
 #playbar input{flex:1;min-width:40px;accent-color:var(--cyan)}#playbar span{font-size:10px;color:#c8dbe6;white-space:nowrap}
@@ -46,6 +47,9 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
  #map{height:100%;min-height:440px}
  .sidebar{min-height:0;max-height:none;overflow:visible;border-left:0;border-top:1px solid var(--line);padding:10px;gap:10px}
  #mapControls{top:7px;left:7px;right:7px;max-width:none;gap:6px}
+ #toolsToggleBtn{display:block}
+ #mapControls .maptools{display:none}
+ #mapControls.tools-open .maptools{display:flex}
  .maptools{gap:5px}
  .maptools button{font-size:10px;padding:8px 9px;flex:1 1 auto;min-height:35px}
  #playbar{left:7px;right:7px;bottom:7px;max-width:none;gap:5px;padding:7px}
@@ -55,6 +59,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
  #toast{bottom:8px;max-width:calc(100% - 20px)}
  .modal{max-height:85dvh}
 }
+@media(max-width:800px){.role-visualizador #mapControls{display:none!important}}
 @media(max-width:520px){
  header{align-items:center}
  .brand h1{font-size:12px}.brand p{font-size:8px}
@@ -189,6 +194,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 <main>
   <div id="map">
     <div id="mapControls">
+      <button id="toolsToggleBtn" type="button" aria-expanded="false">☰ Ferramentas do mapa</button>
       <div class="maptools"><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="clearExitRoutesBtn" class="danger">✕ Limpar saídas cadastradas</button><button id="baseMapBtn">Mapa de ruas</button></div>
     </div>
     <div id="playbar">
@@ -401,6 +407,11 @@ async function migrateLocalToCloud(){
  }
 }
 $('syncLocalBtn').addEventListener('click',migrateLocalToCloud);
+$('toolsToggleBtn').addEventListener('click',()=>{
+ const box=$('mapControls'),open=box.classList.toggle('tools-open');
+ $('toolsToggleBtn').setAttribute('aria-expanded',String(open));
+ $('toolsToggleBtn').textContent=open?'✕ Fechar ferramentas':'☰ Ferramentas do mapa';
+});
 async function activateAuthenticatedUser(user){
  const {data:profile,error}=await supabaseClient.from('perfis').select('nome,papel,ativo').eq('id',user.id).maybeSingle();
  if(error)throw error;
@@ -409,6 +420,7 @@ async function activateAuthenticatedUser(user){
   throw new Error('Usuário sem perfil ativo. Solicite ao administrador a liberação do acesso.');
  }
  authenticatedUser=user;
+ document.body.dataset.role=profile.papel;
  $('authGate').style.display='none';
  $('app').style.display='grid';
  $('authUser').textContent=profile.nome+' · '+profile.papel;
