@@ -147,15 +147,44 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 
 
 #openingOverlay{position:fixed;inset:0;z-index:10000;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}#openingOverlay.hidden{display:none}#openingVideo{display:block;width:100%;height:100%;object-fit:contain;object-position:center center;background:#000}#skipOpening{position:absolute;right:24px;bottom:24px;z-index:2;background:#087fa8;color:#fff;border:1px solid #56c7e8;border-radius:9px;padding:14px 20px;font-weight:800;cursor:pointer;box-shadow:0 4px 18px #0008}#skipOpening:hover{background:#0696c5}
+
+/* Supabase authentication gate */
+#app{display:none}
+#authGate{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#06131f 0%,#0d2b40 60%,#071521 100%)}
+#authCard{width:min(430px,100%);padding:28px;border:1px solid #31556a;border-radius:16px;background:#102838;box-shadow:0 20px 70px #0009}
+#authCard h2{margin:0 0 8px;color:#fff;font-size:22px}
+#authCard p{margin:0 0 22px;color:#a9bfce;font-size:13px;line-height:1.5}
+#authCard label{display:block;margin:13px 0 6px;color:#dceaf2;font-size:12px;font-weight:700}
+#authCard input{width:100%;padding:12px;border:1px solid #42647a;border-radius:8px;background:#071b29;color:#fff;font-size:14px}
+#authLoginBtn{width:100%;margin-top:20px;padding:12px;font-size:14px}
+#authMessage{min-height:18px;margin-top:12px;color:#ffc857;font-size:12px}
+#authUser{color:#a9bfce;font-size:11px;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#authSignOut{padding:7px 9px;font-size:11px}
+
 </style>
 </head>
 <body>
+
+<div id="authGate">
+ <form id="authCard">
+  <div class="crest" style="margin-bottom:16px">✚</div>
+  <h2>Painel Operacional Pré-Caju</h2>
+  <p>Acesso restrito a usuários cadastrados e autorizados pelo administrador.</p>
+  <label for="authEmail">E-mail</label>
+  <input id="authEmail" type="email" autocomplete="username" required placeholder="seu.email@cbm.se.gov.br">
+  <label for="authPassword">Senha</label>
+  <input id="authPassword" type="password" autocomplete="current-password" required placeholder="Digite sua senha">
+  <button id="authLoginBtn" class="primary" type="submit">Entrar no painel</button>
+  <div id="authMessage" role="status" aria-live="polite"></div>
+ </form>
+</div>
+
 <div id="openingOverlay"><video id="openingVideo" autoplay muted playsinline preload="auto"><source src="videos/abertura.mp4" type="video/mp4"></video><button id="skipOpening" type="button">Entrar no painel ⟶</button></div>
 <div id="app">
 <header>
   <div class="crest">✚</div>
   <div class="brand"><h1>PRÉ-CAJU 2026 | CBMSE</h1><p>PAINEL DE PLANEJAMENTO OPERACIONAL</p></div>
-  <div class="header-right"><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Dashboard</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
+  <div class="header-right"><span id="authUser"></span><button id="authSignOut" type="button">Sair</button><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Dashboard</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
 </header>
 <main>
   <div id="map">
@@ -257,10 +286,70 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
   <div class="row"><div class="field"><label for="fLat">Latitude</label><input id="fLat" type="number" step="any"></div><div class="field"><label for="fLng">Longitude</label><input id="fLng" type="number" step="any"></div></div>
   <div class="actions"><button id="saveBtn" class="primary">Salvar recurso</button><button id="cancelBtn">Cancelar</button></div>
 </div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 (() => {
 const STORAGE_KEY='cbmse-precaju-prototipo-v1';
+
+const SUPABASE_URL='https://ygenmazbaruesdeeasbz.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_W1ohdVWf67fmUK1UnJF0cw_G7sRweep';
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let authenticatedUser=null;
+function showAuthMessage(message){$('authMessage').textContent=message||''}
+async function activateAuthenticatedUser(user){
+ const {data:profile,error}=await supabaseClient.from('perfis').select('nome,papel,ativo').eq('id',user.id).maybeSingle();
+ if(error)throw error;
+ if(!profile||!profile.ativo){
+  await supabaseClient.auth.signOut();
+  throw new Error('Usuário sem perfil ativo. Solicite ao administrador a liberação do acesso.');
+ }
+ authenticatedUser=user;
+ $('authGate').style.display='none';
+ $('app').style.display='grid';
+ $('authUser').textContent=profile.nome+' · '+profile.papel;
+ requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
+}
+async function initializeAuthentication(){
+ $('authGate').style.display='flex';
+ $('app').style.display='none';
+ $('authLoginBtn').disabled=true;
+ try{
+  const {data:{session},error}=await supabaseClient.auth.getSession();
+  if(error)throw error;
+  if(session?.user){await activateAuthenticatedUser(session.user);}
+ }catch(error){showAuthMessage(error.message||'Não foi possível validar o acesso.');}
+ $('authLoginBtn').disabled=false;
+}
+$('authCard').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const email=$('authEmail').value.trim();
+ const password=$('authPassword').value;
+ $('authLoginBtn').disabled=true;
+ showAuthMessage('Validando acesso...');
+ try{
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  await activateAuthenticatedUser(data.user);
+ }catch(error){showAuthMessage(error.message||'Falha ao entrar. Confira o e-mail e a senha.');}
+ finally{$('authLoginBtn').disabled=false;}
+});
+$('authSignOut').addEventListener('click',async()=>{
+ await supabaseClient.auth.signOut();
+ authenticatedUser=null;
+ $('app').style.display='none';
+ $('authGate').style.display='flex';
+ $('authPassword').value='';
+ showAuthMessage('Sessão encerrada.');
+});
+supabaseClient.auth.onAuthStateChange((event,session)=>{
+ if(event==='SIGNED_OUT'){
+  authenticatedUser=null;
+  $('app').style.display='none';
+  $('authGate').style.display='flex';
+ }
+});
+
 const initialRoute=[
  {id:'r0',name:'INÍCIO DO PERCURSO — Passarela do Caranguejo (aprox.)',lng:-37.0429,lat:-10.9875,kind:'route'},
  {id:'r1',name:'Eixo da avenida — trecho 01 (aprox.)',lng:-37.0424,lat:-10.9847,kind:'route'},
@@ -770,6 +859,7 @@ function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.l
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();if(addMode){addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=''}if(drawRouteMode){drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawRouteBtn').textContent='✎ Desenhar percurso';toast('Desenho cancelado. O traçado anterior será mantido após recarregar.')}if(drawExitRouteMode){drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';drawnExitCoords=[];toast('Desenho da saída cancelado.');}}if(e.key==='ArrowRight'&&$('formModal').style.display!=='flex')$('nextBtn').click();if(e.key==='ArrowLeft'&&$('formModal').style.display!=='flex')$('prevBtn').click();if(e.key.toLowerCase()==='p'&&$('formModal').style.display!=='flex')$('playBtn').click()});
 const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const closeOpening=()=>{if(openingOverlay)openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();}};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
 loadSaved();
+initializeAuthentication();
 })();
 </script>
 </body>
