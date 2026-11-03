@@ -184,7 +184,7 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 <header>
   <div class="crest">✚</div>
   <div class="brand"><h1>PRÉ-CAJU 2026 | CBMSE</h1><p>PAINEL DE PLANEJAMENTO OPERACIONAL</p></div>
-  <div class="header-right"><span id="authUser"></span><button id="authSignOut" type="button">Sair</button><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Dashboard</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
+  <div class="header-right"><span id="authUser"></span><span id="cloudStatus" style="font-size:10px;color:#a9bfce"></span><button id="syncLocalBtn" type="button" class="primary" style="display:none;padding:7px 9px;font-size:10px">Enviar dados locais</button><button id="authSignOut" type="button">Sair</button><span class="tag">Traçado preliminar</span><button id="dashboardBtn" class="primary">▦ Dashboard</button><button id="presentationBtn" class="primary">⛶ Modo telão</button></div>
 </header>
 <main>
   <div id="map">
@@ -297,7 +297,105 @@ const SUPABASE_URL='https://ygenmazbaruesdeeasbz.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_W1ohdVWf67fmUK1UnJF0cw_G7sRweep';
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let authenticatedUser=null;
+let authenticatedProfile=null, cloudSyncEnabled=false, cloudApplying=false, cloudSyncTimer=null, cloudChannel=null;
 function showAuthMessage(message){$('authMessage').textContent=message||''}
+function setCloudStatus(message){const el=$('cloudStatus');if(el)el.textContent=message||''}
+function hasCloudContent(state){return !!(state&&(Array.isArray(state.resources)&&state.resources.length||Array.isArray(state.exitRoutes)&&state.exitRoutes.length||Array.isArray(state.exitRoute)&&state.exitRoute.length||Array.isArray(state.route)&&state.route.length));}
+function dataUrlToBlob(dataUrl){const parts=dataUrl.split(',');const mime=(parts[0].match(/data:(.*?);base64/)||[])[1]||'image/jpeg';const binary=atob(parts[1]||'');const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new Blob([bytes],{type:mime});}
+function blobToDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(reader.error||new Error('Falha ao ler imagem da nuvem'));reader.readAsDataURL(blob);});}
+async function uploadResourceImage(dataUrl,userId){
+ const blob=dataUrlToBlob(dataUrl), ext=(blob.type.split('/')[1]||'jpeg').replace('jpeg','jpg').replace(/[^a-z0-9]/gi,'');
+ const path=userId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+(ext||'jpg');
+ const {error}=await supabaseClient.storage.from('imagens-operacionais').upload(path,blob,{contentType:blob.type||'image/jpeg',upsert:false});
+ if(error)throw error;
+ return path;
+}
+async function buildCloudState(){
+ const snapshot={route:structuredClone(route),exitRoute:structuredClone(exitRoute),exitRoutes:structuredClone(exitRoutes),resources:structuredClone(resources),savedAt:new Date().toISOString()};
+ for(const p of snapshot.resources){
+  if(p.imageData&&String(p.imageData).startsWith('data:')&&!p.imageStoragePath)p.imageStoragePath=await uploadResourceImage(p.imageData,authenticatedUser.id);
+  if(p.imageData2&&String(p.imageData2).startsWith('data:')&&!p.imageStoragePath2)p.imageStoragePath2=await uploadResourceImage(p.imageData2,authenticatedUser.id);
+  delete p.imageData;delete p.imageData2;
+ }
+ return snapshot;
+}
+async function hydrateCloudState(state){
+ const snapshot=structuredClone(state||{});
+ snapshot.route=Array.isArray(snapshot.route)?snapshot.route:structuredClone(initialRoute);
+ snapshot.exitRoute=Array.isArray(snapshot.exitRoute)?snapshot.exitRoute:[];
+ snapshot.exitRoutes=Array.isArray(snapshot.exitRoutes)?snapshot.exitRoutes:[];
+ snapshot.resources=Array.isArray(snapshot.resources)?snapshot.resources:[];
+ for(const p of snapshot.resources){
+  for(const [field,pathField] of [['imageData','imageStoragePath'],['imageData2','imageStoragePath2']]){
+   if(p[pathField]){
+    const {data,error}=await supabaseClient.storage.from('imagens-operacionais').download(p[pathField]);
+    if(error){console.warn('Não foi possível baixar imagem operacional:',error.message);continue;}
+    p[field]=await blobToDataUrl(data);
+   }
+  }
+ }
+ return snapshot;
+}
+async function applyCloudState(state){
+ cloudApplying=true;
+ try{
+  const snapshot=await hydrateCloudState(state);
+  route=snapshot.route;exitRoute=snapshot.exitRoute;exitRoutes=snapshot.exitRoutes;resources=snapshot.resources;
+  await writeDB({...snapshot,savedAt:new Date().toISOString()});
+  try{const compact={route,exitRoute,exitRoutes,resources:resources.map(p=>{const q={...p};delete q.imageData;delete q.imageData2;return q})};localStorage.setItem(STORAGE_KEY,JSON.stringify(compact));}catch(e){}
+  if(map.isStyleLoaded()){updateMapData();renderList();if(!selected()||!allPoints().some(p=>p.id===selectedId))selectedId=route[0]?.id;if(selectedId)selectPoint(selectedId,false);}
+  setCloudStatus('● Nuvem sincronizada');
+ }finally{cloudApplying=false;}
+}
+async function pushCloudState(){
+ if(!cloudSyncEnabled||cloudApplying||!authenticatedUser||!authenticatedProfile||!['administrador','editor'].includes(authenticatedProfile.papel))return;
+ setCloudStatus('Sincronizando…');
+ const state=await buildCloudState();
+ const {error}=await supabaseClient.from('painel_estado').upsert({id:1,nome_operacao:'Pré-Caju 2026',estado:state},{onConflict:'id'});
+ if(error)throw error;
+ setCloudStatus('● Nuvem sincronizada');
+}
+function scheduleCloudSync(){
+ if(!cloudSyncEnabled||cloudApplying||!authenticatedProfile||!['administrador','editor'].includes(authenticatedProfile.papel))return;
+ clearTimeout(cloudSyncTimer);
+ cloudSyncTimer=setTimeout(()=>pushCloudState().catch(error=>{console.error('Falha na sincronização:',error);setCloudStatus('⚠ Falha na nuvem');toast('Não foi possível sincronizar com a nuvem: '+(error.message||'verifique a conexão e as permissões.'));}),1200);
+}
+async function startCloudSync(profile){
+ authenticatedProfile=profile;
+ const {data:row,error}=await supabaseClient.from('painel_estado').select('estado,atualizado_por').eq('id',1).maybeSingle();
+ if(error)throw error;
+ if(row&&hasCloudContent(row.estado)){
+  cloudSyncEnabled=true;
+  await applyCloudState(row.estado);
+ }else{
+  cloudSyncEnabled=false;
+  setCloudStatus('● Dados locais preservados');
+  if(profile.papel==='administrador')$('syncLocalBtn').style.display='inline-block';
+ }
+ if(cloudChannel)supabaseClient.removeChannel(cloudChannel);
+ cloudChannel=supabaseClient.channel('painel-estado-compartilhado')
+  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'painel_estado',filter:'id=eq.1'},payload=>{
+   if(!cloudSyncEnabled||payload.new?.atualizado_por===authenticatedUser?.id)return;
+   if(payload.new?.estado)applyCloudState(payload.new.estado).catch(error=>{console.error(error);setCloudStatus('⚠ Erro ao receber atualização');});
+  }).subscribe();
+}
+async function migrateLocalToCloud(){
+ if(!authenticatedProfile||authenticatedProfile.papel!=='administrador')return;
+ if(!confirm('Enviar os dados deste computador para o Supabase? Os dados locais serão preservados. Se já houver dados na nuvem, esta ação poderá substituí-los.'))return;
+ try{
+  setCloudStatus('Enviando dados e imagens…');
+  cloudSyncEnabled=true;
+  await pushCloudState();
+  $('syncLocalBtn').style.display='none';
+  toast('Migração concluída. Os dados deste computador agora estão na nuvem.');
+ }catch(error){
+  cloudSyncEnabled=false;
+  setCloudStatus('⚠ Migração não concluída');
+  console.error(error);
+  toast('Falha ao enviar dados: '+(error.message||'verifique as permissões do Supabase.'));
+ }
+}
+$('syncLocalBtn').addEventListener('click',migrateLocalToCloud);
 async function activateAuthenticatedUser(user){
  const {data:profile,error}=await supabaseClient.from('perfis').select('nome,papel,ativo').eq('id',user.id).maybeSingle();
  if(error)throw error;
@@ -309,9 +407,12 @@ async function activateAuthenticatedUser(user){
  $('authGate').style.display='none';
  $('app').style.display='grid';
  $('authUser').textContent=profile.nome+' · '+profile.papel;
+ $('syncLocalBtn').style.display='none';
  requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
+ await startCloudSync(profile);
 }
 async function initializeAuthentication(){
+ await loadSaved();
  $('authGate').style.display='flex';
  $('app').style.display='none';
  $('authLoginBtn').disabled=true;
@@ -405,6 +506,7 @@ function persist(){
    localStorage.setItem(STORAGE_KEY,JSON.stringify(compact));
   }catch(e){}
  }).catch(()=>toast('Não foi possível salvar os dados localmente. Faça uma cópia dos dados antes de limpar o navegador.'));
+ scheduleCloudSync();
 }
 async function loadSaved(){
  let loaded=false;
@@ -610,7 +712,7 @@ $('crewImageFile').onchange=async e=>{
  if(!file.type.startsWith('image/')){toast('Selecione um arquivo de imagem.');e.target.value='';return}
  const p=selected();if(!p){toast('Selecione um ponto do percurso primeiro.');e.target.value='';return}
  imageToCompactDataUrl(file).then(data=>{
-    p.imageData=data;
+    p.imageData=data;delete p.imageStoragePath;
     persist();renderImageMarkers();selectPoint(p.id,false);
     toast('Imagem otimizada e vinculada a "'+p.name+'".');
   }).catch(()=>toast('Não foi possível processar esta imagem.')).finally(()=>{e.target.value=''});
@@ -619,15 +721,15 @@ $('crewImageFile2').onchange=e=>{
  const file=e.target.files?.[0];if(!file)return;
  if(!file.type.startsWith('image/')){toast('Selecione um arquivo de imagem.');e.target.value='';return}
  const p=selected();if(!p){toast('Selecione um ponto primeiro.');e.target.value='';return}
- imageToCompactDataUrl(file).then(data=>{p.imageData2=data;persist();renderImageMarkers();selectPoint(p.id,false);toast('Segunda imagem otimizada e vinculada a "'+p.name+'".')}).catch(()=>toast('Não foi possível processar esta imagem.')).finally(()=>{e.target.value=''});
+ imageToCompactDataUrl(file).then(data=>{p.imageData2=data;delete p.imageStoragePath2;persist();renderImageMarkers();selectPoint(p.id,false);toast('Segunda imagem otimizada e vinculada a "'+p.name+'".')}).catch(()=>toast('Não foi possível processar esta imagem.')).finally(()=>{e.target.value=''});
 };
 $('removeCrewImage').onclick=()=>{
  const p=selected();if(!p||!p.imageData)return;
- delete p.imageData;persist();renderImageMarkers();selectPoint(p.id,false);toast('Primeira imagem removida deste ponto.');
+ delete p.imageData;delete p.imageStoragePath;persist();renderImageMarkers();selectPoint(p.id,false);toast('Primeira imagem removida deste ponto.');
 };
 $('removeCrewImage2').onclick=()=>{
  const p=selected();if(!p||!p.imageData2)return;
- delete p.imageData2;persist();renderImageMarkers();selectPoint(p.id,false);toast('Segunda imagem removida deste ponto.');
+ delete p.imageData2;delete p.imageStoragePath2;persist();renderImageMarkers();selectPoint(p.id,false);toast('Segunda imagem removida deste ponto.');
 };
 $('editBtn').onclick=()=>{const p=selected();if(p&&p.kind!=='route')openForm(null,p)};
 $('deleteBtn').onclick=()=>{const p=selected();if(!p||p.kind==='route')return;if(confirm(`Excluir o recurso "${p.name}"?`)){resources=resources.filter(x=>x.id!==p.id);selectedId=route[0].id;persist();updateMapData();renderList();selectPoint(selectedId,false);toast('Recurso excluído.')}};
@@ -858,7 +960,6 @@ $('presMapTour').onclick=()=>{closePres();if(!document.fullscreenElement)documen
 function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.lng,name:p.name}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();if(addMode){addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=''}if(drawRouteMode){drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawRouteBtn').textContent='✎ Desenhar percurso';toast('Desenho cancelado. O traçado anterior será mantido após recarregar.')}if(drawExitRouteMode){drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';drawnExitCoords=[];toast('Desenho da saída cancelado.');}}if(e.key==='ArrowRight'&&$('formModal').style.display!=='flex')$('nextBtn').click();if(e.key==='ArrowLeft'&&$('formModal').style.display!=='flex')$('prevBtn').click();if(e.key.toLowerCase()==='p'&&$('formModal').style.display!=='flex')$('playBtn').click()});
 const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const closeOpening=()=>{if(openingOverlay)openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();}};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
-loadSaved();
 initializeAuthentication();
 })();
 </script>
