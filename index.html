@@ -173,7 +173,10 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 
 /* Supabase authentication gate */
 #app{display:none}
-#authGate{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#06131f 0%,#0d2b40 60%,#071521 100%)}
+#authGate{position:fixed;inset:0;z-index:12000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,10,18,.78);backdrop-filter:blur(5px)}
+#authGate.open{display:flex}
+#authCard{position:relative}
+#closeAuthGate{position:absolute;right:12px;top:10px;background:transparent;border:0;color:#b9d2e1;font-size:22px;padding:4px 9px;cursor:pointer}
 #authCard{width:min(430px,100%);padding:28px;border:1px solid #31556a;border-radius:16px;background:#102838;box-shadow:0 20px 70px #0009}
 #authCard h2{margin:0 0 8px;color:#fff;font-size:22px}
 #authCard p{margin:0 0 22px;color:#a9bfce;font-size:13px;line-height:1.5}
@@ -190,6 +193,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 
 <div id="authGate">
  <form id="authCard">
+  <button id="closeAuthGate" type="button" aria-label="Fechar login">×</button>
   <div class="crest" style="margin-bottom:16px">✚</div>
   <h2>Painel Operacional Pré-Caju</h2>
   <p>Acesso restrito a usuários cadastrados e autorizados pelo administrador.</p>
@@ -441,7 +445,7 @@ async function activateAuthenticatedUser(user){
  document.body.dataset.role=profile.papel;
  $('loginMenuBtn').style.display='none';
  $('authSignOut').style.display='inline-flex';
- $('authGate').style.display='none';
+ $('authGate').classList.remove('open');
  $('app').style.display='grid';
  $('authUser').textContent=profile.nome+' · '+profile.papel;
  $('syncLocalBtn').style.display='none';
@@ -450,7 +454,7 @@ async function activateAuthenticatedUser(user){
 }
 async function initializeAuthentication(){
  await loadSaved();
- $('authGate').style.display='flex';
+ $('authGate').classList.remove('open');
  $('app').style.display='none';
  $('authLoginBtn').disabled=true;
  try{
@@ -461,7 +465,7 @@ async function initializeAuthentication(){
    document.body.dataset.role='visualizador';
    authenticatedUser=null;
    authenticatedProfile={nome:'Consulta pública',papel:'visualizador',ativo:true};
-   $('authGate').style.display='none';
+   $('authGate').classList.remove('open');
    $('app').style.display='grid';
    $('authUser').textContent='Visualização pública';
    $('loginMenuBtn').style.display='inline-flex';
@@ -487,23 +491,31 @@ $('authCard').addEventListener('submit',async event=>{
  finally{$('authLoginBtn').disabled=false;}
 });
 $('loginMenuBtn').addEventListener('click',()=>{
- $('authGate').style.display='flex';
+ $('authGate').classList.add('open');
  $('authMessage').textContent='Acesso administrativo: entre com seu e-mail e senha.';
  $('authEmail').focus();
 });
+$('closeAuthGate').addEventListener('click',()=>{$('authGate').classList.remove('open');$('authPassword').value='';});
 $('authSignOut').addEventListener('click',async()=>{
  await supabaseClient.auth.signOut();
  authenticatedUser=null;
- $('app').style.display='none';
- $('authGate').style.display='flex';
+ authenticatedProfile={nome:'Consulta pública',papel:'visualizador',ativo:true};
+ document.body.dataset.role='visualizador';
+ $('authGate').classList.remove('open');
  $('authPassword').value='';
- showAuthMessage('Sessão encerrada.');
+ $('authUser').textContent='Visualização pública';
+ $('loginMenuBtn').style.display='inline-flex';
+ $('authSignOut').style.display='none';
+ $('syncLocalBtn').style.display='none';
+ await startCloudSync(authenticatedProfile);
+ requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
+ toast('Sessão administrativa encerrada. Visualização pública ativada.');
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
  if(event==='SIGNED_OUT'){
   authenticatedUser=null;
   $('app').style.display='none';
-  $('authGate').style.display='flex';
+  $('authGate').classList.add('open');
  }
 });
 
