@@ -353,6 +353,11 @@ async function pushCloudState(){
  const state=await buildCloudState();
  const {error}=await supabaseClient.from('painel_estado').upsert({id:1,nome_operacao:'Pré-Caju 2026',estado:state},{onConflict:'id'});
  if(error)throw error;
+ for(const cp of state.resources||[]){
+  const lp=resources.find(p=>p.id===cp.id);
+  if(lp){if(cp.imageStoragePath)lp.imageStoragePath=cp.imageStoragePath;if(cp.imageStoragePath2)lp.imageStoragePath2=cp.imageStoragePath2;}
+ }
+ await writeDB({route:structuredClone(route),exitRoute:structuredClone(exitRoute),exitRoutes:structuredClone(exitRoutes),resources:structuredClone(resources),savedAt:new Date().toISOString()});
  setCloudStatus('● Nuvem sincronizada');
 }
 function scheduleCloudSync(){
