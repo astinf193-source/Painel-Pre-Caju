@@ -506,26 +506,30 @@ $('closeAuthGate').addEventListener('click',()=>{
  $('authPassword').value='';
 });
 $('authSignOut').addEventListener('click',async()=>{
- await supabaseClient.auth.signOut();
+ $('authSignOut').disabled=true;
+ try{await supabaseClient.auth.signOut();}
+ catch(error){console.error('Falha ao encerrar sessão:',error);}
  authenticatedUser=null;
  authenticatedProfile={nome:'Consulta pública',papel:'visualizador',ativo:true};
  document.body.dataset.role='visualizador';
  $('authGate').classList.remove('open');
+ $('authGate').style.display='none';
  $('authPassword').value='';
  $('authUser').textContent='Visualização pública';
  $('loginMenuBtn').style.display='inline-flex';
  $('authSignOut').style.display='none';
  $('syncLocalBtn').style.display='none';
- await startCloudSync(authenticatedProfile);
- requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
- toast('Sessão administrativa encerrada. Visualização pública ativada.');
-});
-supabaseClient.auth.onAuthStateChange((event,session)=>{
- if(event==='SIGNED_OUT'){
-  authenticatedUser=null;
-  $('app').style.display='none';
-  $('authGate').classList.add('open');
- }
+ $('app').style.display='grid';
+ try{
+  await startCloudSync(authenticatedProfile);
+  requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
+  toast('Sessão administrativa encerrada. Visualização pública ativada.');
+ }catch(error){
+  console.error('Falha ao retornar à visualização pública:',error);
+  setCloudStatus('⚠ Falha ao carregar dados públicos');
+  requestAnimationFrame(()=>map.resize());
+  toast('Você saiu da conta, mas não foi possível atualizar os dados públicos. Verifique a conexão.');
+ }finally{$('authSignOut').disabled=false;}
 });
 
 const initialRoute=[
