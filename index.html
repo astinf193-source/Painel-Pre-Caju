@@ -836,15 +836,19 @@ function startAmbulanceAnimation(routeId){
  if(activeAmbulanceRouteId===String(routeId)&&ambulanceMarkers.length)return;
  stopAmbulanceAnimation();
  activeAmbulanceRouteId=String(routeId);
+ // Ícone independente: mantém a proporção natural do arquivo original, sem forçar largura e altura iguais.
+ const holder=document.createElement('div');
+ holder.className='ambulance-moving-icon';
+ holder.style.cssText='width:94px;height:58px;display:flex;align-items:center;justify-content:center;background:transparent;pointer-events:none;user-select:none';
  const icon=document.createElement('img');
- icon.className='ambulance-moving-icon';
  icon.src='images/ambulancia.webp';
  icon.alt='Ambulância do CBMSE em deslocamento';
  icon.draggable=false;
- icon.style.cssText='width:58px;height:58px;object-fit:contain;display:block;filter:drop-shadow(0 3px 5px rgba(0,0,0,.9));pointer-events:none;user-select:none';
+ icon.style.cssText='display:block;width:auto;height:auto;max-width:90px;max-height:54px;object-fit:contain;object-position:center;flex:0 0 auto;filter:drop-shadow(0 3px 5px rgba(0,0,0,.9));pointer-events:none;user-select:none';
+ holder.appendChild(icon);
  const first=[Number(pts[0].lng),Number(pts[0].lat)];
- const marker=new maplibregl.Marker({element:icon,anchor:'center',rotationAlignment:'map',pitchAlignment:'map'}).setLngLat(first).addTo(map);
- ambulanceMarkers.push({marker,icon,routeId:String(routeId)});
+ const marker=new maplibregl.Marker({element:holder,anchor:'center',rotationAlignment:'map',pitchAlignment:'map'}).setLngLat(first).addTo(map);
+ ambulanceMarkers.push({marker,icon,holder,routeId:String(routeId)});
  const coords=pts.map(p=>[Number(p.lng),Number(p.lat)]);
  const lengths=[];let total=0;
  for(let i=0;i<coords.length-1;i++){
