@@ -838,7 +838,7 @@ function ensureAmbulanceMarkers(){
  const validIds=new Set(validRoutes.map(r=>r.id));
  ambulanceMarkers=ambulanceMarkers.filter(x=>{if(validIds.has(x.routeId))return true;x.marker.remove();return false});
 }
-function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}ambulanceMarkers.forEach(item=>{const r=exitRoutes.find(route=>route.id===item.routeId);if(item.marker){if(r?.points?.length)item.marker.setLngLat([Number(r.points[0].lng),Number(r.points[0].lat)]);item.marker.getElement().style.visibility='visible';item.marker.getElement().style.transform=''}})}
+function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}ambulanceMarkers.forEach(item=>{const r=exitRoutes.find(route=>route.id===item.routeId);if(item.marker){if(r?.points?.length)item.marker.setLngLat([Number(r.points[0].lng),Number(r.points[0].lat)]);item.marker.getElement().style.visibility='visible';const img=item.marker.getElement().querySelector('img');if(img)img.style.transform=''}})}
 function startAmbulanceAnimation(activeRouteId=null){
  stopAmbulanceAnimation();ensureAmbulanceMarkers();
  if(!activeRouteId)return;
@@ -864,7 +864,7 @@ function startAmbulanceAnimation(activeRouteId=null){
    const fraction=anim.lengths[segment]?Math.max(0,Math.min(1,target/anim.lengths[segment])):0,a=anim.coords[segment],b=anim.coords[segment+1];
    anim.marker.setLngLat([a[0]+(b[0]-a[0])*fraction,a[1]+(b[1]-a[1])*fraction]);
    const angle=Math.atan2(b[1]-a[1],(b[0]-a[0])*Math.cos(a[1]*Math.PI/180))*180/Math.PI;
-   anim.marker.getElement().style.transform='rotate('+(-angle)+'deg)';
+   const ambulanceImage=anim.marker.getElement().querySelector('img');if(ambulanceImage){ambulanceImage.style.transform='rotate('+(-angle)+'deg)';ambulanceImage.style.transformOrigin='center center'};
   }
   ambulanceAnimationFrame=requestAnimationFrame(tick);
  };
