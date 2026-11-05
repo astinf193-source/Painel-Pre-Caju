@@ -855,6 +855,7 @@ function startAmbulanceAnimation(activeRouteId=null){
  }).filter(x=>x.total>0&&x.marker);
  if(!animations.length)return;
  const started=performance.now();
+ let lastBearingSegment=-1,lastRouteBearing=map.getBearing();
  const tick=now=>{
   if(!playing)return;
   for(const anim of animations){
@@ -862,6 +863,12 @@ function startAmbulanceAnimation(activeRouteId=null){
    let target=((now-started)%duration)/duration*anim.total,segment=0;
    while(segment<anim.lengths.length-1&&target>anim.lengths[segment]){target-=anim.lengths[segment];segment++}
    const fraction=anim.lengths[segment]?Math.max(0,Math.min(1,target/anim.lengths[segment])):0,a=anim.coords[segment],b=anim.coords[segment+1];
+   if(segment!==lastBearingSegment){
+    const routeHeading=(Math.atan2((b[0]-a[0])*Math.cos(a[1]*Math.PI/180),b[1]-a[1])*180/Math.PI+360)%360;
+    const bearingDelta=((routeHeading-lastRouteBearing+540)%360)-180;
+    if(Math.abs(bearingDelta)>8){map.rotateTo(routeHeading,{duration:650});lastRouteBearing=routeHeading}
+    lastBearingSegment=segment;
+   }
    anim.marker.setLngLat([a[0]+(b[0]-a[0])*fraction,a[1]+(b[1]-a[1])*fraction]);
    const lookAheadIndex=Math.min(segment+2,anim.coords.length-1);
    const currentScreen=map.project([a[0]+(b[0]-a[0])*fraction,a[1]+(b[1]-a[1])*fraction]);
