@@ -866,8 +866,10 @@ function startAmbulanceAnimation(routeId){
   const ratio=Math.max(0,Math.min(1,distance/lengths[seg]));
   const a=coords[seg],b=coords[seg+1];
   const lng=a[0]+(b[0]-a[0])*ratio,lat=a[1]+(b[1]-a[1])*ratio;
-  const bearing=(Math.atan2(b[0]-a[0],b[1]-a[1])*180/Math.PI+360)%360;
-  marker.setLngLat([lng,lat]);marker.setRotation(bearing);
+  // A imagem original da ambulância tem a dianteira voltada para a direita (leste). O marcador do MapLibre considera 0° como norte; compensamos 90° para alinhar o capô ao sentido real do trecho.
+  const routeBearing=(Math.atan2(b[0]-a[0],b[1]-a[1])*180/Math.PI+360)%360;
+  const spriteForwardOffset=-90;
+  marker.setLngLat([lng,lat]);marker.setRotation((routeBearing+spriteForwardOffset+360)%360);
   if(progress<1)ambulanceAnimationFrame=requestAnimationFrame(frame);
   else ambulanceAnimationFrame=null;
  };
