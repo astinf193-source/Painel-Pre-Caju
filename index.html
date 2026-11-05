@@ -197,6 +197,18 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 .dash-logo-cbmse{display:block;width:clamp(66px,7vw,100px);height:clamp(66px,7vw,100px);object-fit:contain;background:#fff;border-radius:50%;padding:3px;flex:none;}
 .dash-actions{justify-content:flex-end;}
 @media(max-width:760px){.dash-head{grid-template-columns:76px minmax(0,1fr) 76px;gap:6px;padding:9px}.dash-logo-precaju img{max-width:76px;max-height:58px}.dash-logo-cbmse{width:58px;height:58px}.dash-right{display:contents}.dash-title h2{font-size:clamp(18px,5vw,28px)}.dash-title p{font-size:8px;letter-spacing:.4px}.dash-title .dash-eyebrow{font-size:8px;letter-spacing:.5px}.dash-actions{grid-column:1/-1;justify-content:center}}
+
+/* Identidade visual da Dashboard: marcas oficiais nas extremidades */
+.dash-head{display:grid;grid-template-columns:minmax(110px,170px) minmax(0,1fr) minmax(130px,220px);align-items:center;gap:clamp(10px,2vw,28px);}
+.dash-logo{display:flex;align-items:center;justify-content:center;min-width:0;height:100%;}
+.dash-logo-precaju img{display:block;width:100%;max-width:165px;max-height:92px;object-fit:contain;}
+.dash-title{text-align:center;min-width:0;}
+.dash-title h2{margin-left:auto;margin-right:auto;}
+.dash-title p{line-height:1.35;}
+.dash-right{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0;}
+.dash-logo-cbmse{display:block;width:clamp(66px,7vw,100px);height:clamp(66px,7vw,100px);object-fit:contain;background:#fff;border-radius:50%;padding:3px;flex:none;}
+.dash-actions{justify-content:flex-end;}
+@media(max-width:760px){.dash-head{grid-template-columns:76px minmax(0,1fr) 76px;gap:6px;padding:9px}.dash-logo-precaju img{max-width:76px;max-height:58px}.dash-logo-cbmse{width:58px;height:58px}.dash-right{display:contents}.dash-title h2{font-size:clamp(18px,5vw,28px)}.dash-title p{font-size:8px;letter-spacing:.4px}.dash-title .dash-eyebrow{font-size:8px;letter-spacing:.5px}.dash-actions{grid-column:1/-1;justify-content:center}}
 </style>
 </head>
 <body>
@@ -268,7 +280,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 
 <div id="executiveDashboard" aria-label="Dashboard operacional Pré-Caju 2026">
  <div class="dash-wrap">
-  <header class="dash-head"><div class="dash-brand"><div class="dash-crest">✚</div><div><div class="dash-eyebrow">CORPO DE BOMBEIROS MILITAR · SERGIPE</div><h2>OPERAÇÃO <span style="color:#ffd23f">PRÉ-CAJU 2026</span></h2><p>SEGURANÇA, VIDA E TRANQUILIDADE · ORLA DE ATALAIA — ARACAJU/SE · 06 A 08 FEVEREIRO 2026</p></div></div><div class="dash-actions"><button id="dashRefresh">↻ Atualizar</button><button id="dashClose" class="danger">Fechar ✕</button></div></header>
+  <header class="dash-head"><div class="dash-logo dash-logo-precaju"><img src="images/logo-precaju.png" alt="Logo Pré-Caju"></div><div class="dash-title"><div class="dash-eyebrow">CORPO DE BOMBEIROS MILITAR · SERGIPE</div><h2>OPERAÇÃO <span style="color:#ffd23f">PRÉ-CAJU 2026</span></h2><p>SEGURANÇA, VIDA E TRANQUILIDADE · ORLA DE ATALAIA — ARACAJU/SE · 06 A 08 FEVEREIRO 2026</p></div><div class="dash-right"><img class="dash-logo-cbmse" src="images/logo-cbmse.png" alt="Brasão do Corpo de Bombeiros Militar de Sergipe"><div class="dash-actions"><button id="dashRefresh">↻ Atualizar</button><button id="dashClose" class="danger">Fechar ✕</button></div></div></header>
   <nav class="dash-nav" aria-label="Áreas operacionais"><span>⌂ VISÃO GERAL</span><span>⌖ PERCURSO</span><span>🚑 SAÍDAS DE AMBULÂNCIA</span><span>▣ POSTOS DE ATENDIMENTO</span><span>♟ RECURSOS EMPREGADOS</span><span>◈ MAPA</span><span>▤ RELATÓRIOS</span></nav>
   <div class="dash-layout"><aside class="dash-categories" id="dashCategories" aria-label="Categorias de ocorrências"></aside><section class="dash-main">
    <div class="dash-upper"><div class="dash-upper-main">
