@@ -831,14 +831,14 @@ function ensureAmbulanceMarkers(){
   const img=document.createElement('img');img.src='images/ambulancia.webp';img.alt='Ambulância de resgate do CBMSE';img.draggable=false;
   img.style.cssText='display:block;width:54px;height:30px;object-fit:contain;filter:drop-shadow(0 1px 2px #0008);pointer-events:none';
   el.appendChild(img);
-  el.style.visibility='hidden';
+  el.style.visibility='visible';
   const marker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([Number(r.points[0].lng),Number(r.points[0].lat)]).addTo(map);
   ambulanceMarkers.push({routeId:r.id,marker});
  }
  const validIds=new Set(validRoutes.map(r=>r.id));
  ambulanceMarkers=ambulanceMarkers.filter(x=>{if(validIds.has(x.routeId))return true;x.marker.remove();return false});
 }
-function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}ambulanceMarkers.forEach(item=>{const r=exitRoutes.find(route=>route.id===item.routeId);if(item.marker){if(r?.points?.length)item.marker.setLngLat([Number(r.points[0].lng),Number(r.points[0].lat)]);item.marker.getElement().style.visibility='hidden';item.marker.getElement().style.transform=''}})}
+function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}ambulanceMarkers.forEach(item=>{const r=exitRoutes.find(route=>route.id===item.routeId);if(item.marker){if(r?.points?.length)item.marker.setLngLat([Number(r.points[0].lng),Number(r.points[0].lat)]);item.marker.getElement().style.visibility='visible';item.marker.getElement().style.transform=''}})}
 function startAmbulanceAnimation(activeRouteId=null){
  stopAmbulanceAnimation();ensureAmbulanceMarkers();
  if(!activeRouteId)return;
