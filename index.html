@@ -865,7 +865,7 @@ function startAmbulanceAnimation(activeRouteId=null){
    anim.marker.setLngLat([a[0]+(b[0]-a[0])*fraction,a[1]+(b[1]-a[1])*fraction]);
    const screenA=map.project(a),screenB=map.project(b);
    const angle=Math.atan2(screenB.y-screenA.y,screenB.x-screenA.x)*180/Math.PI;
-   const ambulanceImage=anim.marker.getElement().querySelector('img');if(ambulanceImage){ambulanceImage.style.transform='rotate('+angle+'deg)';ambulanceImage.style.transformOrigin='center center'};
+   const ambulanceImage=anim.marker.getElement().querySelector('img');if(ambulanceImage){ambulanceImage.style.transform='rotate('+(angle+180)+'deg)';ambulanceImage.style.transformOrigin='center center'};
   }
   ambulanceAnimationFrame=requestAnimationFrame(tick);
  };
