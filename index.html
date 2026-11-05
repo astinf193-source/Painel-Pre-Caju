@@ -541,7 +541,7 @@ const initialRoute=[
  {id:'r5',name:'FINAL DO PERCURSO — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
 ];
 let route=structuredClone(initialRoute), exitRoute=[], exitRoutes=[], resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawExitRouteMode=false, drawnCoords=[], drawnExitCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
-let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null, ambulanceMarkers=[], ambulanceAnimationFrame=null;
+let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null, ambulanceMarkers=[], ambulanceAnimationFrame=null, activeAmbulanceRouteId=null;
 const map=new maplibregl.Map({
  container:'map',
  style:{version:8,sources:{satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,minzoom:0,maxzoom:17,attribution:'Imagery © Esri; map data © OpenStreetMap contributors'},openstreetmap:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© OpenStreetMap contributors'}},layers:[{id:'street-base',type:'raster',source:'openstreetmap',layout:{visibility:'none'}},{id:'satellite',type:'raster',source:'satellite',layout:{visibility:'visible'},paint:{'raster-fade-duration':250,'raster-contrast':0,'raster-saturation':0}}]},
@@ -826,9 +826,49 @@ function stopAmbulanceAnimation(){
  if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}
  ambulanceMarkers.forEach(x=>{try{x.marker.remove()}catch(e){}});
  ambulanceMarkers=[];
+ activeAmbulanceRouteId=null;
  document.querySelectorAll('.ambulance-moving-icon').forEach(el=>el.remove());
 }
-function startAmbulanceAnimation(){stopAmbulanceAnimation()}
+function startAmbulanceAnimation(routeId){
+ const selectedRoute=exitRoutes.find(r=>String(r.id)===String(routeId));
+ const pts=(selectedRoute?.points||[]).filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
+ if(pts.length<2){stopAmbulanceAnimation();return}
+ if(activeAmbulanceRouteId===String(routeId)&&ambulanceMarkers.length)return;
+ stopAmbulanceAnimation();
+ activeAmbulanceRouteId=String(routeId);
+ const icon=document.createElement('img');
+ icon.className='ambulance-moving-icon';
+ icon.src='images/ambulancia.webp';
+ icon.alt='Ambulância do CBMSE em deslocamento';
+ icon.draggable=false;
+ icon.style.cssText='width:58px;height:58px;object-fit:contain;display:block;filter:drop-shadow(0 3px 5px rgba(0,0,0,.9));pointer-events:none;user-select:none';
+ const first=[Number(pts[0].lng),Number(pts[0].lat)];
+ const marker=new maplibregl.Marker({element:icon,anchor:'center',rotationAlignment:'map',pitchAlignment:'map'}).setLngLat(first).addTo(map);
+ ambulanceMarkers.push({marker,icon,routeId:String(routeId)});
+ const coords=pts.map(p=>[Number(p.lng),Number(p.lat)]);
+ const lengths=[];let total=0;
+ for(let i=0;i<coords.length-1;i++){
+  const d=maplibregl.LngLat.convert(coords[i]).distanceTo(maplibregl.LngLat.convert(coords[i+1]));
+  lengths.push(Math.max(0.1,d));total+=Math.max(0.1,d);
+ }
+ const duration=Math.max(7000,Math.min(18000,total/1000*4500));
+ let startedAt=null;
+ const frame=now=>{
+  if(activeAmbulanceRouteId!==String(routeId)||!ambulanceMarkers.length)return;
+  if(startedAt===null)startedAt=now;
+  const progress=Math.min(1,(now-startedAt)/duration);
+  let distance=progress*total,seg=0;
+  while(seg<lengths.length-1&&distance>lengths[seg]){distance-=lengths[seg];seg++}
+  const ratio=Math.max(0,Math.min(1,distance/lengths[seg]));
+  const a=coords[seg],b=coords[seg+1];
+  const lng=a[0]+(b[0]-a[0])*ratio,lat=a[1]+(b[1]-a[1])*ratio;
+  const bearing=(Math.atan2(b[0]-a[0],b[1]-a[1])*180/Math.PI+360)%360;
+  marker.setLngLat([lng,lat]);marker.setRotation(bearing);
+  if(progress<1)ambulanceAnimationFrame=requestAnimationFrame(frame);
+  else ambulanceAnimationFrame=null;
+ };
+ ambulanceAnimationFrame=requestAnimationFrame(frame);
+}
 function stopFlight(){playing=false;stopAmbulanceAnimation();clearInterval(playTimer);clearTimeout(playTimer);$('playBtn').textContent='▶ Sobrevoar'}
 function flyToResource(p){
  if(!p||!Number.isFinite(Number(p.lng))||!Number.isFinite(Number(p.lat)))return;
@@ -860,7 +900,7 @@ $('playBtn').onclick=()=>{
   if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
   if(i>=tour.length){stopFlight();activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(route.length){const startPoint=route[0];selectedId=startPoint.id;$('flightSlider').value=0;$('flightLabel').textContent=startPoint.name;$('flightCount').textContent='1/'+route.length;selectPoint(startPoint.id,false);map.flyTo({center:[Number(startPoint.lng),Number(startPoint.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1800,essential:true});showTourName(startPoint,'INÍCIO DO PERCURSO');}toast('Sobrevoo concluído. Retornando ao início do percurso.');return}
   const p=tour[i++];
-  if(p.kind==='exit-route-tour')startAmbulanceAnimation(p.exitRouteId);else stopAmbulanceAnimation();
+  if(p.kind==='exit-route-tour'){if(activeAmbulanceRouteId!==String(p.exitRouteId))startAmbulanceAnimation(p.exitRouteId)}else stopAmbulanceAnimation();
   activeTourLabelId=null;activeTourResourceId=p.kind==='route'?null:p.id;updateMapData();renderImageMarkers();
   if(p.kind==='route'){
    const routeIndex=route.findIndex(x=>x.id===p.id);
