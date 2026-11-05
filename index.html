@@ -621,7 +621,7 @@ function sourceData(){return {type:'FeatureCollection',features:allPoints().map(
 function updateMapData(){
  if(!map.isStyleLoaded())return;
  renderImageMarkers();
- if(exitRoutes.some(r=>r.points.length>=2))ensureAmbulanceMarkers();else{ambulanceMarkers.forEach(x=>x.marker.remove());ambulanceMarkers=[];stopAmbulanceAnimation()}
+ if(!exitRoutes.some(r=>r.points.length>=2))stopAmbulanceAnimation();
  const line=map.getSource('route-line');if(line)line.setData({type:'Feature',geometry:{type:'LineString',coordinates:route.map(p=>[p.lng,p.lat])}});
  const pts=map.getSource('all-points');if(pts)pts.setData(sourceData());
   const exitLine=map.getSource('ambulance-exit-line');if(exitLine)exitLine.setData({type:'Feature',geometry:{type:'MultiLineString',coordinates:exitRoutes.map(r=>r.points.map(p=>[p.lng,p.lat]))}});
@@ -726,7 +726,7 @@ function openForm(coords,existing=null){
 }
 function closeForm(){$('formModal').style.display='none';editId=null;draftCoords=null}
 map.on('load',()=>{buildLayers();renderList();updateMapData();map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:100,bottom:100,left:60,right:60},duration:0});selectPoint('r0',false);map.easeTo({center:[route[0].lng,route[0].lat],zoom:17.4,pitch:65,bearing:18,duration:900});});
-map.on('idle',()=>{if(exitRoutes.some(r=>Array.isArray(r.points)&&r.points.length>=2))ensureAmbulanceMarkers()});
+
 map.on('click',e=>{
  if(drawExitRouteMode){
   drawnExitCoords.push({lng:e.lngLat.lng,lat:e.lngLat.lat});
@@ -821,8 +821,8 @@ function showTourName(p,label){
  el.style.cssText='padding:7px 12px;border:2px solid #ffe66d;border-radius:7px;background:rgba(4,22,36,.97);color:#fff;font:800 15px/1.2 Arial,sans-serif;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none';
  tourNameMarker=new maplibregl.Marker({element:el,anchor:'bottom',offset:[0,-22]}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
 }
-function ensureAmbulanceMarkers(){
- const validRoutes=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2);
+function ensureAmbulanceMarkers(activeRouteId=null){
+ const validRoutes=activeRouteId?exitRoutes.filter(r=>r.id===activeRouteId&&Array.isArray(r.points)&&r.points.length>=2):[];
  for(const r of validRoutes){
   if(ambulanceMarkers.some(x=>x.routeId===r.id))continue;
   const el=document.createElement('div');el.className='ambulance-moving-icon';
@@ -837,10 +837,10 @@ function ensureAmbulanceMarkers(){
  const validIds=new Set(validRoutes.map(r=>r.id));
  ambulanceMarkers=ambulanceMarkers.filter(x=>{if(validIds.has(x.routeId))return true;x.marker.remove();return false});
 }
-function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}}
+function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}ambulanceMarkers.forEach(x=>x.marker.remove());ambulanceMarkers=[];}
 function startAmbulanceAnimation(activeRouteId=null){
- stopAmbulanceAnimation();ensureAmbulanceMarkers();
- exitRoutes.forEach(r=>{const m=ambulanceMarkers.find(x=>x.routeId===r.id)?.marker;if(m&&r.points?.length)m.setLngLat([Number(r.points[0].lng),Number(r.points[0].lat)])});
+ stopAmbulanceAnimation();if(!activeRouteId)return;ensureAmbulanceMarkers(activeRouteId);
+ const activeRoute=exitRoutes.find(r=>r.id===activeRouteId);const activeMarker=ambulanceMarkers.find(x=>x.routeId===activeRouteId)?.marker;if(activeMarker&&activeRoute?.points?.length)activeMarker.setLngLat([Number(activeRoute.points[0].lng),Number(activeRoute.points[0].lat)]);
  const animations=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2&&(!activeRouteId||r.id===activeRouteId)).map(r=>{
   const coords=r.points.map(p=>[Number(p.lng),Number(p.lat)]),lengths=[];let total=0;
   for(let i=1;i<coords.length;i++){const dx=(coords[i][0]-coords[i-1][0])*Math.cos(coords[i][1]*Math.PI/180),dy=coords[i][1]-coords[i-1][1],d=Math.hypot(dx,dy);lengths.push(d);total+=d}
@@ -875,7 +875,7 @@ $('prevBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)
 $('nextBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)+1)};
 $('playBtn').onclick=()=>{
  if(playing){stopFlight();return}
- playing=true;$('playBtn').textContent='Ⅱ Pausar';if(exitRoutes.some(r=>r.points.length>=2))ensureAmbulanceMarkers();else toast('Desenhe a rota de saída com pelo menos dois pontos para animar a ambulância.');
+ playing=true;$('playBtn').textContent='Ⅱ Pausar';if(!exitRoutes.some(r=>r.points.length>=2))toast('Desenhe a rota de saída com pelo menos dois pontos para animar a ambulância.');
  const points=allPoints().filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
  if(points.length){
   const bounds=points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)]));
