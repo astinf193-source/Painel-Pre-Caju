@@ -841,37 +841,15 @@ function ensureAmbulanceMarkers(){
 function stopAmbulanceAnimation(){if(ambulanceAnimationFrame!==null){cancelAnimationFrame(ambulanceAnimationFrame);ambulanceAnimationFrame=null}ambulanceMarkers.forEach(item=>{const r=exitRoutes.find(route=>route.id===item.routeId);if(item.marker){if(r?.points?.length)item.marker.setLngLat([Number(r.points[0].lng),Number(r.points[0].lat)]);item.marker.getElement().style.visibility='visible';const img=item.marker.getElement().querySelector('img');if(img)img.style.transform=''}})}
 function startAmbulanceAnimation(activeRouteId=null){
  stopAmbulanceAnimation();ensureAmbulanceMarkers();
- if(!activeRouteId)return;
- const activeRoute=exitRoutes.find(r=>String(r.id)===String(activeRouteId)&&Array.isArray(r.points)&&r.points.length>=2);
- if(!activeRoute)return;
- const activeMarker=ambulanceMarkers.find(x=>String(x.routeId)===String(activeRoute.id))?.marker;
- if(!activeMarker)return;
- activeMarker.setLngLat([Number(activeRoute.points[0].lng),Number(activeRoute.points[0].lat)]);
- activeMarker.getElement().style.visibility='visible';
- const animations=[activeRoute].map(r=>{
-  const coords=r.points.map(p=>[Number(p.lng),Number(p.lat)]),lengths=[];let total=0;
-  for(let i=1;i<coords.length;i++){const dx=(coords[i][0]-coords[i-1][0])*Math.cos(coords[i][1]*Math.PI/180),dy=coords[i][1]-coords[i-1][1],d=Math.hypot(dx,dy);lengths.push(d);total+=d}
-  return {route:r,coords,lengths,total,marker:ambulanceMarkers.find(x=>x.routeId===r.id)?.marker};
- }).filter(x=>x.total>0&&x.marker);
- if(!animations.length)return;
- const started=performance.now();
- const tick=now=>{
-  if(!playing)return;
-  for(const anim of animations){
-   const duration=Math.max(9000,Math.min(22000,anim.total*900000));
-   let target=((now-started)%duration)/duration*anim.total,segment=0;
-   while(segment<anim.lengths.length-1&&target>anim.lengths[segment]){target-=anim.lengths[segment];segment++}
-   const fraction=anim.lengths[segment]?Math.max(0,Math.min(1,target/anim.lengths[segment])):0,a=anim.coords[segment],b=anim.coords[segment+1];
-   anim.marker.setLngLat([a[0]+(b[0]-a[0])*fraction,a[1]+(b[1]-a[1])*fraction]);
-   const lookAheadIndex=Math.min(segment+2,anim.coords.length-1);
-   const currentScreen=map.project([a[0]+(b[0]-a[0])*fraction,a[1]+(b[1]-a[1])*fraction]);
-   const lookAheadScreen=map.project(anim.coords[lookAheadIndex]);
-   const angle=Math.atan2(lookAheadScreen.y-currentScreen.y,lookAheadScreen.x-currentScreen.x)*180/Math.PI;
-   const ambulanceImage=anim.marker.getElement().querySelector('img');if(ambulanceImage){ambulanceImage.style.transform='rotate('+(angle+180)+'deg)';ambulanceImage.style.transformOrigin='center center'};
+ ambulanceMarkers.forEach(item=>{
+  const r=exitRoutes.find(route=>String(route.id)===String(item.routeId));
+  if(item.marker&&r?.points?.length){
+   item.marker.setLngLat([Number(r.points[0].lng),Number(r.points[0].lat)]);
+   item.marker.getElement().style.visibility='visible';
+   item.marker.getElement().style.transform='';
+   const img=item.marker.getElement().querySelector('img');if(img)img.style.transform='';
   }
-  ambulanceAnimationFrame=requestAnimationFrame(tick);
- };
- ambulanceAnimationFrame=requestAnimationFrame(tick);
+ });
 }
 function stopFlight(){playing=false;stopAmbulanceAnimation();clearInterval(playTimer);clearTimeout(playTimer);$('playBtn').textContent='▶ Sobrevoar'}
 function flyToResource(p){
