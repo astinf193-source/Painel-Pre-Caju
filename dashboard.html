@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Operacional | Pré-Caju 2026 - CBMSE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{color-scheme:dark;--bg:#031329;--panel:#092746;--line:#087fbd;--cyan:#18c9f4;--gold:#ffd23f;--muted:#a9c4d9}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#164b79 0,#061c39 48%,#020b1b 100%);color:#f5fbff;font-family:Inter,Arial,sans-serif;min-height:100vh}
+.wrap{max-width:1700px;margin:auto;padding:18px}.head{display:grid;grid-template-columns:110px 1fr 110px;align-items:center;gap:18px;padding:16px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(90deg,#071a35ed,#0b2b50e8),url('https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1800&q=85') center/cover;box-shadow:0 0 22px #009dff44}
+.logo{width:100%;max-height:90px;object-fit:contain}.title{text-align:center}.eyebrow{font-size:11px;letter-spacing:2px;font-weight:800}.title h1{margin:7px 0;font-size:clamp(22px,3vw,42px);font-weight:900;font-style:italic}.title h1 span{color:var(--gold)}.title p{font-size:11px;letter-spacing:1px;color:#dceeff;margin:0}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px 0}.status{color:#8fe8ff;font-size:12px}button{border:1px solid #168ee9;background:#07518a;color:white;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.2)}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric,.panel{background:linear-gradient(145deg,#0b2c4d,#061a33);border:1px solid #087fbd;border-radius:12px;padding:18px;box-shadow:0 8px 22px #0004}.metric small{display:block;color:var(--muted);font-weight:700}.metric strong{display:block;font-size:36px;margin:9px 0;color:#fff}.metric em{font-size:11px;color:#8fb5d1;font-style:normal}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin-top:12px}.panel h2{margin:0 0 14px;font-size:16px;color:#fff}.categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.cat{background:#061b39;border:1px solid #168ee9;border-radius:10px;padding:14px;text-align:left;min-height:88px}.cat.active{outline:2px solid var(--gold);background:#0b3d68}.cat .ico{font-size:22px}.cat strong{display:flex;justify-content:space-between;margin-top:8px;font-size:12px}.zone-row{display:grid;grid-template-columns:110px 1fr 24px;gap:8px;align-items:center;margin:13px 0;font-size:12px}.track{height:9px;background:#102e4c;border-radius:8px;overflow:hidden}.bar{height:100%;background:linear-gradient(90deg,#00aaff,#36e0d0);border-radius:8px}.list{display:grid;gap:8px}.item{padding:12px;border:1px solid #164c70;background:#061b35;border-radius:8px}.item b{font-size:13px}.item p{margin:5px 0 0;color:#b6cde0;font-size:12px;line-height:1.5}.resource-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}.resource{background:#06264a;border:1px solid #168ee9;padding:13px;border-radius:9px;text-align:center}.resource strong{display:block;font-size:24px;color:var(--gold)}.resource span{font-size:11px;color:#c5d9e9}
+.login{max-width:390px;margin:12vh auto;padding:26px;background:#082746;border:1px solid var(--line);border-radius:14px}.login h2{margin-top:0}.login input{width:100%;padding:12px;margin:7px 0 12px;border:1px solid #326487;border-radius:7px;background:#04182d;color:white}.login p{font-size:12px;color:var(--muted)}.hidden{display:none!important}.empty{color:#a9c4d9;font-size:12px;padding:12px}
+@media(max-width:850px){.metrics{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.resource-grid{grid-template-columns:repeat(3,1fr)}.head{grid-template-columns:65px 1fr 65px;padding:10px;gap:8px}.logo{max-height:60px}.title p{font-size:9px}}
+@media(max-width:520px){.wrap{padding:9px}.categories{grid-template-columns:repeat(2,1fr)}.metrics{gap:7px}.metric{padding:12px}.metric strong{font-size:28px}.resource-grid{grid-template-columns:repeat(2,1fr)}.eyebrow{font-size:8px}.title h1{font-size:19px}}
+</style></head>
+<body>
+<section id="login" class="login hidden"><h2>Acesso à Dashboard</h2><p>Entre com seu e-mail e senha cadastrados no painel operacional.</p><form id="loginForm"><label>E-mail</label><input id="email" type="email" required autocomplete="username"><label>Senha</label><input id="password" type="password" required autocomplete="current-password"><button type="submit" id="loginBtn">Entrar</button></form><p id="loginMsg"></p><button id="publicBtn" type="button">Continuar na visualização pública</button></section>
+<main id="app" class="wrap hidden">
+<header class="head"><img class="logo" src="images/logo-precaju.png" alt="Pré-Caju"><div class="title"><div class="eyebrow">CORPO DE BOMBEIROS MILITAR · SERGIPE</div><h1>OPERAÇÃO <span>PRÉ-CAJU 2026</span></h1><p>SEGURANÇA, VIDA E TRANQUILIDADE · ORLA DE ATALAIA — ARACAJU/SE</p></div><img class="logo" src="images/logo-cbmse.png" alt="Brasão CBMSE"></header>
+<div class="toolbar"><div><div><b>Dashboard Operacional</b></div><div id="status" class="status">Conectando aos dados compartilhados…</div></div><div><button id="refresh">↻ Atualizar</button> <button id="signout" class="hidden">Sair</button> <button onclick="location.href='index.html'">← Painel</button></div></div>
+<section class="metrics"><article class="metric"><small>Recursos cadastrados</small><strong id="resources">0</strong><em>Registros operacionais no painel</em></article><article class="metric"><small>Efetivo informado</small><strong id="staff">—</strong><em id="staffNote">Efetivo nos recursos</em></article><article class="metric"><small>Saídas de ambulância</small><strong id="exits">0</strong><em>Rotas com pelo menos dois pontos</em></article><article class="metric"><small>Pontos do percurso</small><strong id="routePoints">0</strong><em>Percurso principal cadastrado</em></article></section>
+<div class="grid"><section class="panel"><h2>Ocorrências e registros operacionais</h2><div id="categories" class="categories"></div><div id="reports" class="list" style="margin-top:12px"></div></section><section class="panel"><h2>Distribuição por zona</h2><div id="zones"></div><h2 style="margin-top:22px">Resumo das ocorrências</h2><div id="summary" class="list"></div></section></div>
+<section class="panel" style="margin-top:12px"><h2>Recursos empregados</h2><div id="resourceTypes" class="resource-grid"></div></section>
+</main>
+<script>
+(()=> {
+const URL='https://ygenmazbaruesdeeasbz.supabase.co',KEY='sb_publishable_W1ohdVWf67fmUK1UnJF0cw_G7sRweep';
+const db=window.supabase.createClient(URL,KEY),$=id=>document.getElementById(id);
+let state={route:[],exitRoutes:[],resources:[]},channel=null,selected='APH',user=null;
+const cats=[
+{name:'APH',icon:'🚑',terms:['aph','atendimento pré-hospitalar','atendimento pre-hospitalar','socorro médico','socorro medico']},
+{name:'Incêndio',icon:'🔥',terms:['incêndio','incendio','fogo','princípio de incêndio','principio de incendio']},
+{name:'Acidente Veicular',icon:'🚒',terms:['acidente veicular','acidente automobilístico','acidente automobilistico','colisão','colisao','capotamento','atropelamento']},
+{name:'Superlotação',icon:'👥',terms:['superlotação','superlotacao','superlotado','aglomeração excessiva','aglomeracao excessiva']},
+{name:'Prevenção',icon:'🦺',terms:['prevenção','prevencao','preventivo','orientação preventiva','orientacao preventiva']},
+{name:'Afogamento',icon:'🌊',terms:['afogamento','submersão','submersao','salvamento aquático','salvamento aquatico']},
+{name:'Vítima fatal',icon:'🕊️',terms:['vítima fatal','vitima fatal','óbito','obito','morte confirmada','fatalidade']},
+{name:'Criança Perdida',icon:'🧒',terms:['criança perdida','crianca perdida','menor perdido','criança desaparecida','crianca desaparecida']},
+{name:'Outras',icon:'•••',terms:[]}];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const textOf=p=>[p.name,p.type,p.mission,p.notes,p.description,p.occurrence,p.category].filter(Boolean).join(' ').toLowerCase();
+function count(cat){const arr=state.resources.filter(p=>String(p.mission||'').trim()||String(p.type||'').trim()||String(p.name||'').trim());return cat.name==='Outras'?arr.filter(p=>!cats.slice(0,-1).some(c=>c.terms.some(t=>textOf(p).includes(t)))).length:arr.filter(p=>cat.terms.some(t=>textOf(p).includes(t))).length}
+function render(){
+ const r=state.resources||[],ex=(state.exitRoutes||[]).filter(x=>Array.isArray(x.points)&&x.points.length>=2),known=r.filter(p=>String(p.team??'').trim()!==''&&Number.isFinite(Number(p.team)));
+ $('resources').textContent=r.length.toLocaleString('pt-BR');$('staff').textContent=known.length?known.reduce((n,p)=>n+Number(p.team),0).toLocaleString('pt-BR'):'—';$('staffNote').textContent=known.length+' de '+r.length+' recursos com efetivo numérico';$('exits').textContent=ex.length.toLocaleString('pt-BR');$('routePoints').textContent=(state.route||[]).length.toLocaleString('pt-BR');
+ $('categories').innerHTML=cats.map(c=>'<button class="cat '+(selected===c.name?'active':'')+'" data-cat="'+esc(c.name)+'"><span class="ico">'+c.icon+'</span><strong><span>'+esc(c.name)+'</span><b>'+count(c)+'</b></strong></button>').join('');
+ $('categories').querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{selected=b.dataset.cat;render()});
+ const cat=cats.find(c=>c.name===selected),matches=r.filter(p=>cat.terms.length?cat.terms.some(t=>textOf(p).includes(t)):!cats.slice(0,-1).some(c=>c.terms.some(t=>textOf(p).includes(t))));
+ $('reports').innerHTML=matches.length?matches.map(p=>'<article class="item"><b>'+esc(p.name||'Registro sem nome')+' · '+esc(p.type||'Recurso')+'</b><p>'+esc(p.mission||p.notes||p.description||'Sem relato textual informado.')+'</p></article>').join(''):'<div class="empty">Nenhum registro identificado nesta categoria.</div>';
+ const zones={};r.forEach(p=>{const z=String(p.zone??p.zona??p.sector??'').trim();if(z)zones[z]=(zones[z]||0)+1});const z=Object.entries(zones).sort((a,b)=>b[1]-a[1]).slice(0,8),max=Math.max(1,...z.map(x=>x[1]));
+ $('zones').innerHTML=z.length?z.map(([name,n])=>'<div class="zone-row"><span>'+esc(name)+'</span><div class="track"><div class="bar" style="width:'+Math.round(n/max*100)+'%"></div></div><b>'+n+'</b></div>').join(''):'<div class="empty">Sem zona informada nos cadastros.</div>';
+ $('summary').innerHTML=cats.map(c=>'<article class="item"><b>'+c.icon+' '+esc(c.name)+'</b><span style="float:right">'+count(c)+'</span></article>').join('');
+ const types=[['Terrestre',/terrest|viatura|auto/i],['Drone',/drone|aérea|aereo/i],['Aquática',/aquát|aquat|embarca|marít/i],['Militares',/militar|equipe|guarni/i],['Faltas',null]];
+ $('resourceTypes').innerHTML=types.map(([name,re])=>{let n=name==='Militares'?r.reduce((a,p)=>a+(Number(p.team)||0),0):name==='Faltas'?r.filter(p=>/falta|ausente|indispon[ií]vel|não compareceu|nao compareceu/i.test(textOf(p))).length:r.filter(p=>re.test(String(p.type||''))).length;return '<div class="resource"><strong>'+n.toLocaleString('pt-BR')+'</strong><span>'+name+'</span></div>'}).join('');
+}
+async function load(){const {data,error}=await db.from('painel_estado').select('estado').eq('id',1).maybeSingle();if(error)throw error;if(data?.estado){state={...state,...data.estado};render();$('status').textContent='● Dados sincronizados com o Painel Operacional';}else{$('status').textContent='Aguardando os primeiros dados compartilhados.';render()}}
+async function profileCheck(u){const {data,error}=await db.from('perfis').select('nome,papel,ativo').eq('id',u.id).maybeSingle();if(error)throw error;if(!data||!data.ativo){await db.auth.signOut();throw new Error('Usuário sem perfil ativo. Solicite liberação ao administrador.')}user=u;$('signout').classList.remove('hidden')}
+async function start(){const {data:{session}}=await db.auth.getSession();if(session?.user)await profileCheck(session.user);$('login').classList.add('hidden');$('app').classList.remove('hidden');await load();if(channel)db.removeChannel(channel);channel=db.channel('dashboard-precaju-estado').on('postgres_changes',{event:'UPDATE',schema:'public',table:'painel_estado',filter:'id=eq.1'},payload=>{if(payload.new?.estado){state={...state,...payload.new.estado};render();$('status').textContent='● Atualizado em tempo real';}}).subscribe((status)=>{if(status==='SUBSCRIBED')$('status').textContent='● Conectado · atualização em tempo real'});}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('loginBtn').disabled=true;$('loginMsg').textContent='Validando acesso…';try{const {data,error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await profileCheck(data.user);await start()}catch(err){$('loginMsg').textContent=err.message||'Falha no acesso.'}finally{$('loginBtn').disabled=false}});
+$('publicBtn').onclick=()=>start().catch(e=>$('loginMsg').textContent=e.message);
+$('refresh').onclick=()=>load().catch(e=>$('status').textContent='Falha ao atualizar: '+e.message);
+$('signout').onclick=async()=>{await db.auth.signOut();user=null;$('signout').classList.add('hidden');$('status').textContent='Sessão encerrada · visualização pública';};
+start().catch(e=>{$('login').classList.remove('hidden');$('loginMsg').textContent='Não foi possível carregar os dados: '+e.message;});
+})();
+</script></body></html>
