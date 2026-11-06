@@ -15,6 +15,29 @@
 .login{max-width:390px;margin:12vh auto;padding:26px;background:#082746;border:1px solid var(--line);border-radius:14px}.login h2{margin-top:0}.login input{width:100%;padding:12px;margin:7px 0 12px;border:1px solid #326487;border-radius:7px;background:#04182d;color:white}.login p{font-size:12px;color:var(--muted)}.hidden{display:none!important}.empty{color:#a9c4d9;font-size:12px;padding:12px}
 @media(max-width:850px){.metrics{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.resource-grid{grid-template-columns:repeat(3,1fr)}.head{grid-template-columns:65px 1fr 65px;padding:10px;gap:8px}.logo{max-height:60px}.title p{font-size:9px}}
 @media(max-width:520px){.wrap{padding:9px}.categories{grid-template-columns:repeat(2,1fr)}.metrics{gap:7px}.metric{padding:12px}.metric strong{font-size:28px}.resource-grid{grid-template-columns:repeat(2,1fr)}.eyebrow{font-size:8px}.title h1{font-size:19px}}
+ 
+/* Recupera o tratamento visual com fotografias da Dashboard original */
+.cat{position:relative;isolation:isolate;overflow:hidden;min-height:132px;display:flex;flex-direction:column;justify-content:flex-end;background:#061b39 url('') center/cover no-repeat;box-shadow:inset 0 0 12px #00c8ff40,0 0 9px #008eff80}
+.cat::before{content:"";position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;filter:saturate(1.12) contrast(1.06)}
+.cat::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent 25%,rgba(2,15,39,.18) 48%,rgba(2,18,50,.98) 100%)}
+.cat:nth-child(1)::before{background-image:url('https://ensino.bombeiros.pa.gov.br/pluginfile.php/12390/course/summary/IMG-20220805-WA0071.jpg')}
+.cat:nth-child(2)::before{background-image:url('https://4.bp.blogspot.com/_ThmqipIESjY/TEn14E2wBbI/AAAAAAAAE1o/bYjBRcTcCSs/s1600/z15.jpg')}
+.cat:nth-child(3)::before{background-image:url('https://krispmedia-web-storage.object.pscloud.io/generated/2026-03/7282185e-7702-46f3-ab98-2dccc874313c.webp')}
+.cat:nth-child(4)::before{background-image:url('https://agenciaamapa.com.br/midias/2024/grandes/up_ag_24259_b16d7c80-7f14-e26e-a0db-44c61a00afbd.jpg')}
+.cat:nth-child(5)::before{background-image:url('https://www.ma.gov.br/uploads/ma/imgs/56364_56364_img_20251210_wa00632_8866512992549531660_7167621513393679031.jpg')}
+.cat:nth-child(6)::before{background-image:url('https://img.jaenoticia.com.br/H4a_x8QlQDq9Dao_tFQOVXOAc5Y%3D/1110x650/smart/s3.jaenoticia.com.br/uploads/imagens/guarda-vidas-resgatam-cinco-pessoas-de-afogamento-na-praia-da-sereia.png')}
+.cat:nth-child(7)::before{background-image:url('https://krispmedia-web-storage.object.pscloud.io/generated/2026-03/7282185e-7702-46f3-ab98-2dccc874313c.webp')}
+.cat:nth-child(8)::before{background-image:url('https://www.ma.gov.br/uploads/ma/imgs/56364_56364_img_20251210_wa00632_8866512992549531660_7167621513393679031.jpg')}
+.cat:nth-child(9)::before{background-image:url('https://static.wixstatic.com/media/2a10eb_f48a6a8e75654f358fbd2a4aff569170~mv2.png/v1/fill/w_980%2Ch_653%2Cal_c%2Cq_90%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/2a10eb_f48a6a8e75654f358fbd2a4aff569170~mv2.png')}
+.cat img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
+.cat .ico,.cat strong{position:relative;z-index:1;text-shadow:0 2px 5px #000}
+.cat strong{font-size:13px}
+.resource{position:relative;overflow:hidden;min-height:145px;display:flex;flex-direction:column;justify-content:flex-end;padding:0;background:#071d3a center/cover no-repeat}
+.resource img{position:absolute;inset:0 0 40px;width:100%;height:calc(100% - 40px);object-fit:cover}
+.resource strong,.resource span{position:relative;z-index:1;background:#03152ff2;padding:7px}
+.resource strong{font-size:22px;color:white;border-top:1px solid #00bfff}
+.resource span{font-weight:800;text-transform:uppercase}
+
 </style></head>
 <body>
 <section id="login" class="login hidden"><h2>Acesso à Dashboard</h2><p>Entre com seu e-mail e senha cadastrados no painel operacional.</p><form id="loginForm"><label>E-mail</label><input id="email" type="email" required autocomplete="username"><label>Senha</label><input id="password" type="password" required autocomplete="current-password"><button type="submit" id="loginBtn">Entrar</button></form><p id="loginMsg"></p><button id="publicBtn" type="button">Continuar na visualização pública</button></section>
@@ -43,10 +66,11 @@ const cats=[
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const textOf=p=>[p.name,p.type,p.mission,p.notes,p.description,p.occurrence,p.category].filter(Boolean).join(' ').toLowerCase();
 function count(cat){const arr=state.resources.filter(p=>String(p.mission||'').trim()||String(p.type||'').trim()||String(p.name||'').trim());return cat.name==='Outras'?arr.filter(p=>!cats.slice(0,-1).some(c=>c.terms.some(t=>textOf(p).includes(t)))).length:arr.filter(p=>cat.terms.some(t=>textOf(p).includes(t))).length}
+async function loadResourcePhotos(){try{const req=indexedDB.open('precaju-resource-images-v1',1);const db=await new Promise((ok,no)=>{req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('images'))req.result.createObjectStore('images')};req.onsuccess=()=>ok(req.result);req.onerror=()=>no(req.error)});const tx=db.transaction('images','readonly'),store=tx.objectStore('images');for(const label of ['Terrestre','Drone','Aquática','Militares','Faltas']){const key='precaju_resource_image_'+label.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_');const image=await new Promise((ok,no)=>{const q=store.get(key);q.onsuccess=()=>ok(q.result||'');q.onerror=()=>no(q.error)});const card=document.querySelector('[data-resource="'+label+'"]');if(card&&image){const img=document.createElement('img');img.src=image;img.alt='';card.prepend(img)}else if(card&&label==='Drone'){card.style.backgroundImage="url('images/imagesdrone-cbmse.png')"}}db.close()}catch(e){const drone=document.querySelector('[data-resource="Drone"]');if(drone)drone.style.backgroundImage="url('images/imagesdrone-cbmse.png')"}}
 function render(){
  const r=state.resources||[],ex=(state.exitRoutes||[]).filter(x=>Array.isArray(x.points)&&x.points.length>=2),known=r.filter(p=>String(p.team??'').trim()!==''&&Number.isFinite(Number(p.team)));
  $('resources').textContent=r.length.toLocaleString('pt-BR');$('staff').textContent=known.length?known.reduce((n,p)=>n+Number(p.team),0).toLocaleString('pt-BR'):'—';$('staffNote').textContent=known.length+' de '+r.length+' recursos com efetivo numérico';$('exits').textContent=ex.length.toLocaleString('pt-BR');$('routePoints').textContent=(state.route||[]).length.toLocaleString('pt-BR');
- $('categories').innerHTML=cats.map(c=>'<button class="cat '+(selected===c.name?'active':'')+'" data-cat="'+esc(c.name)+'"><span class="ico">'+c.icon+'</span><strong><span>'+esc(c.name)+'</span><b>'+count(c)+'</b></strong></button>').join('');
+ $('categories').innerHTML=cats.map(c=>{let photo='';try{const key='precaju_card_image_'+c.name.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_');photo=localStorage.getItem(key)||''}catch(e){}return '<button class="cat '+(selected===c.name?'active':'')+'" data-cat="'+esc(c.name)+'">'+(photo?'<img src="'+photo.replace(/"/g,'&quot;')+'" alt="">':'')+'<span class="ico">'+c.icon+'</span><strong><span>'+esc(c.name)+'</span><b>'+count(c)+'</b></strong></button>'}).join('');
  $('categories').querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{selected=b.dataset.cat;render()});
  const cat=cats.find(c=>c.name===selected),matches=r.filter(p=>cat.terms.length?cat.terms.some(t=>textOf(p).includes(t)):!cats.slice(0,-1).some(c=>c.terms.some(t=>textOf(p).includes(t))));
  $('reports').innerHTML=matches.length?matches.map(p=>'<article class="item"><b>'+esc(p.name||'Registro sem nome')+' · '+esc(p.type||'Recurso')+'</b><p>'+esc(p.mission||p.notes||p.description||'Sem relato textual informado.')+'</p></article>').join(''):'<div class="empty">Nenhum registro identificado nesta categoria.</div>';
@@ -54,7 +78,7 @@ function render(){
  $('zones').innerHTML=z.length?z.map(([name,n])=>'<div class="zone-row"><span>'+esc(name)+'</span><div class="track"><div class="bar" style="width:'+Math.round(n/max*100)+'%"></div></div><b>'+n+'</b></div>').join(''):'<div class="empty">Sem zona informada nos cadastros.</div>';
  $('summary').innerHTML=cats.map(c=>'<article class="item"><b>'+c.icon+' '+esc(c.name)+'</b><span style="float:right">'+count(c)+'</span></article>').join('');
  const types=[['Terrestre',/terrest|viatura|auto/i],['Drone',/drone|aérea|aereo/i],['Aquática',/aquát|aquat|embarca|marít/i],['Militares',/militar|equipe|guarni/i],['Faltas',null]];
- $('resourceTypes').innerHTML=types.map(([name,re])=>{let n=name==='Militares'?r.reduce((a,p)=>a+(Number(p.team)||0),0):name==='Faltas'?r.filter(p=>/falta|ausente|indispon[ií]vel|não compareceu|nao compareceu/i.test(textOf(p))).length:r.filter(p=>re.test(String(p.type||''))).length;return '<div class="resource"><strong>'+n.toLocaleString('pt-BR')+'</strong><span>'+name+'</span></div>'}).join('');
+ $('resourceTypes').innerHTML=types.map(([name,re])=>{let n=name==='Militares'?r.reduce((a,p)=>a+(Number(p.team)||0),0):name==='Faltas'?r.filter(p=>/falta|ausente|indispon[ií]vel|não compareceu|nao compareceu/i.test(textOf(p))).length:r.filter(p=>re.test(String(p.type||''))).length;return '<div class="resource" data-resource="'+name+'"><strong>'+n.toLocaleString('pt-BR')+'</strong><span>'+name+'</span></div>'}).join('');loadResourcePhotos();
 }
 async function load(){const {data,error}=await db.from('painel_estado').select('estado').eq('id',1).maybeSingle();if(error)throw error;if(data?.estado){state={...state,...data.estado};render();$('status').textContent='● Dados sincronizados com o Painel Operacional';}else{$('status').textContent='Aguardando os primeiros dados compartilhados.';render()}}
 async function profileCheck(u){const {data,error}=await db.from('perfis').select('nome,papel,ativo').eq('id',u.id).maybeSingle();if(error)throw error;if(!data||!data.ativo){await db.auth.signOut();throw new Error('Usuário sem perfil ativo. Solicite liberação ao administrador.')}user=u;$('signout').classList.remove('hidden')}
