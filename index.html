@@ -9,7 +9,9 @@
 :root{--navy:#0b1d2b;--navy2:#12344a;--blue:#1e6388;--cyan:#72d2f2;--gold:#ffc857;--text:#eaf3f8;--muted:#a9bfce;--panel:#102838;--line:#29485b}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--navy);color:var(--text);overflow:hidden}
  #app{height:100%;display:grid;grid-template-rows:auto 1fr}
-header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:linear-gradient(110deg,#071521,#12374f);border-bottom:1px solid #31556a;z-index:5}
+header{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:8px 16px;background:linear-gradient(110deg,#071521,#12374f);border-bottom:1px solid #31556a;z-index:5}
+.panel-title-banner{display:block;width:100%;height:auto;max-height:187px;object-fit:contain;object-position:center}
+.header-right{margin-left:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .crest{width:42px;height:42px;border:2px solid var(--gold);border-radius:50%;display:grid;place-items:center;font-size:21px;color:var(--gold);flex:none}
 .brand{min-width:0}.brand h1{margin:0;font-size:17px;letter-spacing:.7px}.brand p{margin:4px 0 0;color:var(--muted);font-size:11px;letter-spacing:1.1px}
 .header-right{margin-left:auto;display:flex;gap:8px;align-items:center}.tag{font-size:10px;text-transform:uppercase;letter-spacing:.7px;padding:6px 9px;border-radius:5px;border:1px solid #956f28;background:#3e321a;color:#ffe1a0;font-weight:700}
@@ -41,10 +43,11 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
 @media(max-width:800px){
  html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
  #app{height:auto;min-height:100dvh;grid-template-rows:auto auto}
- header{min-height:58px;padding:8px 10px;gap:8px;flex-wrap:wrap}
+ header{min-height:0;padding:6px 8px;gap:6px;flex-direction:column;align-items:stretch;flex-wrap:nowrap}
+  .panel-title-banner{width:100%;max-height:none;}
  .crest{width:36px;height:36px;font-size:18px}
  .brand{flex:1 1 150px}.brand h1{font-size:13px;line-height:1.2}.brand p{font-size:9px;letter-spacing:.6px}
- .header-right{margin-left:auto;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+ .header-right{margin-left:0;gap:5px;flex-wrap:wrap;justify-content:flex-end}
  .header-right button{padding:8px 9px;font-size:10px}
  .header-right .tag{display:none}
  main{min-height:0;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(440px,62dvh) auto}
@@ -231,8 +234,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 <div id="openingOverlay"><video id="openingVideo" autoplay muted playsinline preload="auto"><source src="videos/abertura.mp4" type="video/mp4"></video><button id="skipOpening" type="button">Entrar no painel ⟶</button></div>
 <div id="app">
 <header>
-  <div class="crest">✚</div>
-  <div class="brand"><h1>PRÉ-CAJU 2026 | CBMSE</h1><p>PAINEL DE PLANEJAMENTO OPERACIONAL</p></div>
+  <img class="panel-title-banner" src="images/Titulo%20painel.png" alt="Operação Pré-Caju 2026 — Corpo de Bombeiros Militar de Sergipe">
   <div class="header-right"><span id="authUser"></span><span id="cloudStatus" style="font-size:10px;color:#a9bfce"></span><button id="syncLocalBtn" type="button" class="primary" style="display:none;padding:7px 9px;font-size:10px">Enviar dados locais</button><button id="loginMenuBtn" type="button">Entrar / Administração</button><button id="authSignOut" type="button" style="display:none">Sair</button><span class="tag">Traçado preliminar</span></div>
 </header>
 <main>
