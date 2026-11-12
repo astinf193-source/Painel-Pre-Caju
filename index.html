@@ -251,7 +251,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 @media(max-width:800px){#app{grid-template-rows:auto auto auto}.ops-tabs{padding:7px;gap:5px}.ops-tabs button{min-width:116px;padding:9px;font-size:10px}#moduleWorkspace{padding:11px}.ops-grid{gap:7px}.ops-card{padding:10px}.ops-card strong{font-size:21px}}
 @media(max-width:420px){.ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
-/* Modo mapa único: informações diárias e viaturas concentradas na lateral */
+/* Painel concentrado no mapa operacional */
 #app{grid-template-rows:auto 1fr}
 .ops-tabs,#moduleWorkspace{display:none!important}
 .ops-map-sidebar{gap:10px}
@@ -262,10 +262,9 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 .ops-map-sidebar .stat span{font-size:9px}
 .ops-map-sidebar .field{margin:6px 0}
 .ops-map-sidebar .point{padding:8px}
-.ops-map-sidebar .point button{font-size:10px}
 .ops-vehicle-meta{display:block;font-size:10px;color:#a9bfce;margin-top:3px;line-height:1.35}
 .ops-vehicle-empty{font-size:11px;color:#a9bfce;line-height:1.5;padding:8px 2px}
-@media(max-width:800px){.ops-map-sidebar{max-height:none}.ops-map-sidebar .card{padding:10px}}
+@media(max-width:800px){.ops-map-sidebar .card{padding:10px}}
 
 </style>
 </head>
@@ -306,7 +305,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
     </div>
   </div>
   <aside class="sidebar ops-map-sidebar">
-    <section class="card ops-daily-card">
+    <section class="card">
       <h2>Efetivo diário · Planejamento</h2>
       <div class="field"><label for="opsDaySelect">Data da operação</label><select id="opsDaySelect"><option value="2026-11-13">13/11 · Sexta-feira</option><option value="2026-11-14">14/11 · Sábado</option><option value="2026-11-15">15/11 · Domingo</option></select></div>
       <div class="stats">
@@ -315,15 +314,15 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
         <div class="stat"><strong id="dailyResources">0</strong><span>Equipes / recursos cadastrados</span></div>
         <div class="stat"><strong id="dailyVehicles">0</strong><span>Viaturas identificadas</span></div>
       </div>
-      <p class="small" id="dailyNote" style="margin:9px 0 0">O quantitativo previsto é referência do Plano Estratégico. O efetivo apresentado deverá ser confirmado por escala/planilha diária.</p>
+      <p class="small" id="dailyNote" style="margin:9px 0 0">O efetivo previsto é referência do Plano Estratégico. O efetivo apresentado depende da escala e da confirmação diária.</p>
     </section>
     <section class="card">
-      <h2>Viaturas e equipes do dia</h2>
-      <div class="field"><label for="vehicleFilter">Filtrar por setor ou tipo</label><input id="vehicleFilter" type="search" placeholder="Ex.: Setor 2, UR, ABT, UTV"></div>
+      <h2>Viaturas e equipes</h2>
+      <div class="field"><label for="vehicleFilter">Filtrar por setor, tipo ou prefixo</label><input id="vehicleFilter" type="search" placeholder="Ex.: Setor 2, UR, ABT, UTV"></div>
       <div id="dailyVehicleList" class="point-list"><p class="small">Nenhum recurso cadastrado.</p></div>
     </section>
     <section class="card">
-      <h2>Localização selecionada</h2>
+      <h2>Recurso selecionado</h2>
       <div id="selectedInfo"><strong>Início do circuito (referência)</strong><p class="small">Selecione um marcador no mapa para consultar a equipe ou viatura posicionada.</p></div>
       <div id="crewImageWrap" style="margin-top:10px;border:1px dashed #42647a;border-radius:8px;padding:9px;background:#081c29">
         <div id="crewImageTitle" class="small" style="margin-bottom:7px;font-weight:700;color:#c5d9e5">IMAGEM DA GUARNIÇÃO</div>
@@ -339,20 +338,20 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
       <div class="actions" style="margin-top:10px"><button id="editBtn">Editar ponto</button><button id="deleteBtn" class="danger">Excluir recurso</button></div>
     </section>
     <section class="card">
-      <h2>Percurso e recursos no mapa</h2>
+      <h2>Mapa operacional</h2>
       <div class="stats"><div class="stat"><strong id="pointCount">6</strong><span>Pontos do percurso</span></div><div class="stat"><strong id="teamCount">0</strong><span>Recursos cadastrados</span></div></div>
       <div class="legend" style="margin-top:10px"><span><i style="background:#2478ff"></i>Traçado preliminar</span><span><i style="background:#45d4ff"></i>Recurso CBMSE</span></div>
     </section>
   </aside>
 
 </main>
-<section id="moduleWorkspace" aria-live="polite">
- <section class="ops-module active" data-module="overview">
-  <div class="ops-module-head"><div><h2>Visão Geral do Comando</h2><p>Resumo dos recursos cadastrados no painel. Os números de execução dependem da atualização das planilhas e dos registros operacionais.</p></div><span class="ops-tag">Pré-Caju 2026 · 13 a 15/11</span></div>
-  <div class="ops-grid">
-   <div class="ops-card"><small>Efetivo extraordinário previsto</small><strong id="ovPlanned">96</strong><span>Referência inicial: 13/11</span></div>
-   <div class="ops-card"><small>Recursos cadastrados</small><strong id="ovResources">0</strong><span>Registros existentes no mapa</span></div>
-   <div class="ops-card"><small>Pontos do percurso</small><strong id="ovRoute">0</strong><span>Traçder>
+
+</div>
+<div id="toast"></div>
+
+<div id="executiveDashboard" aria-label="Dashboard operacional Pré-Caju 2026">
+ <div class="dash-wrap">
+  <header class="dash-head"><div class="dash-logo dash-logo-precaju"><img src="images/logo-precaju.png" alt="Logo Pré-Caju"></div><div class="dash-title"><div class="dash-eyebrow">CORPO DE BOMBEIROS MILITAR · SERGIPE</div><h2>OPERAÇÃO <span style="color:#ffd23f">PRÉ-CAJU 2026</span></h2><p>SEGURANÇA, VIDA E TRANQUILIDADE · ORLA DE ATALAIA — ARACAJU/SE · 06 A 08 FEVEREIRO 2026</p></div><div class="dash-right"><img class="dash-logo-cbmse" src="images/logo-cbmse.png" alt="Brasão do Corpo de Bombeiros Militar de Sergipe"><div class="dash-actions"><button id="dashRefresh">↻ Atualizar</button><button id="dashClose" class="danger">Fechar ✕</button></div></div></header>
   <nav class="dash-nav" aria-label="Áreas operacionais"><span>⌂ VISÃO GERAL</span><span>⌖ PERCURSO</span><span>🚑 SAÍDAS DE AMBULÂNCIA</span><span>▣ POSTOS DE ATENDIMENTO</span><span>♟ RECURSOS EMPREGADOS</span><span>◈ MAPA</span><span>▤ RELATÓRIOS</span></nav>
   <div class="dash-layout"><aside class="dash-categories" id="dashCategories" aria-label="Categorias de ocorrências"></aside><section class="dash-main">
    <div class="dash-upper"><div class="dash-upper-main">
@@ -1127,6 +1126,54 @@ function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.l
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();if(addMode){addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=''}if(drawRouteMode){drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawRouteBtn').textContent='✎ Desenhar percurso';toast('Desenho cancelado. O traçado anterior será mantido após recarregar.')}if(drawExitRouteMode){drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';drawnExitCoords=[];toast('Desenho da saída cancelado.');}}if(e.key==='ArrowRight'&&$('formModal').style.display!=='flex')$('nextBtn').click();if(e.key==='ArrowLeft'&&$('formModal').style.display!=='flex')$('prevBtn').click();if(e.key.toLowerCase()==='p'&&$('formModal').style.display!=='flex')$('playBtn').click()});
 const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const closeOpening=()=>{if(openingOverlay)openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();}};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
 
+function activateOpsTab(tab){
+ const valid=['overview','map','staff','aquatic','prevention','vehicles','reports','import'];
+ if(!valid.includes(tab))tab='overview';
+ document.querySelectorAll('#opsTabs [data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
+ const mapTab=tab==='map';
+ $('mapWorkspace').style.display=mapTab?'grid':'none';
+ $('moduleWorkspace').classList.toggle('active',!mapTab);
+ document.querySelectorAll('[data-module]').forEach(el=>el.classList.toggle('active',el.dataset.module===tab));
+ document.body.dataset.opsTab=tab;
+ if(mapTab)requestAnimationFrame(()=>map.resize());
+ if(tab==='overview'||tab==='vehicles')refreshOpsSummary();
+}
+function refreshOpsSummary(){
+ const exits=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2).length;
+ const set=(id,value)=>{const el=$(id);if(el)el.textContent=String(value)};
+ ['ovResources','vhResources'].forEach(id=>set(id,resources.length.toLocaleString('pt-BR')));
+ ['ovRoute','vhRoute'].forEach(id=>set(id,route.length.toLocaleString('pt-BR')));
+ ['ovExits','vhExits'].forEach(id=>set(id,exits.toLocaleString('pt-BR')));
+ const day=new Date().getDay();
+ const planned=day===6?149:day===0?142:96;
+ set('ovPlanned',planned.toLocaleString('pt-BR'));
+}
+$('opsTabs').querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>activateOpsTab(b.dataset.tab)));
+document.querySelectorAll('[data-goto-import]').forEach(b=>b.addEventListener('click',()=>activateOpsTab('import')));
+$('openMapFromVehicles').addEventListener('click',()=>activateOpsTab('map'));
+$('opsReadSpreadsheet').addEventListener('click',async()=>{
+ const file=$('opsSpreadsheetFile').files?.[0],status=$('opsImportStatus'),list=$('opsSheetList'),preview=$('sheetPreview');
+ list.innerHTML='';preview.innerHTML='';
+ if(!file){status.textContent='Selecione uma planilha antes de continuar.';return;}
+ if(!window.XLSX){status.textContent='Biblioteca de leitura de planilhas indisponível. Recarregue a página e tente novamente.';return;}
+ try{
+  const data=await file.arrayBuffer();
+  const wb=XLSX.read(data,{type:'array',cellDates:true});
+  const expected=['01_ESCALAS','02_RECURSOS','03_AQUATICA','04_SETORES','05_VISTORIAS','06_ROTAS'];
+  const found=wb.SheetNames.map(n=>n.trim().toUpperCase());
+  const missing=expected.filter(n=>!found.includes(n));
+  status.textContent='Arquivo lido: '+file.name+' · '+wb.SheetNames.length+' aba(s). Prévia somente; nenhum dado foi gravado.';
+  list.innerHTML='<div class="ops-panel"><h3>Abas encontradas</h3>'+wb.SheetNames.map(n=>'<span class="ops-tag">'+safe(n)+'</span>').join('')+'</div>'+
+   '<div class="'+(missing.length?'ops-alert':'ops-ok')+'">'+(missing.length?'Abas esperadas não encontradas: '+missing.join(', '):'Todas as abas esperadas foram encontradas.')+'</div>';
+  const first=wb.SheetNames[0],rows=XLSX.utils.sheet_to_json(wb.Sheets[first],{header:1,defval:''}).slice(0,9);
+  if(rows.length){
+   const header=rows[0]||[];
+   preview.innerHTML='<div class="ops-panel"><h3>Prévia da primeira aba: '+safe(first)+'</h3><table><thead><tr>'+header.map(v=>'<th>'+safe(v)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(row=>'<tr>'+header.map((_,i)=>'<td>'+safe(row[i]??'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+  }
+ }catch(error){status.textContent='Não foi possível ler a planilha: '+(error.message||'arquivo inválido');}
+});
+activateOpsTab('overview');
+
 
 const DAILY_PLAN={'2026-11-13':96,'2026-11-14':149,'2026-11-15':142};
 function resourceDayMatches(p,day){
@@ -1134,9 +1181,7 @@ function resourceDayMatches(p,day){
  if(!d)return true;
  return d===day||d===day.split('-').reverse().join('/');
 }
-function resourceVehicleLabel(p){
- return String(p.vehicle||p.prefix||p.prefixo||p.type||'Recurso').trim();
-}
+function resourceVehicleLabel(p){return String(p.vehicle||p.prefix||p.prefixo||p.type||'Recurso').trim()}
 function isVehicleResource(p){
  const s=[p.vehicle,p.prefix,p.prefixo,p.type,p.name].filter(Boolean).join(' ').toLowerCase();
  return /viatura|ur\b|usb\b|abt\b|abs\b|utv|as\b|brs|ambul|auto|carro|moto|embarca|a[eé]reo|drone|caminh[aã]o/.test(s)||!!(p.vehicle||p.prefix||p.prefixo);
@@ -1152,17 +1197,17 @@ function renderDailyOperationalInfo(){
  set('dailyRegistered',teamCount.toLocaleString('pt-BR'));
  set('dailyResources',dayResources.length.toLocaleString('pt-BR'));
  set('dailyVehicles',vehicles.length.toLocaleString('pt-BR'));
- $('dailyNote').textContent='Previsto: '+planned+' militares. O total informado nos recursos é '+teamCount+'; não equivale a efetivo apresentado. Confirme a escala diária para apurar presença.';
+ const undated=dayResources.filter(p=>!(p.date||p.data||p.operationDate||p.day)).length;
+ $('dailyNote').textContent='Previsto no plano: '+planned+' militares. Efetivo informado nos recursos: '+teamCount+'. '+(undated?'Há '+undated+' recurso(s) sem data vinculada; eles aparecem em todos os dias até a escala ser identificada.':'O total informado não substitui a confirmação de apresentação.');
  const filter=String($('vehicleFilter')?.value||'').trim().toLowerCase();
  const shown=vehicles.filter(p=>!filter||[p.name,p.type,p.vehicle,p.prefix,p.prefixo,p.zone,p.zona,p.sector,p.mission].filter(Boolean).join(' ').toLowerCase().includes(filter));
- $('dailyVehicleList').innerHTML=shown.length?shown.map(p=>'<div class="point"><i class="pin"></i><div class="ptxt"><strong>'+safe(p.name||resourceVehicleLabel(p))+'</strong><span>'+safe(resourceVehicleLabel(p))+' · '+safe(p.zone||p.zona||p.sector||'Setor não informado')+'</span><span class="ops-vehicle-meta">'+safe(p.team?String(p.team)+' militar(es)':'Efetivo não informado')+(p.mission?' · '+safe(p.mission):'')+'</span></div><button type="button" data-daily-select="'+safe(p.id)+'">Ver</button></div>').join(''):'<div class="ops-vehicle-empty">Nenhuma viatura identificada para esta data. Verifique o cadastro dos recursos e o campo de data.</div>';
+ $('dailyVehicleList').innerHTML=shown.length?shown.map(p=>'<div class="point"><i class="pin"></i><div class="ptxt"><strong>'+safe(p.name||resourceVehicleLabel(p))+'</strong><span>'+safe(resourceVehicleLabel(p))+' · '+safe(p.zone||p.zona||p.sector||'Setor não informado')+'</span><span class="ops-vehicle-meta">'+safe(p.team?String(p.team)+' militar(es)':'Efetivo não informado')+(p.mission?' · '+safe(p.mission):'')+'</span></div><button type="button" data-daily-select="'+safe(p.id)+'">Ver</button></div>').join(''):'<div class="ops-vehicle-empty">Nenhuma viatura identificada para esta data. Confira o cadastro e a identificação do veículo.</div>';
  $('dailyVehicleList').querySelectorAll('[data-daily-select]').forEach(b=>b.onclick=()=>selectPoint(b.dataset.dailySelect,true));
 }
 $('opsDaySelect').addEventListener('change',renderDailyOperationalInfo);
 $('vehicleFilter').addEventListener('input',renderDailyOperationalInfo);
 
 renderDailyOperationalInfo();
-
 initializeAuthentication();
 })();
 </script>
