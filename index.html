@@ -212,6 +212,44 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 .dash-logo-cbmse{display:block;width:clamp(66px,7vw,100px);height:clamp(66px,7vw,100px);object-fit:contain;background:#fff;border-radius:50%;padding:3px;flex:none;}
 .dash-actions{justify-content:flex-end;}
 @media(max-width:760px){.dash-head{grid-template-columns:76px minmax(0,1fr) 76px;gap:6px;padding:9px}.dash-logo-precaju img{max-width:76px;max-height:58px}.dash-logo-cbmse{width:58px;height:58px}.dash-right{display:contents}.dash-title h2{font-size:clamp(18px,5vw,28px)}.dash-title p{font-size:8px;letter-spacing:.4px}.dash-title .dash-eyebrow{font-size:8px;letter-spacing:.5px}.dash-actions{grid-column:1/-1;justify-content:center}}
+
+/* Navegação modular da Sala de Situação Pré-Caju */
+#app{grid-template-rows:auto auto 1fr}
+.ops-tabs{display:flex;gap:6px;align-items:stretch;overflow-x:auto;padding:8px 12px;background:#081d2b;border-bottom:1px solid #29485b;scrollbar-width:thin}
+.ops-tabs button{flex:0 0 auto;min-width:125px;padding:10px 12px;border:1px solid #31566c;background:#102c40;color:#c9dfeb;font-size:11px}
+.ops-tabs button[aria-selected="true"]{background:#087eaa;border-color:#48c5ed;color:#fff;box-shadow:0 0 12px #159ed044}
+#mapWorkspace{min-height:0}
+#moduleWorkspace{display:none;min-height:0;overflow:auto;padding:18px;background:linear-gradient(145deg,#0a1e2d,#102b3d)}
+#moduleWorkspace.active{display:block}
+.ops-module{display:none;max-width:1500px;margin:0 auto}
+.ops-module.active{display:block}
+.ops-module-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.ops-module h2{margin:0 0 5px;font-size:19px;color:#f2f8fc}
+.ops-module p{color:#abc3d1;font-size:12px;line-height:1.5;margin:0}
+.ops-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+.ops-card{background:#0c2637;border:1px solid #294b60;border-radius:10px;padding:14px;min-width:0}
+.ops-card small{display:block;color:#9db9c9;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.ops-card strong{display:block;color:#fff;font-size:25px;margin:7px 0}
+.ops-card span{font-size:10px;color:#a9bfce}
+.ops-panel{background:#0c2637;border:1px solid #294b60;border-radius:10px;padding:15px;margin:12px 0}
+.ops-panel h3{font-size:13px;margin:0 0 10px;color:#d9edf7}
+.ops-table-wrap{overflow:auto}
+.ops-table{border-collapse:collapse;width:100%;font-size:11px;min-width:520px}
+.ops-table th,.ops-table td{padding:9px;border-bottom:1px solid #29485b;text-align:left}
+.ops-table th{color:#9fd8ef;background:#102f44}
+.ops-muted{color:#9fb7c6;font-size:11px}
+.ops-tag{display:inline-block;border:1px solid #42647a;border-radius:20px;padding:4px 8px;color:#bfe7f6;font-size:10px;margin:3px}
+.ops-upload{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ops-upload input{max-width:100%;color:#cfe1ea;font-size:11px}
+#sheetPreview{overflow:auto;margin-top:12px}
+#sheetPreview table{border-collapse:collapse;width:100%;font-size:10px;min-width:500px}
+#sheetPreview th,#sheetPreview td{padding:7px;border:1px solid #315166;text-align:left;max-width:240px;overflow-wrap:anywhere}
+#sheetPreview th{background:#16405b;color:#dff5ff}
+.ops-alert{padding:10px 12px;border:1px solid #8a6b35;background:#392f1b;color:#ffe3a7;border-radius:8px;font-size:11px;line-height:1.5}
+.ops-ok{padding:10px 12px;border:1px solid #286b54;background:#12372e;color:#b9f0d8;border-radius:8px;font-size:11px}
+@media(max-width:900px){.ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){#app{grid-template-rows:auto auto auto}.ops-tabs{padding:7px;gap:5px}.ops-tabs button{min-width:116px;padding:9px;font-size:10px}#moduleWorkspace{padding:11px}.ops-grid{gap:7px}.ops-card{padding:10px}.ops-card strong{font-size:21px}}
+@media(max-width:420px){.ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -237,7 +275,18 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
   <img class="panel-title-banner" src="images/Titulo%20painel.png" alt="Operação Pré-Caju 2026 — Corpo de Bombeiros Militar de Sergipe">
   <div class="header-right"><span id="authUser"></span><span id="cloudStatus" style="font-size:10px;color:#a9bfce"></span><button id="syncLocalBtn" type="button" class="primary" style="display:none;padding:7px 9px;font-size:10px">Enviar dados locais</button><button id="loginMenuBtn" type="button">Entrar / Administração</button><button id="authSignOut" type="button" style="display:none">Sair</button><span class="tag">Traçado preliminar</span></div>
 </header>
-<main>
+
+<nav class="ops-tabs" id="opsTabs" aria-label="Módulos operacionais">
+ <button type="button" data-tab="overview" aria-selected="true">▦ Visão Geral</button>
+ <button type="button" data-tab="map" aria-selected="false">⌖ Mapa Operacional</button>
+ <button type="button" data-tab="staff" aria-selected="false">♟ Efetivo e Escalas</button>
+ <button type="button" data-tab="aquatic" aria-selected="false">≈ Operação Aquática</button>
+ <button type="button" data-tab="prevention" aria-selected="false">✚ Prevenção e DAT</button>
+ <button type="button" data-tab="vehicles" aria-selected="false">🚑 Viaturas e Rotas</button>
+ <button type="button" data-tab="reports" aria-selected="false">▤ Relatórios</button>
+ <button type="button" data-tab="import" aria-selected="false">⇧ Importar Planilhas</button>
+</nav>
+<main id="mapWorkspace">
   <div id="map">
     <div id="mapControls">
       <button id="toolsToggleBtn" type="button" aria-expanded="false">☰ Ferramentas do mapa</button>
@@ -276,7 +325,51 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
       <div id="pointList" class="point-list" style="margin-top:10px"></div>
     </section>
   </aside>
+
 </main>
+<section id="moduleWorkspace" aria-live="polite">
+ <section class="ops-module active" data-module="overview">
+  <div class="ops-module-head"><div><h2>Visão Geral do Comando</h2><p>Resumo dos recursos cadastrados no painel. Os números de execução dependem da atualização das planilhas e dos registros operacionais.</p></div><span class="ops-tag">Pré-Caju 2026 · 13 a 15/11</span></div>
+  <div class="ops-grid">
+   <div class="ops-card"><small>Efetivo extraordinário previsto</small><strong id="ovPlanned">96</strong><span>Referência inicial: 13/11</span></div>
+   <div class="ops-card"><small>Recursos cadastrados</small><strong id="ovResources">0</strong><span>Registros existentes no mapa</span></div>
+   <div class="ops-card"><small>Pontos do percurso</small><strong id="ovRoute">0</strong><span>Traçado principal</span></div>
+   <div class="ops-card"><small>Saídas de ambulância</small><strong id="ovExits">0</strong><span>Rotas com pelo menos dois pontos</span></div>
+  </div>
+  <div class="ops-panel"><h3>Efetivo extraordinário previsto no planejamento</h3><div class="ops-table-wrap"><table class="ops-table"><thead><tr><th>Data</th><th>Dia</th><th>Efetivo previsto</th></tr></thead><tbody><tr><td>13/11/2026</td><td>Sexta-feira</td><td>96</td></tr><tr><td>14/11/2026</td><td>Sábado</td><td>149</td></tr><tr><td>15/11/2026</td><td>Domingo</td><td>142</td></tr></tbody></table></div><p class="ops-muted" style="margin-top:9px">Valores de referência do Plano Estratégico. Não representam confirmação de apresentação ou efetivo em serviço.</p></div>
+  <div class="ops-panel"><h3>Situação dos módulos</h3><div class="ops-grid"><div class="ops-card"><small>Efetivo e escalas</small><strong>Planilha</strong><span>Importação pendente</span></div><div class="ops-card"><small>Operação aquática</small><strong>Planilha</strong><span>Dados específicos pendentes</span></div><div class="ops-card"><small>Prevenção e DAT</small><strong>Planilha</strong><span>Vistorias pendentes</span></div><div class="ops-card"><small>Ocorrências</small><strong>Separado</strong><span>Não integrado a esta navegação</span></div></div></div>
+ </section>
+ <section class="ops-module" data-module="staff">
+  <div class="ops-module-head"><div><h2>Efetivo e Escalas</h2><p>Consulta do efetivo previsto, escalado e apresentado, com filtros por data, turno e setor. A relação nominal deverá ser alimentada por planilha autorizada.</p></div><button type="button" data-goto-import>Importar planilha</button></div>
+  <div class="ops-grid"><div class="ops-card"><small>13/11 · Previsto</small><strong>96</strong><span>Militares</span></div><div class="ops-card"><small>14/11 · Previsto</small><strong>149</strong><span>Militares</span></div><div class="ops-card"><small>15/11 · Previsto</small><strong>142</strong><span>Militares</span></div><div class="ops-card"><small>Apresentados</small><strong>—</strong><span>Aguardando escala/controle de presença</span></div></div>
+  <div class="ops-panel"><h3>Distribuição e consulta</h3><p>Após a importação, esta tela deverá apresentar os quantitativos por setor, função, unidade e turno, além da relação nominal conforme permissões de acesso.</p><p class="ops-muted" style="margin-top:8px">Campos esperados: ID, data, turno, nome, unidade, função, setor, equipe e situação.</p></div>
+ </section>
+ <section class="ops-module" data-module="aquatic">
+  <div class="ops-module-head"><div><h2>Operação Aquática</h2><p>Controle específico de supervisão, equipes AS, UTV, BRS, pontos de prevenção e turnos.</p></div><button type="button" data-goto-import>Importar planilha</button></div>
+  <div class="ops-grid"><div class="ops-card"><small>Equipes previstas</small><strong>—</strong><span>Aguardando importação</span></div><div class="ops-card"><small>Efetivo apresentado</small><strong>—</strong><span>Controle de presença</span></div><div class="ops-card"><small>Prevenções ativas</small><strong>—</strong><span>Registro operacional futuro</span></div><div class="ops-card"><small>Intervenções reativas</small><strong>—</strong><span>Registro operacional futuro</span></div></div>
+  <div class="ops-panel"><h3>Organização prevista</h3><span class="ops-tag">Supervisão de praias</span><span class="ops-tag">AS + UTV</span><span class="ops-tag">AS + UTV + BRS</span><span class="ops-tag">Coroa do Meio</span><p style="margin-top:10px">Filtros previstos: data, turno, equipe, setor e tipo de recurso. Os registros de ocorrências permanecerão em sistema separado.</p></div>
+ </section>
+ <section class="ops-module" data-module="prevention">
+  <div class="ops-module-head"><div><h2>Prevenção e DAT</h2><p>Cadastro e acompanhamento de vistorias, irregularidades, riscos e providências adotadas.</p></div><button type="button" data-goto-import>Importar planilha</button></div>
+  <div class="ops-grid"><div class="ops-card"><small>Estruturas vistoriadas</small><strong>—</strong><span>Aguardando dados</span></div><div class="ops-card"><small>Pendências</small><strong>—</strong><span>Aguardando dados</span></div><div class="ops-card"><small>Riscos altos</small><strong>—</strong><span>Aguardando dados</span></div><div class="ops-card"><small>Regularizadas</small><strong>—</strong><span>Aguardando dados</span></div></div>
+  <div class="ops-panel"><h3>Campos de vistoria</h3><p>Data, local/estrutura, setor, equipe fiscalizadora, tipo de risco, classificação, providência, situação e horário. A tela permitirá filtrar pendências e localizar estruturas no mapa quando houver coordenadas válidas.</p></div>
+ </section>
+ <section class="ops-module" data-module="vehicles">
+  <div class="ops-module-head"><div><h2>Viaturas e Rotas</h2><p>Consulta dos recursos cadastrados e das rotas de acesso, fuga e saída de ambulâncias.</p></div><button type="button" id="openMapFromVehicles">Abrir mapa operacional</button></div>
+  <div class="ops-grid"><div class="ops-card"><small>Recursos cadastrados</small><strong id="vhResources">0</strong><span>Cadastro atual</span></div><div class="ops-card"><small>Rotas de ambulância</small><strong id="vhExits">0</strong><span>Rotas com dois ou mais pontos</span></div><div class="ops-card"><small>Pontos do percurso</small><strong id="vhRoute">0</strong><span>Traçado atual</span></div><div class="ops-card"><small>Disponibilidade</small><strong>—</strong><span>Depende de atualização operacional</span></div></div>
+  <div class="ops-panel"><h3>Observação operacional</h3><p>A animação de ambulâncias já existente será preservada como recurso demonstrativo de percurso. Ela não representa rastreamento GPS em tempo real.</p></div>
+ </section>
+ <section class="ops-module" data-module="reports">
+  <div class="ops-module-head"><div><h2>Relatórios</h2><p>Área destinada à consolidação dos dados importados e dos registros operacionais autorizados.</p></div></div>
+  <div class="ops-panel"><h3>Relatórios previstos</h3><div class="ops-table-wrap"><table class="ops-table"><thead><tr><th>Relatório</th><th>Fonte</th><th>Situação</th></tr></thead><tbody><tr><td>Efetivo por dia e setor</td><td>Escalas</td><td>Aguardando importação</td></tr><tr><td>Recursos por setor</td><td>Recursos</td><td>Parcial — cadastro atual</td></tr><tr><td>Operação aquática</td><td>Planilha aquática</td><td>Aguardando importação</td></tr><tr><td>Vistorias e pendências DAT</td><td>Planilha de vistorias</td><td>Aguardando importação</td></tr><tr><td>Viaturas e rotas</td><td>Mapa e recursos</td><td>Parcial — cadastro atual</td></tr></tbody></table></div></div>
+ </section>
+ <section class="ops-module" data-module="import">
+  <div class="ops-module-head"><div><h2>Importação de Planilhas</h2><p>Leitura e conferência inicial de arquivos Excel (.xlsx, .xls) e CSV, antes de qualquer integração com a base operacional.</p></div></div>
+  <div class="ops-alert">Esta primeira entrega faz a leitura e a prévia dos arquivos. Ela ainda não grava os dados no Supabase nem altera escalas, recursos ou registros existentes. A gravação será implementada após validação do modelo oficial e da estrutura das tabelas.</div>
+  <div class="ops-panel"><h3>Selecionar arquivo</h3><div class="ops-upload"><input id="opsSpreadsheetFile" type="file" accept=".xlsx,.xls,.csv"><button type="button" id="opsReadSpreadsheet" class="primary">Ler e validar arquivo</button></div><p id="opsImportStatus" class="ops-muted" style="margin-top:10px">Nenhum arquivo selecionado.</p><div id="opsSheetList"></div><div id="sheetPreview"></div></div>
+  <div class="ops-panel"><h3>Abas esperadas no modelo</h3><span class="ops-tag">01_ESCALAS</span><span class="ops-tag">02_RECURSOS</span><span class="ops-tag">03_AQUATICA</span><span class="ops-tag">04_SETORES</span><span class="ops-tag">05_VISTORIAS</span><span class="ops-tag">06_OCORRENCIAS</span><span class="ops-tag">07_ROTAS</span><p class="ops-muted" style="margin-top:10px">A aba 06_OCORRENCIAS está prevista apenas como estrutura de intercâmbio, caso seja necessária para integração futura; o módulo de ocorrências não será exibido neste painel.</p></div>
+ </section>
+</section>
 </div>
 <div id="toast"></div>
 
@@ -339,6 +432,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
   <div class="actions"><button id="saveBtn" class="primary">Salvar recurso</button><button id="cancelBtn">Cancelar</button></div>
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
 (() => {
@@ -1054,6 +1148,55 @@ $('presMapTour').onclick=()=>{closePres();if(!document.fullscreenElement)documen
 function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.lng,name:p.name}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();if(addMode){addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=''}if(drawRouteMode){drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawRouteBtn').textContent='✎ Desenhar percurso';toast('Desenho cancelado. O traçado anterior será mantido após recarregar.')}if(drawExitRouteMode){drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';drawnExitCoords=[];toast('Desenho da saída cancelado.');}}if(e.key==='ArrowRight'&&$('formModal').style.display!=='flex')$('nextBtn').click();if(e.key==='ArrowLeft'&&$('formModal').style.display!=='flex')$('prevBtn').click();if(e.key.toLowerCase()==='p'&&$('formModal').style.display!=='flex')$('playBtn').click()});
 const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const closeOpening=()=>{if(openingOverlay)openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();}};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
+
+function activateOpsTab(tab){
+ const valid=['overview','map','staff','aquatic','prevention','vehicles','reports','import'];
+ if(!valid.includes(tab))tab='overview';
+ document.querySelectorAll('#opsTabs [data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
+ const mapTab=tab==='map';
+ $('mapWorkspace').style.display=mapTab?'grid':'none';
+ $('moduleWorkspace').classList.toggle('active',!mapTab);
+ document.querySelectorAll('[data-module]').forEach(el=>el.classList.toggle('active',el.dataset.module===tab));
+ document.body.dataset.opsTab=tab;
+ if(mapTab)requestAnimationFrame(()=>map.resize());
+ if(tab==='overview'||tab==='vehicles')refreshOpsSummary();
+}
+function refreshOpsSummary(){
+ const exits=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2).length;
+ const set=(id,value)=>{const el=$(id);if(el)el.textContent=String(value)};
+ ['ovResources','vhResources'].forEach(id=>set(id,resources.length.toLocaleString('pt-BR')));
+ ['ovRoute','vhRoute'].forEach(id=>set(id,route.length.toLocaleString('pt-BR')));
+ ['ovExits','vhExits'].forEach(id=>set(id,exits.toLocaleString('pt-BR')));
+ const day=new Date().getDay();
+ const planned=day===6?149:day===0?142:96;
+ set('ovPlanned',planned.toLocaleString('pt-BR'));
+}
+$('opsTabs').querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>activateOpsTab(b.dataset.tab)));
+document.querySelectorAll('[data-goto-import]').forEach(b=>b.addEventListener('click',()=>activateOpsTab('import')));
+$('openMapFromVehicles').addEventListener('click',()=>activateOpsTab('map'));
+$('opsReadSpreadsheet').addEventListener('click',async()=>{
+ const file=$('opsSpreadsheetFile').files?.[0],status=$('opsImportStatus'),list=$('opsSheetList'),preview=$('sheetPreview');
+ list.innerHTML='';preview.innerHTML='';
+ if(!file){status.textContent='Selecione uma planilha antes de continuar.';return;}
+ if(!window.XLSX){status.textContent='Biblioteca de leitura de planilhas indisponível. Recarregue a página e tente novamente.';return;}
+ try{
+  const data=await file.arrayBuffer();
+  const wb=XLSX.read(data,{type:'array',cellDates:true});
+  const expected=['01_ESCALAS','02_RECURSOS','03_AQUATICA','04_SETORES','05_VISTORIAS','06_OCORRENCIAS','07_ROTAS'];
+  const found=wb.SheetNames.map(n=>n.trim().toUpperCase());
+  const missing=expected.filter(n=>!found.includes(n));
+  status.textContent='Arquivo lido: '+file.name+' · '+wb.SheetNames.length+' aba(s). Prévia somente; nenhum dado foi gravado.';
+  list.innerHTML='<div class="ops-panel"><h3>Abas encontradas</h3>'+wb.SheetNames.map(n=>'<span class="ops-tag">'+safe(n)+'</span>').join('')+'</div>'+
+   '<div class="'+(missing.length?'ops-alert':'ops-ok')+'">'+(missing.length?'Abas esperadas não encontradas: '+missing.join(', '):'Todas as abas esperadas foram encontradas.')+'</div>';
+  const first=wb.SheetNames[0],rows=XLSX.utils.sheet_to_json(wb.Sheets[first],{header:1,defval:''}).slice(0,9);
+  if(rows.length){
+   const header=rows[0]||[];
+   preview.innerHTML='<div class="ops-panel"><h3>Prévia da primeira aba: '+safe(first)+'</h3><table><thead><tr>'+header.map(v=>'<th>'+safe(v)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(row=>'<tr>'+header.map((_,i)=>'<td>'+safe(row[i]??'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+  }
+ }catch(error){status.textContent='Não foi possível ler a planilha: '+(error.message||'arquivo inválido');}
+});
+activateOpsTab('overview');
+
 initializeAuthentication();
 })();
 </script>
