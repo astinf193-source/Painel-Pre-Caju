@@ -740,6 +740,7 @@ function buildLayers(){
 }
 function renderList(){
  $('pointCount').textContent=route.length;$('teamCount').textContent=resources.length;
+ if(typeof renderDailyOperationalInfo==='function'&&$('dailyVehicleList'))renderDailyOperationalInfo();
  $('pointList').innerHTML=resources.length?resources.map(p=>`<div class="point"><i class="pin"></i><div class="ptxt"><strong>${safe(p.name)}</strong><span>${safe(p.type||'Recurso')} · ${p.team?safe(p.team)+' militar(es)':'efetivo a definir'}</span></div><button data-select="${safe(p.id)}">Ver</button></div>`).join(''):'<p class="small">Nenhum recurso cadastrado. Use “Adicionar equipe no mapa” e clique na localização desejada.</p>';
  $('pointList').querySelectorAll('[data-select]').forEach(b=>b.onclick=()=>selectPoint(b.dataset.select,true));
  $('flightSlider').max=Math.max(route.length-1,0);if(Number($('flightSlider').value)>=route.length)$('flightSlider').value=0;
