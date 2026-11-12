@@ -367,7 +367,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
   <div class="ops-module-head"><div><h2>Importação de Planilhas</h2><p>Leitura e conferência inicial de arquivos Excel (.xlsx, .xls) e CSV, antes de qualquer integração com a base operacional.</p></div></div>
   <div class="ops-alert">Esta primeira entrega faz a leitura e a prévia dos arquivos. Ela ainda não grava os dados no Supabase nem altera escalas, recursos ou registros existentes. A gravação será implementada após validação do modelo oficial e da estrutura das tabelas.</div>
   <div class="ops-panel"><h3>Selecionar arquivo</h3><div class="ops-upload"><input id="opsSpreadsheetFile" type="file" accept=".xlsx,.xls,.csv"><button type="button" id="opsReadSpreadsheet" class="primary">Ler e validar arquivo</button></div><p id="opsImportStatus" class="ops-muted" style="margin-top:10px">Nenhum arquivo selecionado.</p><div id="opsSheetList"></div><div id="sheetPreview"></div></div>
-  <div class="ops-panel"><h3>Abas esperadas no modelo</h3><span class="ops-tag">01_ESCALAS</span><span class="ops-tag">02_RECURSOS</span><span class="ops-tag">03_AQUATICA</span><span class="ops-tag">04_SETORES</span><span class="ops-tag">05_VISTORIAS</span><span class="ops-tag">06_OCORRENCIAS</span><span class="ops-tag">07_ROTAS</span><p class="ops-muted" style="margin-top:10px">A aba 06_OCORRENCIAS está prevista apenas como estrutura de intercâmbio, caso seja necessária para integração futura; o módulo de ocorrências não será exibido neste painel.</p></div>
+  <div class="ops-panel"><h3>Abas esperadas no modelo</h3><span class="ops-tag">01_ESCALAS</span><span class="ops-tag">02_RECURSOS</span><span class="ops-tag">03_AQUATICA</span><span class="ops-tag">04_SETORES</span><span class="ops-tag">05_VISTORIAS</span><span class="ops-tag">06_ROTAS</span><p class="ops-muted" style="margin-top:10px">Os registros de ocorrências serão tratados em sistema separado e não fazem parte desta importação.</p></div>
  </section>
 </section>
 </div>
@@ -1182,7 +1182,7 @@ $('opsReadSpreadsheet').addEventListener('click',async()=>{
  try{
   const data=await file.arrayBuffer();
   const wb=XLSX.read(data,{type:'array',cellDates:true});
-  const expected=['01_ESCALAS','02_RECURSOS','03_AQUATICA','04_SETORES','05_VISTORIAS','06_OCORRENCIAS','07_ROTAS'];
+  const expected=['01_ESCALAS','02_RECURSOS','03_AQUATICA','04_SETORES','05_VISTORIAS','06_ROTAS'];
   const found=wb.SheetNames.map(n=>n.trim().toUpperCase());
   const missing=expected.filter(n=>!found.includes(n));
   status.textContent='Arquivo lido: '+file.name+' · '+wb.SheetNames.length+' aba(s). Prévia somente; nenhum dado foi gravado.';
