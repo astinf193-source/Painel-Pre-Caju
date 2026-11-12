@@ -250,6 +250,23 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 @media(max-width:900px){.ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:800px){#app{grid-template-rows:auto auto auto}.ops-tabs{padding:7px;gap:5px}.ops-tabs button{min-width:116px;padding:9px;font-size:10px}#moduleWorkspace{padding:11px}.ops-grid{gap:7px}.ops-card{padding:10px}.ops-card strong{font-size:21px}}
 @media(max-width:420px){.ops-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Modo mapa único: informações diárias e viaturas concentradas na lateral */
+#app{grid-template-rows:auto 1fr}
+.ops-tabs,#moduleWorkspace{display:none!important}
+.ops-map-sidebar{gap:10px}
+.ops-map-sidebar .card{padding:11px}
+.ops-map-sidebar .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.ops-map-sidebar .stat{padding:9px}
+.ops-map-sidebar .stat strong{font-size:20px}
+.ops-map-sidebar .stat span{font-size:9px}
+.ops-map-sidebar .field{margin:6px 0}
+.ops-map-sidebar .point{padding:8px}
+.ops-map-sidebar .point button{font-size:10px}
+.ops-vehicle-meta{display:block;font-size:10px;color:#a9bfce;margin-top:3px;line-height:1.35}
+.ops-vehicle-empty{font-size:11px;color:#a9bfce;line-height:1.5;padding:8px 2px}
+@media(max-width:800px){.ops-map-sidebar{max-height:none}.ops-map-sidebar .card{padding:10px}}
+
 </style>
 </head>
 <body>
@@ -276,16 +293,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
   <div class="header-right"><span id="authUser"></span><span id="cloudStatus" style="font-size:10px;color:#a9bfce"></span><button id="syncLocalBtn" type="button" class="primary" style="display:none;padding:7px 9px;font-size:10px">Enviar dados locais</button><button id="loginMenuBtn" type="button">Entrar / Administração</button><button id="authSignOut" type="button" style="display:none">Sair</button><span class="tag">Traçado preliminar</span></div>
 </header>
 
-<nav class="ops-tabs" id="opsTabs" aria-label="Módulos operacionais">
- <button type="button" data-tab="overview" aria-selected="true">▦ Visão Geral</button>
- <button type="button" data-tab="map" aria-selected="false">⌖ Mapa Operacional</button>
- <button type="button" data-tab="staff" aria-selected="false">♟ Efetivo e Escalas</button>
- <button type="button" data-tab="aquatic" aria-selected="false">≈ Operação Aquática</button>
- <button type="button" data-tab="prevention" aria-selected="false">✚ Prevenção e DAT</button>
- <button type="button" data-tab="vehicles" aria-selected="false">🚑 Viaturas e Rotas</button>
- <button type="button" data-tab="reports" aria-selected="false">▤ Relatórios</button>
- <button type="button" data-tab="import" aria-selected="false">⇧ Importar Planilhas</button>
-</nav>
+
 <main id="mapWorkspace">
   <div id="map">
     <div id="mapControls">
@@ -297,19 +305,30 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
       <span id="flightLabel">PERCURSO / INÍCIO</span><input id="flightSlider" type="range" min="0" max="5" step="1" value="0" aria-label="Ponto do percurso"><span id="flightCount">1/6</span>
     </div>
   </div>
-  <aside class="sidebar">
-    <section class="card">
-      <h2>Resumo do circuito</h2>
-      <div class="stats"><div class="stat"><strong id="pointCount">6</strong><span>Pontos de percurso</span></div><div class="stat"><strong id="teamCount">0</strong><span>Recursos cadastrados</span></div></div>
-      <p class="small" style="margin-bottom:0">Referência pública: aproximadamente 3 km entre a Passarela do Caranguejo e a região do Farol da Coroa do Meio. Extensão e geometria ainda precisam de validação oficial.</p>
+  <aside class="sidebar ops-map-sidebar">
+    <section class="card ops-daily-card">
+      <h2>Efetivo diário · Planejamento</h2>
+      <div class="field"><label for="opsDaySelect">Data da operação</label><select id="opsDaySelect"><option value="2026-11-13">13/11 · Sexta-feira</option><option value="2026-11-14">14/11 · Sábado</option><option value="2026-11-15">15/11 · Domingo</option></select></div>
+      <div class="stats">
+        <div class="stat"><strong id="dailyPlanned">96</strong><span>Efetivo extraordinário previsto</span></div>
+        <div class="stat"><strong id="dailyRegistered">0</strong><span>Efetivo informado nos recursos</span></div>
+        <div class="stat"><strong id="dailyResources">0</strong><span>Equipes / recursos cadastrados</span></div>
+        <div class="stat"><strong id="dailyVehicles">0</strong><span>Viaturas identificadas</span></div>
+      </div>
+      <p class="small" id="dailyNote" style="margin:9px 0 0">O quantitativo previsto é referência do Plano Estratégico. O efetivo apresentado deverá ser confirmado por escala/planilha diária.</p>
     </section>
     <section class="card">
-      <h2>Ponto selecionado</h2>
-      <div id="selectedInfo"><strong>Início do circuito (referência)</strong><p class="small">Selecione um marcador ou clique em “Adicionar equipe no mapa” e marque o ponto sobre a avenida.</p></div>
+      <h2>Viaturas e equipes do dia</h2>
+      <div class="field"><label for="vehicleFilter">Filtrar por setor ou tipo</label><input id="vehicleFilter" type="search" placeholder="Ex.: Setor 2, UR, ABT, UTV"></div>
+      <div id="dailyVehicleList" class="point-list"><p class="small">Nenhum recurso cadastrado.</p></div>
+    </section>
+    <section class="card">
+      <h2>Localização selecionada</h2>
+      <div id="selectedInfo"><strong>Início do circuito (referência)</strong><p class="small">Selecione um marcador no mapa para consultar a equipe ou viatura posicionada.</p></div>
       <div id="crewImageWrap" style="margin-top:10px;border:1px dashed #42647a;border-radius:8px;padding:9px;background:#081c29">
         <div id="crewImageTitle" class="small" style="margin-bottom:7px;font-weight:700;color:#c5d9e5">IMAGEM DA GUARNIÇÃO</div>
-        <img id="crewImage" alt="Imagem da guarnição do ponto selecionado" style="display:none;width:100%;max-height:220px;object-fit:contain;border-radius:6px;background:#061722">
-        <p id="crewImagePlaceholder" class="small" style="margin:0">Imagem ainda não fornecida. Ao selecionar este ponto, a imagem vinculada aparecerá aqui.</p>
+        <img id="crewImage" alt="Imagem da guarnição do ponto selecionado" style="display:none;width:100%;max-height:180px;object-fit:contain;border-radius:6px;background:#061722">
+        <p id="crewImagePlaceholder" class="small" style="margin:0">Imagem ainda não fornecida.</p>
         <label for="crewImageFile" class="file-label" style="display:block;text-align:center;margin-top:8px">Adicionar / trocar imagem deste ponto</label>
         <input id="crewImageFile" type="file" accept="image/*" hidden>
         <label for="crewImageFile2" class="file-label" style="display:block;text-align:center;margin-top:6px">Adicionar / trocar 2ª imagem</label>
@@ -320,9 +339,9 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
       <div class="actions" style="margin-top:10px"><button id="editBtn">Editar ponto</button><button id="deleteBtn" class="danger">Excluir recurso</button></div>
     </section>
     <section class="card">
-      <h2>Recursos cadastrados</h2>
-      <div class="legend"><span><i style="background:#2478ff"></i>Traçado preliminar</span><span><i style="background:#45d4ff"></i>Recurso CBMSE</span></div>
-      <div id="pointList" class="point-list" style="margin-top:10px"></div>
+      <h2>Percurso e recursos no mapa</h2>
+      <div class="stats"><div class="stat"><strong id="pointCount">6</strong><span>Pontos do percurso</span></div><div class="stat"><strong id="teamCount">0</strong><span>Recursos cadastrados</span></div></div>
+      <div class="legend" style="margin-top:10px"><span><i style="background:#2478ff"></i>Traçado preliminar</span><span><i style="background:#45d4ff"></i>Recurso CBMSE</span></div>
     </section>
   </aside>
 
@@ -333,49 +352,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
   <div class="ops-grid">
    <div class="ops-card"><small>Efetivo extraordinário previsto</small><strong id="ovPlanned">96</strong><span>Referência inicial: 13/11</span></div>
    <div class="ops-card"><small>Recursos cadastrados</small><strong id="ovResources">0</strong><span>Registros existentes no mapa</span></div>
-   <div class="ops-card"><small>Pontos do percurso</small><strong id="ovRoute">0</strong><span>Traçado principal</span></div>
-   <div class="ops-card"><small>Saídas de ambulância</small><strong id="ovExits">0</strong><span>Rotas com pelo menos dois pontos</span></div>
-  </div>
-  <div class="ops-panel"><h3>Efetivo extraordinário previsto no planejamento</h3><div class="ops-table-wrap"><table class="ops-table"><thead><tr><th>Data</th><th>Dia</th><th>Efetivo previsto</th></tr></thead><tbody><tr><td>13/11/2026</td><td>Sexta-feira</td><td>96</td></tr><tr><td>14/11/2026</td><td>Sábado</td><td>149</td></tr><tr><td>15/11/2026</td><td>Domingo</td><td>142</td></tr></tbody></table></div><p class="ops-muted" style="margin-top:9px">Valores de referência do Plano Estratégico. Não representam confirmação de apresentação ou efetivo em serviço.</p></div>
-  <div class="ops-panel"><h3>Situação dos módulos</h3><div class="ops-grid"><div class="ops-card"><small>Efetivo e escalas</small><strong>Planilha</strong><span>Importação pendente</span></div><div class="ops-card"><small>Operação aquática</small><strong>Planilha</strong><span>Dados específicos pendentes</span></div><div class="ops-card"><small>Prevenção e DAT</small><strong>Planilha</strong><span>Vistorias pendentes</span></div><div class="ops-card"><small>Ocorrências</small><strong>Separado</strong><span>Não integrado a esta navegação</span></div></div></div>
- </section>
- <section class="ops-module" data-module="staff">
-  <div class="ops-module-head"><div><h2>Efetivo e Escalas</h2><p>Consulta do efetivo previsto, escalado e apresentado, com filtros por data, turno e setor. A relação nominal deverá ser alimentada por planilha autorizada.</p></div><button type="button" data-goto-import>Importar planilha</button></div>
-  <div class="ops-grid"><div class="ops-card"><small>13/11 · Previsto</small><strong>96</strong><span>Militares</span></div><div class="ops-card"><small>14/11 · Previsto</small><strong>149</strong><span>Militares</span></div><div class="ops-card"><small>15/11 · Previsto</small><strong>142</strong><span>Militares</span></div><div class="ops-card"><small>Apresentados</small><strong>—</strong><span>Aguardando escala/controle de presença</span></div></div>
-  <div class="ops-panel"><h3>Distribuição e consulta</h3><p>Após a importação, esta tela deverá apresentar os quantitativos por setor, função, unidade e turno, além da relação nominal conforme permissões de acesso.</p><p class="ops-muted" style="margin-top:8px">Campos esperados: ID, data, turno, nome, unidade, função, setor, equipe e situação.</p></div>
- </section>
- <section class="ops-module" data-module="aquatic">
-  <div class="ops-module-head"><div><h2>Operação Aquática</h2><p>Controle específico de supervisão, equipes AS, UTV, BRS, pontos de prevenção e turnos.</p></div><button type="button" data-goto-import>Importar planilha</button></div>
-  <div class="ops-grid"><div class="ops-card"><small>Equipes previstas</small><strong>—</strong><span>Aguardando importação</span></div><div class="ops-card"><small>Efetivo apresentado</small><strong>—</strong><span>Controle de presença</span></div><div class="ops-card"><small>Prevenções ativas</small><strong>—</strong><span>Registro operacional futuro</span></div><div class="ops-card"><small>Intervenções reativas</small><strong>—</strong><span>Registro operacional futuro</span></div></div>
-  <div class="ops-panel"><h3>Organização prevista</h3><span class="ops-tag">Supervisão de praias</span><span class="ops-tag">AS + UTV</span><span class="ops-tag">AS + UTV + BRS</span><span class="ops-tag">Coroa do Meio</span><p style="margin-top:10px">Filtros previstos: data, turno, equipe, setor e tipo de recurso. Os registros de ocorrências permanecerão em sistema separado.</p></div>
- </section>
- <section class="ops-module" data-module="prevention">
-  <div class="ops-module-head"><div><h2>Prevenção e DAT</h2><p>Cadastro e acompanhamento de vistorias, irregularidades, riscos e providências adotadas.</p></div><button type="button" data-goto-import>Importar planilha</button></div>
-  <div class="ops-grid"><div class="ops-card"><small>Estruturas vistoriadas</small><strong>—</strong><span>Aguardando dados</span></div><div class="ops-card"><small>Pendências</small><strong>—</strong><span>Aguardando dados</span></div><div class="ops-card"><small>Riscos altos</small><strong>—</strong><span>Aguardando dados</span></div><div class="ops-card"><small>Regularizadas</small><strong>—</strong><span>Aguardando dados</span></div></div>
-  <div class="ops-panel"><h3>Campos de vistoria</h3><p>Data, local/estrutura, setor, equipe fiscalizadora, tipo de risco, classificação, providência, situação e horário. A tela permitirá filtrar pendências e localizar estruturas no mapa quando houver coordenadas válidas.</p></div>
- </section>
- <section class="ops-module" data-module="vehicles">
-  <div class="ops-module-head"><div><h2>Viaturas e Rotas</h2><p>Consulta dos recursos cadastrados e das rotas de acesso, fuga e saída de ambulâncias.</p></div><button type="button" id="openMapFromVehicles">Abrir mapa operacional</button></div>
-  <div class="ops-grid"><div class="ops-card"><small>Recursos cadastrados</small><strong id="vhResources">0</strong><span>Cadastro atual</span></div><div class="ops-card"><small>Rotas de ambulância</small><strong id="vhExits">0</strong><span>Rotas com dois ou mais pontos</span></div><div class="ops-card"><small>Pontos do percurso</small><strong id="vhRoute">0</strong><span>Traçado atual</span></div><div class="ops-card"><small>Disponibilidade</small><strong>—</strong><span>Depende de atualização operacional</span></div></div>
-  <div class="ops-panel"><h3>Observação operacional</h3><p>A animação de ambulâncias já existente será preservada como recurso demonstrativo de percurso. Ela não representa rastreamento GPS em tempo real.</p></div>
- </section>
- <section class="ops-module" data-module="reports">
-  <div class="ops-module-head"><div><h2>Relatórios</h2><p>Área destinada à consolidação dos dados importados e dos registros operacionais autorizados.</p></div></div>
-  <div class="ops-panel"><h3>Relatórios previstos</h3><div class="ops-table-wrap"><table class="ops-table"><thead><tr><th>Relatório</th><th>Fonte</th><th>Situação</th></tr></thead><tbody><tr><td>Efetivo por dia e setor</td><td>Escalas</td><td>Aguardando importação</td></tr><tr><td>Recursos por setor</td><td>Recursos</td><td>Parcial — cadastro atual</td></tr><tr><td>Operação aquática</td><td>Planilha aquática</td><td>Aguardando importação</td></tr><tr><td>Vistorias e pendências DAT</td><td>Planilha de vistorias</td><td>Aguardando importação</td></tr><tr><td>Viaturas e rotas</td><td>Mapa e recursos</td><td>Parcial — cadastro atual</td></tr></tbody></table></div></div>
- </section>
- <section class="ops-module" data-module="import">
-  <div class="ops-module-head"><div><h2>Importação de Planilhas</h2><p>Leitura e conferência inicial de arquivos Excel (.xlsx, .xls) e CSV, antes de qualquer integração com a base operacional.</p></div></div>
-  <div class="ops-alert">Esta primeira entrega faz a leitura e a prévia dos arquivos. Ela ainda não grava os dados no Supabase nem altera escalas, recursos ou registros existentes. A gravação será implementada após validação do modelo oficial e da estrutura das tabelas.</div>
-  <div class="ops-panel"><h3>Selecionar arquivo</h3><div class="ops-upload"><input id="opsSpreadsheetFile" type="file" accept=".xlsx,.xls,.csv"><button type="button" id="opsReadSpreadsheet" class="primary">Ler e validar arquivo</button></div><p id="opsImportStatus" class="ops-muted" style="margin-top:10px">Nenhum arquivo selecionado.</p><div id="opsSheetList"></div><div id="sheetPreview"></div></div>
-  <div class="ops-panel"><h3>Abas esperadas no modelo</h3><span class="ops-tag">01_ESCALAS</span><span class="ops-tag">02_RECURSOS</span><span class="ops-tag">03_AQUATICA</span><span class="ops-tag">04_SETORES</span><span class="ops-tag">05_VISTORIAS</span><span class="ops-tag">06_ROTAS</span><p class="ops-muted" style="margin-top:10px">Os registros de ocorrências serão tratados em sistema separado e não fazem parte desta importação.</p></div>
- </section>
-</section>
-</div>
-<div id="toast"></div>
-
-<div id="executiveDashboard" aria-label="Dashboard operacional Pré-Caju 2026">
- <div class="dash-wrap">
-  <header class="dash-head"><div class="dash-logo dash-logo-precaju"><img src="images/logo-precaju.png" alt="Logo Pré-Caju"></div><div class="dash-title"><div class="dash-eyebrow">CORPO DE BOMBEIROS MILITAR · SERGIPE</div><h2>OPERAÇÃO <span style="color:#ffd23f">PRÉ-CAJU 2026</span></h2><p>SEGURANÇA, VIDA E TRANQUILIDADE · ORLA DE ATALAIA — ARACAJU/SE · 06 A 08 FEVEREIRO 2026</p></div><div class="dash-right"><img class="dash-logo-cbmse" src="images/logo-cbmse.png" alt="Brasão do Corpo de Bombeiros Militar de Sergipe"><div class="dash-actions"><button id="dashRefresh">↻ Atualizar</button><button id="dashClose" class="danger">Fechar ✕</button></div></div></header>
+   <div class="ops-card"><small>Pontos do percurso</small><strong id="ovRoute">0</strong><span>Traçder>
   <nav class="dash-nav" aria-label="Áreas operacionais"><span>⌂ VISÃO GERAL</span><span>⌖ PERCURSO</span><span>🚑 SAÍDAS DE AMBULÂNCIA</span><span>▣ POSTOS DE ATENDIMENTO</span><span>♟ RECURSOS EMPREGADOS</span><span>◈ MAPA</span><span>▤ RELATÓRIOS</span></nav>
   <div class="dash-layout"><aside class="dash-categories" id="dashCategories" aria-label="Categorias de ocorrências"></aside><section class="dash-main">
    <div class="dash-upper"><div class="dash-upper-main">
@@ -1149,6 +1126,40 @@ function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.l
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();if(addMode){addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=''}if(drawRouteMode){drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawRouteBtn').textContent='✎ Desenhar percurso';toast('Desenho cancelado. O traçado anterior será mantido após recarregar.')}if(drawExitRouteMode){drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';drawnExitCoords=[];toast('Desenho da saída cancelado.');}}if(e.key==='ArrowRight'&&$('formModal').style.display!=='flex')$('nextBtn').click();if(e.key==='ArrowLeft'&&$('formModal').style.display!=='flex')$('prevBtn').click();if(e.key.toLowerCase()==='p'&&$('formModal').style.display!=='flex')$('playBtn').click()});
 const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const closeOpening=()=>{if(openingOverlay)openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();}};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
 
+
+const DAILY_PLAN={'2026-11-13':96,'2026-11-14':149,'2026-11-15':142};
+function resourceDayMatches(p,day){
+ const d=String(p.date||p.data||p.operationDate||p.day||'').trim();
+ if(!d)return true;
+ return d===day||d===day.split('-').reverse().join('/');
+}
+function resourceVehicleLabel(p){
+ return String(p.vehicle||p.prefix||p.prefixo||p.type||'Recurso').trim();
+}
+function isVehicleResource(p){
+ const s=[p.vehicle,p.prefix,p.prefixo,p.type,p.name].filter(Boolean).join(' ').toLowerCase();
+ return /viatura|ur\b|usb\b|abt\b|abs\b|utv|as\b|brs|ambul|auto|carro|moto|embarca|a[eé]reo|drone|caminh[aã]o/.test(s)||!!(p.vehicle||p.prefix||p.prefixo);
+}
+function renderDailyOperationalInfo(){
+ const day=$('opsDaySelect')?.value||'2026-11-13';
+ const dayResources=resources.filter(p=>resourceDayMatches(p,day));
+ const planned=DAILY_PLAN[day]??0;
+ const teamCount=dayResources.reduce((sum,p)=>{const n=Number(String(p.team??'').replace(',','.'));return sum+(Number.isFinite(n)&&n>0?n:0)},0);
+ const vehicles=dayResources.filter(isVehicleResource);
+ const set=(id,v)=>{const el=$(id);if(el)el.textContent=String(v)};
+ set('dailyPlanned',planned.toLocaleString('pt-BR'));
+ set('dailyRegistered',teamCount.toLocaleString('pt-BR'));
+ set('dailyResources',dayResources.length.toLocaleString('pt-BR'));
+ set('dailyVehicles',vehicles.length.toLocaleString('pt-BR'));
+ $('dailyNote').textContent='Previsto: '+planned+' militares. O total informado nos recursos é '+teamCount+'; não equivale a efetivo apresentado. Confirme a escala diária para apurar presença.';
+ const filter=String($('vehicleFilter')?.value||'').trim().toLowerCase();
+ const shown=vehicles.filter(p=>!filter||[p.name,p.type,p.vehicle,p.prefix,p.prefixo,p.zone,p.zona,p.sector,p.mission].filter(Boolean).join(' ').toLowerCase().includes(filter));
+ $('dailyVehicleList').innerHTML=shown.length?shown.map(p=>'<div class="point"><i class="pin"></i><div class="ptxt"><strong>'+safe(p.name||resourceVehicleLabel(p))+'</strong><span>'+safe(resourceVehicleLabel(p))+' · '+safe(p.zone||p.zona||p.sector||'Setor não informado')+'</span><span class="ops-vehicle-meta">'+safe(p.team?String(p.team)+' militar(es)':'Efetivo não informado')+(p.mission?' · '+safe(p.mission):'')+'</span></div><button type="button" data-daily-select="'+safe(p.id)+'">Ver</button></div>').join(''):'<div class="ops-vehicle-empty">Nenhuma viatura identificada para esta data. Verifique o cadastro dos recursos e o campo de data.</div>';
+ $('dailyVehicleList').querySelectorAll('[data-daily-select]').forEach(b=>b.onclick=()=>selectPoint(b.dataset.dailySelect,true));
+}
+$('opsDaySelect').addEventListener('change',renderDailyOperationalInfo);
+$('vehicleFilter').addEventListener('input',renderDailyOperationalInfo);
+
 function activateOpsTab(tab){
  const valid=['overview','map','staff','aquatic','prevention','vehicles','reports','import'];
  if(!valid.includes(tab))tab='overview';
@@ -1195,7 +1206,7 @@ $('opsReadSpreadsheet').addEventListener('click',async()=>{
   }
  }catch(error){status.textContent='Não foi possível ler a planilha: '+(error.message||'arquivo inválido');}
 });
-activateOpsTab('overview');
+renderDailyOperationalInfo();
 
 initializeAuthentication();
 })();
