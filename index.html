@@ -1160,52 +1160,6 @@ function renderDailyOperationalInfo(){
 $('opsDaySelect').addEventListener('change',renderDailyOperationalInfo);
 $('vehicleFilter').addEventListener('input',renderDailyOperationalInfo);
 
-function activateOpsTab(tab){
- const valid=['overview','map','staff','aquatic','prevention','vehicles','reports','import'];
- if(!valid.includes(tab))tab='overview';
- document.querySelectorAll('#opsTabs [data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
- const mapTab=tab==='map';
- $('mapWorkspace').style.display=mapTab?'grid':'none';
- $('moduleWorkspace').classList.toggle('active',!mapTab);
- document.querySelectorAll('[data-module]').forEach(el=>el.classList.toggle('active',el.dataset.module===tab));
- document.body.dataset.opsTab=tab;
- if(mapTab)requestAnimationFrame(()=>map.resize());
- if(tab==='overview'||tab==='vehicles')refreshOpsSummary();
-}
-function refreshOpsSummary(){
- const exits=exitRoutes.filter(r=>Array.isArray(r.points)&&r.points.length>=2).length;
- const set=(id,value)=>{const el=$(id);if(el)el.textContent=String(value)};
- ['ovResources','vhResources'].forEach(id=>set(id,resources.length.toLocaleString('pt-BR')));
- ['ovRoute','vhRoute'].forEach(id=>set(id,route.length.toLocaleString('pt-BR')));
- ['ovExits','vhExits'].forEach(id=>set(id,exits.toLocaleString('pt-BR')));
- const day=new Date().getDay();
- const planned=day===6?149:day===0?142:96;
- set('ovPlanned',planned.toLocaleString('pt-BR'));
-}
-$('opsTabs').querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>activateOpsTab(b.dataset.tab)));
-document.querySelectorAll('[data-goto-import]').forEach(b=>b.addEventListener('click',()=>activateOpsTab('import')));
-$('openMapFromVehicles').addEventListener('click',()=>activateOpsTab('map'));
-$('opsReadSpreadsheet').addEventListener('click',async()=>{
- const file=$('opsSpreadsheetFile').files?.[0],status=$('opsImportStatus'),list=$('opsSheetList'),preview=$('sheetPreview');
- list.innerHTML='';preview.innerHTML='';
- if(!file){status.textContent='Selecione uma planilha antes de continuar.';return;}
- if(!window.XLSX){status.textContent='Biblioteca de leitura de planilhas indisponível. Recarregue a página e tente novamente.';return;}
- try{
-  const data=await file.arrayBuffer();
-  const wb=XLSX.read(data,{type:'array',cellDates:true});
-  const expected=['01_ESCALAS','02_RECURSOS','03_AQUATICA','04_SETORES','05_VISTORIAS','06_ROTAS'];
-  const found=wb.SheetNames.map(n=>n.trim().toUpperCase());
-  const missing=expected.filter(n=>!found.includes(n));
-  status.textContent='Arquivo lido: '+file.name+' · '+wb.SheetNames.length+' aba(s). Prévia somente; nenhum dado foi gravado.';
-  list.innerHTML='<div class="ops-panel"><h3>Abas encontradas</h3>'+wb.SheetNames.map(n=>'<span class="ops-tag">'+safe(n)+'</span>').join('')+'</div>'+
-   '<div class="'+(missing.length?'ops-alert':'ops-ok')+'">'+(missing.length?'Abas esperadas não encontradas: '+missing.join(', '):'Todas as abas esperadas foram encontradas.')+'</div>';
-  const first=wb.SheetNames[0],rows=XLSX.utils.sheet_to_json(wb.Sheets[first],{header:1,defval:''}).slice(0,9);
-  if(rows.length){
-   const header=rows[0]||[];
-   preview.innerHTML='<div class="ops-panel"><h3>Prévia da primeira aba: '+safe(first)+'</h3><table><thead><tr>'+header.map(v=>'<th>'+safe(v)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(row=>'<tr>'+header.map((_,i)=>'<td>'+safe(row[i]??'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
-  }
- }catch(error){status.textContent='Não foi possível ler a planilha: '+(error.message||'arquivo inválido');}
-});
 renderDailyOperationalInfo();
 
 initializeAuthentication();
