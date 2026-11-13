@@ -593,15 +593,14 @@ async function activateAuthenticatedUser(user){
  await startCloudSync(profile);
 }
 async function initializeAuthentication(){
- await loadSaved();
- $('authGate').classList.remove('open');
- $('app').style.display='none';
  $('authLoginBtn').disabled=true;
  try{
+  await loadSaved();
   const {data:{session},error}=await supabaseClient.auth.getSession();
   if(error)throw error;
-  if(session?.user){await activateAuthenticatedUser(session.user);}
-  else{
+  if(session?.user){
+   await activateAuthenticatedUser(session.user);
+  }else{
    document.body.dataset.role='visualizador';
    authenticatedUser=null;
    authenticatedProfile={nome:'Consulta pública',papel:'visualizador',ativo:true};
@@ -612,10 +611,32 @@ async function initializeAuthentication(){
    $('loginMenuBtn').style.display='inline-flex';
    $('authSignOut').style.display='none';
    $('syncLocalBtn').style.display='none';
-   await startCloudSync(authenticatedProfile);
+   requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
+   try{
+    await startCloudSync(authenticatedProfile);
+   }catch(syncError){
+    console.warn('Sincronização pública indisponível; painel aberto com dados locais:',syncError);
+    setCloudStatus('⚠ Sem sincronização — visualização local');
+   }
    requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
   }
- }catch(error){showAuthMessage(error.message||'Não foi possível carregar a visualização pública.');}
+ }catch(error){
+  console.error('Falha na inicialização; ativando visualização pública:',error);
+  document.body.dataset.role='visualizador';
+  authenticatedUser=null;
+  authenticatedProfile={nome:'Consulta pública',papel:'visualizador',ativo:true};
+  $('authGate').classList.remove('open');
+  $('authGate').style.display='none';
+  $('authPassword').value='';
+  $('authUser').textContent='Visualização pública';
+  $('loginMenuBtn').style.display='inline-flex';
+  $('authSignOut').style.display='none';
+  $('syncLocalBtn').style.display='none';
+  $('app').style.display='grid';
+  setCloudStatus('⚠ Modo público — sincronização indisponível');
+  showAuthMessage('Painel aberto em modo público. A sincronização poderá ser retomada quando a conexão estiver disponível.');
+  requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
+ }
  $('authLoginBtn').disabled=false;
 }
 $('authCard').addEventListener('submit',async event=>{
@@ -1513,7 +1534,7 @@ $('presMapTour').onclick=()=>{closePres();if(!document.fullscreenElement)documen
 
 function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.lng,name:p.name}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();if(addMode){addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=''}if(drawRouteMode){drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawRouteBtn').textContent='✎ Desenhar percurso';toast('Desenho cancelado. O traçado anterior será mantido após recarregar.')}if(drawExitRouteMode){drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';drawnExitCoords=[];toast('Desenho da saída cancelado.');}}if(e.key==='ArrowRight'&&$('formModal').style.display!=='flex')$('nextBtn').click();if(e.key==='ArrowLeft'&&$('formModal').style.display!=='flex')$('prevBtn').click();if(e.key.toLowerCase()==='p'&&$('formModal').style.display!=='flex')$('playBtn').click()});
-const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const closeOpening=()=>{if(openingOverlay)openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();}};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
+const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const closeOpening=()=>{if(openingOverlay)openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();}if($('app').style.display==='none'){$('app').style.display='grid';requestAnimationFrame(()=>map.resize());}};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
 
 const DAILY_PLAN={'2026-11-13':96,'2026-11-14':149,'2026-11-15':142};
 function resourceDayMatches(p,day){
