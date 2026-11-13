@@ -672,6 +672,7 @@ window.addEventListener('resize',()=>map.resize());
 map.on('error',e=>{console.warn('Erro ao carregar o mapa Pré-Caju:',e.error||e);});
 function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').style.display='none',3200)}
 function allPoints(){return [...route,...resources]}
+function normalizeOperationalName(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim()}
 function selected(){return allPoints().find(p=>p.id===selectedId)}
 function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 const BACKUP_KEY=STORAGE_KEY+'-backup';
@@ -1212,7 +1213,7 @@ function startAmbulanceAnimation(activeRouteId=null){
   }
  });
 }
-function stopFlight(){playing=false;stopAmbulanceAnimation();clearInterval(playTimer);clearTimeout(playTimer);$('playBtn').textContent='▶ Sobrevoar'}
+function stopFlight(){playing=false;stopAmbulanceAnimation();clearInterval(playTimer);clearTimeout(playTimer);activeTourLabelId=null;activeTourResourceId=null;if(map.getLayer('point-labels'))map.setLayoutProperty('point-labels','visibility','visible');if(map.getLayer('sector-label-text'))map.setLayoutProperty('sector-label-text','visibility','none');updateMapData();renderImageMarkers();$('playBtn').textContent='▶ Iniciar'}
 function flyToResource(p){
  if(!p||!Number.isFinite(Number(p.lng))||!Number.isFinite(Number(p.lat)))return;
  selectedId=p.id;selectPoint(p.id,false);
@@ -1224,7 +1225,11 @@ $('prevBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)
 $('nextBtn').onclick=()=>{stopFlight();gotoRoute(Number($('flightSlider').value)+1)};
 $('playBtn').onclick=()=>{
  if(playing){stopFlight();return}
- playing=true;$('playBtn').textContent='Ⅱ Pausar';if(exitRoutes.some(r=>r.points.length>=2))ensureAmbulanceMarkers();else toast('Desenhe a rota de saída com pelo menos dois pontos para animar a ambulância.');
+ playing=true;$('playBtn').textContent='Ⅱ Pausar';
+ clearOperationalNameMarkers();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null;}
+ if(map.getLayer('point-labels'))map.setLayoutProperty('point-labels','visibility','none');
+ if(map.getLayer('sector-label-text'))map.setLayoutProperty('sector-label-text','visibility','none');
+ if(exitRoutes.some(r=>r.points.length>=2))ensureAmbulanceMarkers();else toast('Desenhe a rota de saída com pelo menos dois pontos para animar a ambulância.');
  const points=allPoints().filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
  if(points.length){
   const bounds=points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)]));
@@ -1232,7 +1237,9 @@ $('playBtn').onclick=()=>{
  }
  // Sequência institucional: início, final e, em seguida, setores 1, 2 e 3.
  // Os pontos originais da rota permanecem intactos; os setores são paradas virtuais de apresentação.
- const validResources=resources.filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
+ const camaroteSource=allPoints().find(p=>normalizeOperationalName(p.name).includes('CAMAROTE'));
+ const camaroteStop=camaroteSource&&Number.isFinite(Number(camaroteSource.lng))&&Number.isFinite(Number(camaroteSource.lat))?{...camaroteSource,name:'CAMAROTE AJU',kind:'resource',isCamaroteStop:true}:null;
+ const validResources=resources.filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat))&&(!camaroteStop||p.id!==camaroteStop.id));
  const validExitStops=exitRoutes.flatMap((r,ri)=>(r.points||[]).map((p,pi)=>({...p,kind:'exit-route-tour',exitRouteId:r.id,exitRouteName:r.name,exitPointIndex:pi,exitRouteIndex:ri,name:r.name})));
  const sectorStops=[0,1,2].map(s=>{
   const sectorNumber=s+1,manualArea=manualSectorAreas.find(a=>Number(a.sector)===sectorNumber);
@@ -1244,7 +1251,7 @@ $('playBtn').onclick=()=>{
   }
   return {id:'sector-tour-'+sectorNumber,name:'SETOR '+sectorNumber,lng:pos.lng,lat:pos.lat,kind:'sector-tour',sector:sectorNumber};
  });
- const tour=[route[0],route[route.length-1],...sectorStops,...validExitStops,...validResources];
+ const tour=[route[0],route[route.length-1],...sectorStops,...(camaroteStop?[camaroteStop]:[]),...validExitStops,...validResources];
  validExitStops.forEach(p=>{const rr=exitRoutes.find(r=>r.id===p.exitRouteId);p.exitRouteLength=rr?.points?.length||0});
  activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
  toast('Apresentação iniciada: início, final, setores, saídas de ambulâncias e recursos cadastrados, incluindo o Camarote AJU.');
@@ -1255,7 +1262,7 @@ $('playBtn').onclick=()=>{
   if(i>=tour.length){stopFlight();activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(route.length){const startPoint=route[0];selectedId=startPoint.id;$('flightSlider').value=0;$('flightLabel').textContent=startPoint.name;$('flightCount').textContent='1/'+route.length;selectPoint(startPoint.id,false);map.flyTo({center:[Number(startPoint.lng),Number(startPoint.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1800,essential:true});showTourName(startPoint,'INÍCIO DO PERCURSO');}toast('Sobrevoo concluído. Retornando ao início do percurso.');return}
   const p=tour[i++];
   if(p.kind==='exit-route-tour')startAmbulanceAnimation(p.exitRouteId);else stopAmbulanceAnimation();
-  activeTourLabelId=null;activeTourResourceId=p.kind==='route'?null:p.id;updateMapData();renderImageMarkers();
+  activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();
   if(p.kind==='route'){
    const routeIndex=route.findIndex(x=>x.id===p.id);
    if(routeIndex===0){showTourName(p,'INÍCIO DO PERCURSO')}else if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');
@@ -1315,7 +1322,7 @@ function showOperationalNames(){
   const pos=area?sectorInteriorPoint(area):null;
   if(pos)entries.push({name:'SETOR '+sector,lng:pos.lng,lat:pos.lat});
  }
- const camarote=resources.find(p=>String(p.name||'').trim().toUpperCase()==='CAMAROTE AJU');
+ const camarote=allPoints().find(p=>normalizeOperationalName(p.name).includes('CAMAROTE'));
  if(camarote)entries.push({name:'CAMAROTE AJU',lng:Number(camarote.lng),lat:Number(camarote.lat)});
  entries.forEach(item=>{
   const el=document.createElement('div');el.className='operational-name-marker';el.textContent=item.name;
