@@ -1295,6 +1295,9 @@ function clearOperationalNameMarkers(){
 let operationalNameMarkers=[];
 function showOperationalNames(){
  clearOperationalNameMarkers();
+ /* Evita duplicidade com o rótulo temporário do sobrevoo e com os rótulos GeoJSON dos setores. */
+ if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null;}
+ if(map.getLayer('sector-label-text'))map.setLayoutProperty('sector-label-text','visibility','none');
  const entries=[];
  if(route.length){
   entries.push({name:'INÍCIO DO PERCURSO',lng:Number(route[0].lng),lat:Number(route[0].lat)});
@@ -1308,7 +1311,8 @@ function showOperationalNames(){
  }
  entries.forEach(item=>{
   const el=document.createElement('div');el.className='operational-name-marker';el.textContent=item.name;
-  operationalNameMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([item.lng,item.lat]).addTo(map));
+  el.style.cssText='padding:7px 12px;border:2px solid #ffe66d;border-radius:7px;background:rgba(4,22,36,.97);color:#fff;font:800 15px/1.2 Arial,sans-serif;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none';
+  operationalNameMarkers.push(new maplibregl.Marker({element:el,anchor:'bottom',offset:[0,-22]}).setLngLat([item.lng,item.lat]).addTo(map));
  });
  if(entries.length<5)toast('Foram exibidos os pontos disponíveis. Delimite manualmente os setores que ainda não possuem área salva.');
  else toast('Identificações operacionais exibidas: início, final e setores 1, 2 e 3.');
