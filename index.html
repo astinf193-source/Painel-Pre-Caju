@@ -284,7 +284,7 @@ body[data-role="visualizador"] #sectorDrawUndo,
 body[data-role="visualizador"] #sectorDrawCancel,
 body[data-role="visualizador"] #sectorDrawClear{display:none!important}
 
-</style>
+\n.operational-name-marker{padding:7px 11px;border:2px solid #39c9ff;border-radius:7px;background:rgba(4,22,36,.96);color:#fff;font:800 12px/1.2 Arial,sans-serif;letter-spacing:.45px;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none}\n</style>
 </head>
 <body>
 
@@ -318,7 +318,7 @@ body[data-role="visualizador"] #sectorDrawClear{display:none!important}
       <div class="maptools"><button id="sectorToolsToggle" type="button">✎ Delimitar setores manualmente</button><select id="sectorDrawSelect" aria-label="Setor a delimitar"><option value="1">Setor 1</option><option value="2">Setor 2</option><option value="3">Setor 3</option></select><button id="sectorDrawStart" type="button">Iniciar desenho</button><button id="sectorFreehandBtn" type="button">〰 Traçar curva à mão</button><button id="sectorDrawFinish" type="button" disabled>Concluir setor (0 pontos)</button><button id="sectorDrawUndo" type="button" disabled>Desfazer ponto</button><button id="sectorDrawCancel" type="button" disabled>Cancelar</button><button id="sectorDrawClear" type="button" class="danger">Limpar setores manuais</button><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="clearExitRoutesBtn" class="danger">✕ Limpar saídas cadastradas</button><button id="baseMapBtn">Mapa de ruas</button></div>
     </div>
     <div id="playbar">
-      <button id="prevBtn" title="Ponto anterior">◀</button><button id="playBtn" class="primary">▶ Sobrevoar</button><button id="nextBtn" title="Próximo ponto">▶|</button>
+      <button id="prevBtn" title="Ponto anterior">◀</button><button id="playBtn" class="primary">▶ Iniciar</button><button id="nextBtn" title="Próximo ponto">▶|</button>
       <span id="flightLabel">PERCURSO / INÍCIO</span><input id="flightSlider" type="range" min="0" max="5" step="1" value="0" aria-label="Ponto do percurso"><span id="flightCount">1/6</span>
     </div>
   </div>
@@ -1289,7 +1289,34 @@ $('baseMapBtn').onclick=()=>{
  toast(streetMapVisible?'Mapa de ruas OpenStreetMap ativado.':'Imagens de satélite ativadas.');
 };
 $('routeBtn').onclick=()=>map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:90,bottom:110,left:50,right:50},duration:1200});
-$('northBtn').onclick=()=>map.easeTo({bearing:0,pitch:0,duration:800});
+function clearOperationalNameMarkers(){
+ operationalNameMarkers.forEach(m=>m.remove());operationalNameMarkers=[];
+}
+let operationalNameMarkers=[];
+function showOperationalNames(){
+ clearOperationalNameMarkers();
+ const entries=[];
+ if(route.length){
+  entries.push({name:'INÍCIO DO PERCURSO',lng:Number(route[0].lng),lat:Number(route[0].lat)});
+  const end=route[route.length-1];
+  entries.push({name:'FINAL DO PERCURSO',lng:Number(end.lng),lat:Number(end.lat)});
+ }
+ for(let sector=1;sector<=3;sector++){
+  const area=manualSectorAreas.find(a=>Number(a.sector)===sector);
+  const pos=area?sectorInteriorPoint(area):null;
+  if(pos)entries.push({name:'SETOR '+sector,lng:pos.lng,lat:pos.lat});
+ }
+ entries.forEach(item=>{
+  const el=document.createElement('div');el.className='operational-name-marker';el.textContent=item.name;
+  operationalNameMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([item.lng,item.lat]).addTo(map));
+ });
+ if(entries.length<5)toast('Foram exibidos os pontos disponíveis. Delimite manualmente os setores que ainda não possuem área salva.');
+ else toast('Identificações operacionais exibidas: início, final e setores 1, 2 e 3.');
+}
+$('northBtn').onclick=()=>{
+ map.easeTo({bearing:0,pitch:0,duration:800});
+ showOperationalNames();
+};
  
 
 const executiveDashboard=$('executiveDashboard');
