@@ -308,12 +308,6 @@ body[data-role="visualizador"] #sectorDrawClear{display:none!important}
 
 .operational-name-marker{padding:7px 11px;border:2px solid #39c9ff;border-radius:7px;background:rgba(4,22,36,.96);color:#fff;font:800 12px/1.2 Arial,sans-serif;letter-spacing:.45px;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none}
 
-
-    .daily-planned-only{border:1px solid #245a75;background:linear-gradient(145deg,#102f43,#071c2b)}
-    .daily-planned-only h2{margin-bottom:12px}
-    .daily-planned-value{min-height:132px;border:1px solid #2c789b;border-radius:12px;background:linear-gradient(145deg,#123d56,#082437);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
-    .daily-planned-value strong{font-size:64px;line-height:1;font-weight:900;color:#ffd23f;text-shadow:0 2px 12px #0008;font-variant-numeric:tabular-nums}
-    .daily-planned-value span{font-size:11px;letter-spacing:1.4px;font-weight:800;color:#d9edf7}
 </style>
 </head>
 <body>
@@ -353,9 +347,16 @@ body[data-role="visualizador"] #sectorDrawClear{display:none!important}
     </div>
   </div>
   <aside class="sidebar ops-map-sidebar">
-    <section class="card daily-planned-only">
-      <h2>Efetivo extraordinário previsto</h2>
-      <div class="daily-planned-value"><strong id="dailyPlanned">96</strong><span>MILITARES PREVISTOS</span></div>
+    <section class="card">
+      <h2>Efetivo diário · Planejamento</h2>
+      <div class="field"><label for="opsDaySelect">Data da operação</label><select id="opsDaySelect"><option value="2026-11-13">13/11 · Sexta-feira</option><option value="2026-11-14">14/11 · Sábado</option><option value="2026-11-15">15/11 · Domingo</option></select></div>
+      <div class="stats">
+        <div class="stat"><strong id="dailyPlanned">96</strong><span>Efetivo extraordinário previsto</span></div>
+        <div class="stat"><strong id="dailyRegistered">0</strong><span>Efetivo informado nos recursos</span></div>
+        <div class="stat"><strong id="dailyResources">0</strong><span>Equipes / recursos cadastrados</span></div>
+        <div class="stat"><strong id="dailyVehicles">0</strong><span>Viaturas identificadas</span></div>
+      </div>
+      <p class="small" id="dailyNote" style="margin:9px 0 0">O efetivo previsto é referência do Plano Estratégico. O efetivo apresentado depende da escala e da confirmação diária.</p>
     </section>
     <section class="card">
       <h2>Viaturas e equipes</h2>
@@ -1534,18 +1535,7 @@ $('presMapTour').onclick=()=>{closePres();if(!document.fullscreenElement)documen
 
 function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.lng,name:p.name}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();if(addMode){addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=''}if(drawRouteMode){drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawRouteBtn').textContent='✎ Desenhar percurso';toast('Desenho cancelado. O traçado anterior será mantido após recarregar.')}if(drawExitRouteMode){drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';drawnExitCoords=[];toast('Desenho da saída cancelado.');}}if(e.key==='ArrowRight'&&$('formModal').style.display!=='flex')$('nextBtn').click();if(e.key==='ArrowLeft'&&$('formModal').style.display!=='flex')$('prevBtn').click();if(e.key.toLowerCase()==='p'&&$('formModal').style.display!=='flex')$('playBtn').click()});
-const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const restoreInitialMapView=()=>{
- if(!map.isStyleLoaded()){map.once('load',restoreInitialMapView);return}
- const start=route&&route[0];if(!start||!Number.isFinite(Number(start.lng))||!Number.isFinite(Number(start.lat)))return;
- map.resize();
- map.easeTo({center:[Number(start.lng),Number(start.lat)],zoom:17.4,pitch:65,bearing:18,duration:900,essential:true});
-};
-const closeOpening=()=>{
- if(openingOverlay)openingOverlay.classList.add('hidden');
- if(openingVideo)openingVideo.pause();
- if($('app').style.display==='none')$('app').style.display='grid';
- requestAnimationFrame(restoreInitialMapView);
-};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
+const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const closeOpening=()=>{if(openingOverlay)openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();}if($('app').style.display==='none'){$('app').style.display='grid';requestAnimationFrame(()=>map.resize());}};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
 
 const DAILY_PLAN={'2026-11-13':96,'2026-11-14':149,'2026-11-15':142};
 function resourceDayMatches(p,day){
