@@ -1345,6 +1345,18 @@ $('flightSlider').oninput=e=>{
 $('prevBtn').onclick=()=>navigatePresentation(-1);
 $('nextBtn').onclick=()=>navigatePresentation(1);
 $('playBtn').onclick=()=>{
+ if(playing){stopFlight();return}
+ if(!presentationStops.length||presentationIndex>=presentationStops.length-1)presentationStops=buildPresentationStops();
+ if(!presentationStops.length){toast('Não há pontos operacionais com coordenadas para apresentar.');return}
+ playing=true;$('playBtn').textContent='Ⅱ Pausar';
+ clearOperationalNameMarkers();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
+ const points=allPoints().filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
+ if(points.length){const bounds=points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)]));map.fitBounds(bounds,{padding:{top:100,bottom:120,left:90,right:90},maxZoom:15.5,duration:1500})}
+ if(exitRoutes.some(r=>r.points.length>=2))ensureAmbulanceMarkers();
+ if(presentationIndex<0||presentationIndex>=presentationStops.length-1){presentationIndex=-1;showPresentationStop(0)}
+ else showPresentationStop(presentationIndex+1);
+ schedulePresentationNext();
+};
 let streetMapVisible=false;
 $('baseMapBtn').onclick=()=>{
  streetMapVisible=!streetMapVisible;
