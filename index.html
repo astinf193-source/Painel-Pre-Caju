@@ -67,6 +67,27 @@ footer{padding-top:2px;font-size:10px;color:#7f9aaa;line-height:1.4}
  .modal{max-height:85dvh}
 }
 body[data-role="visualizador"] #mapControls{display:none!important}
+
+/* Navegação pública: comandos de consulta disponíveis sem autenticação. */
+body[data-role="visualizador"] #mapControls{display:flex!important}
+body[data-role="visualizador"] #mapControls .maptools{display:flex!important}
+body[data-role="visualizador"] #mapControls #routeBtn,
+body[data-role="visualizador"] #mapControls #northBtn,
+body[data-role="visualizador"] #mapControls #baseMapBtn{display:inline-flex!important}
+body[data-role="visualizador"] #mapControls #sectorToolsToggle,
+body[data-role="visualizador"] #mapControls #sectorDrawSelect,
+body[data-role="visualizador"] #mapControls #sectorDrawStart,
+body[data-role="visualizador"] #mapControls #sectorFreehandBtn,
+body[data-role="visualizador"] #mapControls #sectorDrawFinish,
+body[data-role="visualizador"] #mapControls #sectorDrawUndo,
+body[data-role="visualizador"] #mapControls #sectorDrawCancel,
+body[data-role="visualizador"] #mapControls #sectorDrawClear,
+body[data-role="visualizador"] #mapControls #camarotePlaceBtn,
+body[data-role="visualizador"] #mapControls #addModeBtn,
+body[data-role="visualizador"] #mapControls #drawRouteBtn,
+body[data-role="visualizador"] #mapControls #drawExitRouteBtn,
+body[data-role="visualizador"] #mapControls #clearExitRoutesBtn{display:none!important}
+
  body[data-role="visualizador"] #editBtn,
 body[data-role="visualizador"] #deleteBtn,
 body[data-role="visualizador"] #syncLocalBtn,
