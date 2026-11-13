@@ -1041,13 +1041,20 @@ $('playBtn').onclick=()=>{
   const bounds=points.reduce((b,p)=>b.extend([Number(p.lng),Number(p.lat)]),new maplibregl.LngLatBounds([Number(points[0].lng),Number(points[0].lat)],[Number(points[0].lng),Number(points[0].lat)]));
   map.fitBounds(bounds,{padding:{top:100,bottom:120,left:90,right:90},maxZoom:15.5,duration:1500});
  }
- // Primeiro percorre o trajeto na ordem definida; depois visita cada equipe.
+ // Sequência institucional: início, final e, em seguida, setores 1, 2 e 3.
+ // Os pontos originais da rota permanecem intactos; os setores são paradas virtuais de apresentação.
  const validResources=resources.filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
  const validExitStops=exitRoutes.flatMap((r,ri)=>(r.points||[]).map((p,pi)=>({...p,kind:'exit-route-tour',exitRouteId:r.id,exitRouteName:r.name,exitPointIndex:pi,exitRouteIndex:ri,name:r.name})));
- const tour=[...route,...validExitStops,...validResources];
+ const sectorStops=[0,1,2].map(s=>{
+  const from=s/3,to=(s+1)/3,mid=sectorPointAt(route,(from+to)/2);
+  const sample=sectorSample(from,to),idx=Math.floor(sample.length/2);
+  const pos=sectorOffsetPoint(mid,sample[Math.max(0,idx-1)],sample[Math.min(sample.length-1,idx+1)],190);
+  return {id:'sector-tour-'+(s+1),name:'SETOR '+(s+1),lng:pos.lng,lat:pos.lat,kind:'sector-tour',sector:s+1};
+ });
+ const tour=[route[0],route[route.length-1],...sectorStops,...validExitStops,...validResources];
  validExitStops.forEach(p=>{const rr=exitRoutes.find(r=>r.id===p.exitRouteId);p.exitRouteLength=rr?.points?.length||0});
  activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
- toast('Sobrevoo iniciado: percurso principal, saídas das ambulâncias e equipes.');
+ toast('Apresentação iniciada: início do percurso, final do percurso, Setor 1, Setor 2 e Setor 3.');
  let i=0,previousTourPoint=null;
  const nextStop=()=>{
   if(!playing)return;
@@ -1059,15 +1066,20 @@ $('playBtn').onclick=()=>{
   if(p.kind==='route'){
    const routeIndex=route.findIndex(x=>x.id===p.id);
    if(routeIndex===0){showTourName(p,'INÍCIO DO PERCURSO')}else if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');
+  }else if(p.kind==='sector-tour'){
+   showTourName(p,p.name);
   }else if(p.kind==='exit-route-tour'){
    showTourName(p,p.exitRouteName.toUpperCase());
   }
   $('flightLabel').textContent=p.name;
   if(p.kind==='route'){
    const ri=route.findIndex(x=>x.id===p.id);
-   $('flightCount').textContent=`Percurso ${Math.max(0,ri)+1}/${route.length}`;
+   $('flightCount').textContent=ri===0?'Início do percurso': 'Final do percurso';
    $('flightSlider').value=Math.max(0,ri);selectedId=p.id;selectPoint(p.id,false);
    map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1500,essential:true});
+  }else if(p.kind==='sector-tour'){
+   $('flightCount').textContent=p.name;
+   map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.2,pitch:62,bearing:map.getBearing()+5,duration:1500,essential:true});
   }else if(p.kind==='exit-route-tour'){
    $('flightCount').textContent=p.exitRouteName;
    map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1500,essential:true});
