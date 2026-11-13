@@ -756,7 +756,7 @@ function buildSectorOverlay(){
  /* A faixa é prolongada da rota até a faixa inicial da praia, mantendo os pontos originais. */
  /* Contorno externo curvo, ajustado para acompanhar a linha costeira destacada na referência.
     Distâncias em metros a partir do eixo do percurso; interpolação suave entre os pontos de controle. */
- const beachProfile=[[0,400],[0.14,455],[0.32,535],[0.5,600],[0.64,615],[0.78,565],[0.9,465],[1,390]];
+ const beachProfile=[[0,400],[0.12,455],[0.24,590],[0.36,760],[0.48,820],[0.60,790],[0.72,680],[0.84,535],[0.94,430],[1,390]];
  const beachOffsetAt=f=>{
   let base=beachProfile[beachProfile.length-1][1];
   for(let k=1;k<beachProfile.length;k++){
@@ -769,7 +769,7 @@ function buildSectorOverlay(){
    }
   }
   /* Ondulação discreta para reproduzir o contorno costeiro sem criar zigue-zague. */
-  const wave=8*Math.sin(f*Math.PI*5)+4*Math.sin(f*Math.PI*9);
+  const wave=11*Math.sin(f*Math.PI*4)+5*Math.sin(f*Math.PI*7);
   return base+wave*Math.sin(Math.PI*f);
  };
  const beachPointAt=(p,prev,next,f)=>sectorOffsetPoint(p,prev,next,beachOffsetAt(f));
