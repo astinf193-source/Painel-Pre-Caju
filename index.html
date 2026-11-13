@@ -18,6 +18,7 @@ header{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:8p
 button,.file-label{border:1px solid #42647a;background:#1a4058;color:var(--text);border-radius:7px;padding:9px 11px;font-weight:650;cursor:pointer;font-size:12px}button:hover,.file-label:hover{background:#245b78}button.primary{background:#087eaa;border-color:#36a5cf}button.danger{background:#572d31;border-color:#8c4b50}button:disabled{opacity:.45;cursor:not-allowed}
 main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 330px;position:relative}
 #map{height:100%;width:100%;min-width:0;min-height:0;position:relative;overflow:hidden;background:#142b39}
+#map.map-loading{opacity:0;transition:opacity .22s ease}
 .sidebar{overflow:auto;background:var(--panel);border-left:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:13px}
 .card{border:1px solid var(--line);border-radius:10px;padding:12px;background:#0c2231}.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:#b8d8e8;margin:0 0 10px}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#17394d;border-radius:7px;padding:10px}.stat strong{display:block;font-size:20px;color:white}.stat span{font-size:10px;color:var(--muted)}
@@ -336,7 +337,7 @@ body[data-role="visualizador"] #sectorDrawClear{display:none!important}
 
 
 <main id="mapWorkspace">
-  <div id="map">
+  <div id="map" class="map-loading">
     <div id="mapControls">
       <button id="toolsToggleBtn" type="button" aria-expanded="false">☰ Ferramentas do mapa</button>
       <div class="maptools"><button id="sectorToolsToggle" type="button">✎ Delimitar setores manualmente</button><select id="sectorDrawSelect" aria-label="Setor a delimitar"><option value="1">Setor 1</option><option value="2">Setor 2</option><option value="3">Setor 3</option></select><button id="sectorDrawStart" type="button">Iniciar desenho</button><button id="sectorFreehandBtn" type="button">〰 Traçar curva à mão</button><button id="sectorDrawFinish" type="button" disabled>Concluir setor (0 pontos)</button><button id="sectorDrawUndo" type="button" disabled>Desfazer ponto</button><button id="sectorDrawCancel" type="button" disabled>Cancelar</button><button id="sectorDrawClear" type="button" class="danger">Limpar setores manuais</button><button id="camarotePlaceBtn" type="button" style="border-color:#ffe66d;color:#ffe66d">📍 Marcar CAMAROTE AJU</button><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="clearExitRoutesBtn" class="danger">✕ Limpar saídas cadastradas</button><button id="baseMapBtn">Mapa de ruas</button></div>
@@ -573,6 +574,7 @@ $('toolsToggleBtn').addEventListener('click',()=>{
  $('toolsToggleBtn').setAttribute('aria-expanded',String(open));
  $('toolsToggleBtn').textContent=open?'✕ Fechar ferramentas':'☰ Ferramentas do mapa';
 });
+function revealOperationalMap(){const el=$('map');if(el)el.classList.remove('map-loading');requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded())updateMapData();});}
 async function activateAuthenticatedUser(user){
  const {data:profile,error}=await supabaseClient.from('perfis').select('nome,papel,ativo').eq('id',user.id).maybeSingle();
  if(error)throw error;
@@ -591,6 +593,7 @@ async function activateAuthenticatedUser(user){
  $('syncLocalBtn').style.display='none';
  requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
  await startCloudSync(profile);
+ revealOperationalMap();
 }
 async function initializeAuthentication(){
  $('app').style.display='grid';
@@ -620,6 +623,7 @@ async function initializeAuthentication(){
     setCloudStatus('⚠ Sem sincronização — visualização local');
    }
    requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
+   revealOperationalMap();
   }
  }catch(error){
   console.error('Falha na inicialização; ativando visualização pública:',error);
@@ -637,6 +641,7 @@ async function initializeAuthentication(){
   setCloudStatus('⚠ Modo público — sincronização indisponível');
   showAuthMessage('Painel aberto em modo público. A sincronização poderá ser retomada quando a conexão estiver disponível.');
   requestAnimationFrame(()=>{map.resize();if(map.isStyleLoaded()){updateMapData();renderList();}});
+  revealOperationalMap();
  }
  $('authLoginBtn').disabled=false;
 }
