@@ -270,12 +270,15 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 /* Ferramenta de delimitação manual dos setores */
 #sectorToolsToggle{border-color:#ffcf33;color:#ffe58a}
 #sectorDrawSelect{background:#102c40;color:#fff;border:1px solid #52758b;border-radius:7px;padding:8px;font-size:11px}
+#sectorFreehandBtn{border-color:#22b8a7;color:#a8fff0}
+#sectorFreehandBtn.active{background:#087e73;color:#fff;border-color:#6fffe7}
 #sectorDrawFinish{border-color:#29b77b;color:#baf5d8}
 #sectorDrawUndo,#sectorDrawCancel{border-color:#7894a6}
 #sectorDrawClear{border-color:#bd4949;color:#ffb6b6}
 body[data-role="visualizador"] #sectorToolsToggle,
 body[data-role="visualizador"] #sectorDrawSelect,
 body[data-role="visualizador"] #sectorDrawStart,
+body[data-role="visualizador"] #sectorFreehandBtn,
 body[data-role="visualizador"] #sectorDrawFinish,
 body[data-role="visualizador"] #sectorDrawUndo,
 body[data-role="visualizador"] #sectorDrawCancel,
@@ -312,7 +315,7 @@ body[data-role="visualizador"] #sectorDrawClear{display:none!important}
   <div id="map">
     <div id="mapControls">
       <button id="toolsToggleBtn" type="button" aria-expanded="false">☰ Ferramentas do mapa</button>
-      <div class="maptools"><button id="sectorToolsToggle" type="button">✎ Delimitar setores manualmente</button><select id="sectorDrawSelect" aria-label="Setor a delimitar"><option value="1">Setor 1</option><option value="2">Setor 2</option><option value="3">Setor 3</option></select><button id="sectorDrawStart" type="button">Iniciar desenho</button><button id="sectorDrawFinish" type="button" disabled>Concluir setor (0 pontos)</button><button id="sectorDrawUndo" type="button" disabled>Desfazer ponto</button><button id="sectorDrawCancel" type="button" disabled>Cancelar</button><button id="sectorDrawClear" type="button" class="danger">Limpar setores manuais</button><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="clearExitRoutesBtn" class="danger">✕ Limpar saídas cadastradas</button><button id="baseMapBtn">Mapa de ruas</button></div>
+      <div class="maptools"><button id="sectorToolsToggle" type="button">✎ Delimitar setores manualmente</button><select id="sectorDrawSelect" aria-label="Setor a delimitar"><option value="1">Setor 1</option><option value="2">Setor 2</option><option value="3">Setor 3</option></select><button id="sectorDrawStart" type="button">Iniciar desenho</button><button id="sectorFreehandBtn" type="button">〰 Traçar curva à mão</button><button id="sectorDrawFinish" type="button" disabled>Concluir setor (0 pontos)</button><button id="sectorDrawUndo" type="button" disabled>Desfazer ponto</button><button id="sectorDrawCancel" type="button" disabled>Cancelar</button><button id="sectorDrawClear" type="button" class="danger">Limpar setores manuais</button><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="clearExitRoutesBtn" class="danger">✕ Limpar saídas cadastradas</button><button id="baseMapBtn">Mapa de ruas</button></div>
     </div>
     <div id="playbar">
       <button id="prevBtn" title="Ponto anterior">◀</button><button id="playBtn" class="primary">▶ Sobrevoar</button><button id="nextBtn" title="Próximo ponto">▶|</button>
@@ -652,7 +655,7 @@ const initialRoute=[
  {id:'r4',name:'Eixo da avenida — trecho 04 (aprox.)',lng:-37.0409,lat:-10.9763,kind:'route'},
  {id:'r5',name:'FINAL DO PERCURSO — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
 ];
-let route=structuredClone(initialRoute), exitRoute=[], exitRoutes=[], resources=[], manualSectorAreas=[], drawSectorMode=0, drawnSectorCoords=[], selectedId='r0', addMode=false, drawRouteMode=false, drawExitRouteMode=false, drawnCoords=[], drawnExitCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
+let route=structuredClone(initialRoute), exitRoute=[], exitRoutes=[], resources=[], manualSectorAreas=[], drawSectorMode=0, drawnSectorCoords=[], sectorFreehandMode=false, sectorStrokeActive=false, sectorLastPixel=null, selectedId='r0', addMode=false, drawRouteMode=false, drawExitRouteMode=false, drawnCoords=[], drawnExitCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
 let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null, ambulanceMarkers=[], ambulanceAnimationFrame=null;
 const map=new maplibregl.Map({
  container:'map',
@@ -957,8 +960,28 @@ function openForm(coords,existing=null){
 function closeForm(){$('formModal').style.display='none';editId=null;draftCoords=null}
 map.on('load',()=>{buildLayers();renderList();updateMapData();map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:100,bottom:100,left:60,right:60},duration:0});selectPoint('r0',false);map.easeTo({center:[route[0].lng,route[0].lat],zoom:17.4,pitch:65,bearing:18,duration:900});});
 map.on('idle',()=>{if(exitRoutes.some(r=>Array.isArray(r.points)&&r.points.length>=2))ensureAmbulanceMarkers()});
+map.on('mousedown',e=>{
+ if(!drawSectorMode||!sectorFreehandMode)return;
+ sectorStrokeActive=true;sectorLastPixel=e.point;
+ map.dragPan.disable();
+ drawnSectorCoords.push({lng:e.lngLat.lng,lat:e.lngLat.lat});
+ updateMapData();
+});
+map.on('mousemove',e=>{
+ if(!sectorStrokeActive||!drawSectorMode)return;
+ const dx=e.point.x-sectorLastPixel.x,dy=e.point.y-sectorLastPixel.y;
+ if(Math.hypot(dx,dy)<3)return;
+ sectorLastPixel=e.point;
+ drawnSectorCoords.push({lng:e.lngLat.lng,lat:e.lngLat.lat});
+ $('sectorDrawFinish').disabled=drawnSectorCoords.length<3;
+ $('sectorDrawUndo').disabled=drawnSectorCoords.length===0;
+ $('sectorDrawFinish').textContent='Concluir SETOR '+drawSectorMode+' ('+drawnSectorCoords.length+' pontos)';
+ updateMapData();
+});
+map.on('mouseup',()=>{if(sectorStrokeActive){sectorStrokeActive=false;sectorLastPixel=null;map.dragPan.enable();toast('Traçado curvo registrado. Continue desenhando ou conclua o setor.');}});
 map.on('click',e=>{
  if(drawSectorMode){
+  if(sectorFreehandMode)return;
   drawnSectorCoords.push({lng:e.lngLat.lng,lat:e.lngLat.lat});
   updateMapData();
   $('sectorDrawFinish').disabled=drawnSectorCoords.length<3;
@@ -988,19 +1011,27 @@ function sectorDrawPermission(){
  return authenticatedProfile&&['administrador','editor'].includes(authenticatedProfile.papel);
 }
 function stopSectorDrawing(){
- drawSectorMode=0;drawnSectorCoords=[];map.getCanvas().style.cursor='';
+ drawSectorMode=0;drawnSectorCoords=[];sectorFreehandMode=false;sectorStrokeActive=false;sectorLastPixel=null;map.dragPan.enable();$('sectorFreehandBtn').classList.remove('active');$('sectorFreehandBtn').textContent='〰 Traçar curva à mão';map.getCanvas().style.cursor='';
  map.doubleClickZoom.enable();
  $('sectorDrawFinish').disabled=true;$('sectorDrawUndo').disabled=true;$('sectorDrawCancel').disabled=true;
  $('sectorDrawFinish').textContent='Concluir setor (0 pontos)';
  updateMapData();
 }
 $('sectorToolsToggle').onclick=()=>{
- const controls=['sectorDrawSelect','sectorDrawStart','sectorDrawFinish','sectorDrawUndo','sectorDrawCancel','sectorDrawClear'];
+ const controls=['sectorDrawSelect','sectorDrawStart','sectorFreehandBtn','sectorDrawFinish','sectorDrawUndo','sectorDrawCancel','sectorDrawClear'];
  const show=$('sectorDrawSelect').style.display==='none';
  controls.forEach(id=>$(id).style.display=show?'':'none');
  $('sectorToolsToggle').textContent=show?'✎ Ocultar delimitação manual':'✎ Delimitar setores manualmente';
 };
-['sectorDrawSelect','sectorDrawStart','sectorDrawFinish','sectorDrawUndo','sectorDrawCancel','sectorDrawClear'].forEach(id=>$(id).style.display='none');
+['sectorDrawSelect','sectorDrawStart','sectorFreehandBtn','sectorDrawFinish','sectorDrawUndo','sectorDrawCancel','sectorDrawClear'].forEach(id=>$(id).style.display='none');
+$('sectorFreehandBtn').onclick=()=>{
+ if(!drawSectorMode){toast('Primeiro clique em “Iniciar desenho” e escolha o setor.');return;}
+ sectorFreehandMode=!sectorFreehandMode;
+ $('sectorFreehandBtn').classList.toggle('active',sectorFreehandMode);
+ $('sectorFreehandBtn').textContent=sectorFreehandMode?'〰 Curva à mão ativada':'〰 Traçar curva à mão';
+ map.getCanvas().style.cursor='crosshair';
+ toast(sectorFreehandMode?'Clique e segure o botão esquerdo do mouse enquanto percorre a curva desejada.':'Modo de curva livre desativado. Você pode continuar marcando vértices com cliques.');
+};
 $('sectorDrawStart').onclick=()=>{
  if(!sectorDrawPermission()){toast('Entre com perfil de administrador ou editor para delimitar os setores.');return;}
  const otherMode=drawExitRouteMode||drawRouteMode||addMode;
@@ -1010,7 +1041,7 @@ $('sectorDrawStart').onclick=()=>{
  $('sectorDrawFinish').disabled=true;$('sectorDrawUndo').disabled=true;$('sectorDrawCancel').disabled=false;
  $('sectorDrawFinish').textContent='Concluir SETOR '+drawSectorMode+' (0 pontos)';
  updateMapData();
- toast('Desenhe o contorno do SETOR '+drawSectorMode+' clicando nos vértices da área. Contorne toda a área e clique em “Concluir setor”.');
+ toast('Desenhe o contorno com cliques nos vértices ou ative “Traçar curva à mão” e clique e segure o mouse para acompanhar a curva.');
 };
 $('sectorDrawUndo').onclick=()=>{
  if(!drawSectorMode||!drawnSectorCoords.length)return;
