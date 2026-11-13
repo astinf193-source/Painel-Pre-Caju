@@ -751,9 +751,11 @@ function buildSectorOverlay(){
  if(!Array.isArray(route)||route.length<2)return {areas:empty,boundaries:empty,labels:empty};
  const limits=[0,1/3,2/3,1],areas=[],boundaries=[],labels=[],outer=[];
  const names=['SETOR 1','SETOR 2','SETOR 3'];
+ /* A faixa é prolongada da rota até a faixa inicial da praia, mantendo os pontos originais. */
+ const beachDepth=360;
  for(let s=0;s<3;s++){
   const center=sectorSample(limits[s],limits[s+1]);
-  const offset=center.map((p,i)=>sectorOffsetPoint(p,center[Math.max(0,i-1)],center[Math.min(center.length-1,i+1)],220));
+  const offset=center.map((p,i)=>sectorOffsetPoint(p,center[Math.max(0,i-1)],center[Math.min(center.length-1,i+1)],beachDepth));
   const ring=[...center.map(p=>[p.lng,p.lat]),...offset.slice().reverse().map(p=>[p.lng,p.lat])];
   ring.push(ring[0]);
   areas.push({type:'Feature',properties:{sector:s+1,name:names[s]},geometry:{type:'Polygon',coordinates:[ring]}});
@@ -761,13 +763,13 @@ function buildSectorOverlay(){
   else outer.push(...offset.slice(1));
   const mid=sectorPointAt(route,(limits[s]+limits[s+1])/2);
   const idx=Math.max(0,Math.min(center.length-1,Math.floor(center.length/2)));
-  const labelPos=sectorOffsetPoint(mid,center[Math.max(0,idx-1)],center[Math.min(center.length-1,idx+1)],145);
+  const labelPos=sectorOffsetPoint(mid,center[Math.max(0,idx-1)],center[Math.min(center.length-1,idx+1)],190);
   labels.push({type:'Feature',properties:{name:names[s]},geometry:{type:'Point',coordinates:[labelPos.lng,labelPos.lat]}});
  }
  for(const fraction of [1/3,2/3]){
   const p=sectorPointAt(route,fraction),before=sectorPointAt(route,Math.max(0,fraction-.01)),after=sectorPointAt(route,Math.min(1,fraction+.01));
-  const sea=sectorOffsetPoint(p,before,after,220);
-  boundaries.push({type:'Feature',properties:{name:fraction<.5?'ARcos da Orla':'2º SGBM'},geometry:{type:'LineString',coordinates:[[p.lng,p.lat],[sea.lng,sea.lat]]}});
+  const beachStart=sectorOffsetPoint(p,before,after,beachDepth);
+  boundaries.push({type:'Feature',properties:{name:fraction<.5?'ARcos da Orla':'2º SGBM'},geometry:{type:'LineString',coordinates:[[p.lng,p.lat],[beachStart.lng,beachStart.lat]]}});
  }
  if(outer.length)boundaries.push({type:'Feature',properties:{name:'Limite da faixa de praia'},geometry:{type:'LineString',coordinates:outer.map(p=>[p.lng,p.lat])}});
  return {
@@ -795,11 +797,11 @@ function buildLayers(){
  map.addLayer({id:'route-glow',type:'line',source:'route-line',paint:{'line-color':'#2478ff','line-width':12,'line-opacity':.30,'line-blur':2}});
  map.addLayer({id:'route-main',type:'line',source:'route-line',paint:{'line-color':'#2478ff','line-width':5,'line-dasharray':[2,1.3]}});
  map.addSource('sector-areas',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
- map.addLayer({id:'sector-areas-fill',type:'fill',source:'sector-areas',paint:{'fill-color':'#f04438','fill-opacity':0.075}});
+ map.addLayer({id:'sector-areas-fill',type:'fill',source:'sector-areas',paint:{'fill-color':'#ff2418','fill-opacity':0.16}});
  map.addSource('sector-boundaries',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
- map.addLayer({id:'sector-boundary-lines',type:'line',source:'sector-boundaries',paint:{'line-color':'#f04438','line-width':2.8,'line-opacity':0.92,'line-dasharray':[1.2,0.7]}});
+ map.addLayer({id:'sector-boundary-lines',type:'line',source:'sector-boundaries',paint:{'line-color':'#ff1f12','line-width':6,'line-opacity':1}});
  map.addSource('sector-labels',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
- map.addLayer({id:'sector-label-text',type:'symbol',source:'sector-labels',layout:{'text-field':['get','name'],'text-font':['Open Sans Bold','Arial Unicode MS Bold'],'text-size':13,'text-letter-spacing':0.04,'text-allow-overlap':true},paint:{'text-color':'#ffffff','text-halo-color':'#a51f1f','text-halo-width':7,'text-halo-blur':0.4}});
+ map.addLayer({id:'sector-label-text',type:'symbol',source:'sector-labels',layout:{'text-field':['get','name'],'text-font':['Open Sans Bold','Arial Unicode MS Bold'],'text-size':18,'text-letter-spacing':0.08,'text-allow-overlap':true},paint:{'text-color':'#ffffff','text-halo-color':'#b00000','text-halo-width':9,'text-halo-blur':0.2}});
   map.addSource('ambulance-exit-line',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:[]}}});
   map.addLayer({id:'ambulance-exit-glow',type:'line',source:'ambulance-exit-line',paint:{'line-color':'#ff9f1c','line-width':11,'line-opacity':.3,'line-blur':2}});
   map.addLayer({id:'ambulance-exit-main',type:'line',source:'ambulance-exit-line',paint:{'line-color':'#ff9f1c','line-width':5,'line-dasharray':[1.5,1]}});
