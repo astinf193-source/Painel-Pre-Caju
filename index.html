@@ -443,6 +443,7 @@ body[data-role="visualizador"] #sectorDrawClear{display:none!important}
   <h2 id="modalTitle">Cadastrar recurso</h2><p id="modalSubtitle">Clique no mapa para definir a localização aproximada.</p>
   <div class="field"><label for="fName">Nome do ponto / equipe *</label><input id="fName" placeholder="Ex.: Posto APH 01"></div>
   <div class="row"><div class="field"><label for="fType">Tipo de recurso</label><select id="fType"><option>Posto de atendimento</option><option>Guarnição APH</option><option>Viatura de combate a incêndio</option><option>Salvamento</option><option>Guarda-vidas</option><option>Comando / coordenação</option><option>Outro</option></select></div><div class="field"><label for="fTeam">Efetivo</label><input id="fTeam" type="number" min="0" placeholder="A definir"></div></div>
+  <div class="field"><label for="fDate">Data da operação *</label><input id="fDate" type="date" required></div>
   <div class="field"><label for="fVehicle">Viatura / identificação</label><input id="fVehicle" placeholder="Ex.: ABT / prefixo a definir"></div>
   <div class="field"><label for="fMission">Missão / observações</label><textarea id="fMission" placeholder="Descrever missão, referência local e observações"></textarea></div>
   <div class="row"><div class="field"><label for="fLat">Latitude</label><input id="fLat" type="number" step="any"></div><div class="field"><label for="fLng">Longitude</label><input id="fLng" type="number" step="any"></div></div>
@@ -1020,7 +1021,7 @@ function openForm(coords,existing=null){
  editId=existing?.id||null;draftCoords=coords||{lng:existing.lng,lat:existing.lat};
  $('modalTitle').textContent=existing?'Editar recurso':'Cadastrar recurso no mapa';
  $('modalSubtitle').textContent=existing?'Atualize os dados do recurso.':'A posição selecionada será salva como localização aproximada.';
- $('fName').value=existing?.name||'';$('fType').value=existing?.type||'Posto de atendimento';$('fTeam').value=existing?.team||'';$('fVehicle').value=existing?.vehicle||'';$('fMission').value=existing?.mission||'';
+ $('fName').value=existing?.name||'';$('fType').value=existing?.type||'Posto de atendimento';$('fTeam').value=existing?.team||'';$('fDate').value=existing?.date||$('opsDaySelect')?.value||'2026-11-13';$('fVehicle').value=existing?.vehicle||'';$('fMission').value=existing?.mission||'';
  $('fLat').value=Number(draftCoords.lat).toFixed(6);$('fLng').value=Number(draftCoords.lng).toFixed(6);
  $('formModal').style.display='flex';$('fName').focus();
 }
@@ -1186,9 +1187,10 @@ $('drawExitRouteBtn').onclick=()=>{
 $('addModeBtn').onclick=()=>{addMode=!addMode;$('addModeBtn').textContent=addMode?'Clique no mapa…':'＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=addMode?'crosshair':'';toast(addMode?'Clique no local aproximado para cadastrar o recurso.':'Modo de cadastro cancelado.')};
 $('saveBtn').onclick=()=>{
  const name=$('fName').value.trim();if(!name){toast('Informe o nome do ponto ou equipe.');$('fName').focus();return}
+ const operationDate=$('fDate').value;if(!operationDate){toast('Selecione a data da operação para esta equipe.');$('fDate').focus();return}
  const lat=Number($('fLat').value),lng=Number($('fLng').value);if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180){toast('Latitude ou longitude inválida.');return}
  const old=editId?resources.find(x=>x.id===editId):null;
-  const p={...(old||{}),id:editId||'u'+Date.now(),name,type:$('fType').value,team:$('fTeam').value.trim(),vehicle:$('fVehicle').value.trim(),mission:$('fMission').value.trim(),lat,lng,kind:'resource'};
+  const p={...(old||{}),id:editId||'u'+Date.now(),name,type:$('fType').value,team:$('fTeam').value.trim(),date:operationDate,vehicle:$('fVehicle').value.trim(),mission:$('fMission').value.trim(),lat,lng,kind:'resource'};
  if(editId)resources=resources.map(x=>x.id===editId?p:x);else resources.push(p);
  selectedId=p.id;persist();closeForm();updateMapData();renderList();selectPoint(p.id);toast(editId?'Recurso atualizado.':'Recurso cadastrado localmente.');
 };
@@ -1515,7 +1517,7 @@ const openingOverlay=document.getElementById('openingOverlay');const openingVide
 const DAILY_PLAN={'2026-11-13':96,'2026-11-14':149,'2026-11-15':142};
 function resourceDayMatches(p,day){
  const d=String(p.date||p.data||p.operationDate||p.day||'').trim();
- if(!d)return true;
+ if(!d)return false;
  return d===day||d===day.split('-').reverse().join('/');
 }
 function resourceVehicleLabel(p){return String(p.vehicle||p.prefix||p.prefixo||p.type||'Recurso').trim()}
@@ -1528,19 +1530,17 @@ function renderDailyOperationalInfo(){
  const dayResources=resources.filter(p=>resourceDayMatches(p,day));
  const planned=DAILY_PLAN[day]??0;
  const resourceTeamCount=dayResources.reduce((sum,p)=>{const n=Number(String(p.team??'').replace(',','.'));return sum+(Number.isFinite(n)&&n>0?n:0)},0);
- const ambulanceTeamCount=exitRoutes.reduce((sum,r)=>sum+(Number(r.militaryCount)||0),0);
- const teamCount=resourceTeamCount+ambulanceTeamCount;
+ const teamCount=resourceTeamCount;
  const vehicles=dayResources.filter(isVehicleResource);
  const set=(id,v)=>{const el=$(id);if(el)el.textContent=String(v)};
  set('dailyPlanned',planned.toLocaleString('pt-BR'));
  set('dailyRegistered',teamCount.toLocaleString('pt-BR'));
  set('dailyResources',dayResources.length.toLocaleString('pt-BR'));
  set('dailyVehicles',vehicles.length.toLocaleString('pt-BR'));
- const undated=dayResources.filter(p=>!(p.date||p.data||p.operationDate||p.day)).length;
- $('dailyNote').textContent='Previsto no plano: '+planned+' militares. Efetivo informado nos recursos: '+teamCount+'. '+(undated?'Há '+undated+' recurso(s) sem data vinculada; eles aparecem em todos os dias até a escala ser identificada.':'O total informado não substitui a confirmação de apresentação.');
+ $('dailyNote').textContent=dayResources.length?'Exibindo somente as equipes e viaturas planejadas para '+day.split('-').reverse().join('/')+'.':'Nenhuma equipe cadastrada para esta data. Cadastre ou edite o recurso e informe o dia da operação.';
  const filter=String($('vehicleFilter')?.value||'').trim().toLowerCase();
- const shown=vehicles.filter(p=>!filter||[p.name,p.type,p.vehicle,p.prefix,p.prefixo,p.zone,p.zona,p.sector,p.mission].filter(Boolean).join(' ').toLowerCase().includes(filter));
- $('dailyVehicleList').innerHTML=shown.length?shown.map(p=>'<div class="point"><i class="pin"></i><div class="ptxt"><strong>'+safe(p.name||resourceVehicleLabel(p))+'</strong><span>'+safe(resourceVehicleLabel(p))+' · '+safe(p.zone||p.zona||p.sector||'Setor não informado')+'</span><span class="ops-vehicle-meta">'+safe(p.team?String(p.team)+' militar(es)':'Efetivo não informado')+(p.mission?' · '+safe(p.mission):'')+'</span></div><button type="button" data-daily-select="'+safe(p.id)+'">Ver</button></div>').join(''):'<div class="ops-vehicle-empty">Nenhuma viatura identificada para esta data. Confira o cadastro e a identificação do veículo.</div>';
+ const shown=dayResources.filter(p=>!filter||[p.name,p.type,p.vehicle,p.prefix,p.prefixo,p.zone,p.zona,p.sector,p.mission].filter(Boolean).join(' ').toLowerCase().includes(filter));
+ $('dailyVehicleList').innerHTML=shown.length?shown.map(p=>'<div class="point"><i class="pin"></i><div class="ptxt"><strong>'+safe(p.name||resourceVehicleLabel(p))+'</strong><span>'+safe(p.type||resourceVehicleLabel(p))+' · '+safe(p.zone||p.zona||p.sector||'Setor não informado')+'</span><span class="ops-vehicle-meta">'+safe(p.team?String(p.team)+' militar(es)':'Efetivo não informado')+(p.vehicle?' · '+safe(p.vehicle):'')+(p.mission?' · '+safe(p.mission):'')+'</span></div><button type="button" data-daily-select="'+safe(p.id)+'">Ver</button></div>').join(''):'<div class="ops-vehicle-empty">Nenhuma equipe planejada para esta data.</div>';
  $('dailyVehicleList').querySelectorAll('[data-daily-select]').forEach(b=>b.onclick=()=>selectPoint(b.dataset.dailySelect,true));
  const routeList=$('ambulanceRouteList');
  if(routeList){
