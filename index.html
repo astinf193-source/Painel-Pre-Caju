@@ -758,15 +758,19 @@ function buildSectorOverlay(){
     Distâncias em metros a partir do eixo do percurso; interpolação suave entre os pontos de controle. */
  const beachProfile=[[0,430],[0.18,470],[0.38,520],[0.58,555],[0.76,535],[0.9,485],[1,440]];
  const beachOffsetAt=f=>{
+  let base=beachProfile[beachProfile.length-1][1];
   for(let k=1;k<beachProfile.length;k++){
    if(f<=beachProfile[k][0]){
     const [fa,da]=beachProfile[k-1],[fb,db]=beachProfile[k];
     const t=Math.max(0,Math.min(1,(f-fa)/(fb-fa)));
     const smooth=t*t*(3-2*t);
-    return da+(db-da)*smooth;
+    base=da+(db-da)*smooth;
+    break;
    }
   }
-  return beachProfile[beachProfile.length-1][1];
+  /* Ondulação discreta para reproduzir o contorno costeiro sem criar zigue-zague. */
+  const wave=14*Math.sin(f*Math.PI*5)+6*Math.sin(f*Math.PI*11);
+  return base+wave*Math.sin(Math.PI*f);
  };
  const beachPointAt=(p,prev,next,f)=>sectorOffsetPoint(p,prev,next,beachOffsetAt(f));
  for(let s=0;s<3;s++){
