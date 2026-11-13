@@ -767,6 +767,38 @@ function sectorSample(from,to,count=18){
  for(let i=0;i<=count;i++)out.push(sectorPointAt(route,from+(to-from)*i/count));
  return out;
 }
+function sectorPointInsidePolygon(point,ring){
+ let inside=false;
+ for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+  const xi=Number(ring[i].lng),yi=Number(ring[i].lat),xj=Number(ring[j].lng),yj=Number(ring[j].lat);
+  const crosses=((yi>point.lat)!==(yj>point.lat))&&(point.lng<(xj-xi)*(point.lat-yi)/(yj-yi)+xi);
+  if(crosses)inside=!inside;
+ }
+ return inside;
+}
+function sectorInteriorPoint(area){
+ const ring=Array.isArray(area?.coordinates)?area.coordinates:[];
+ if(ring.length<3)return null;
+ const pts=ring.map(p=>({lng:Number(p.lng),lat:Number(p.lat)})).filter(p=>Number.isFinite(p.lng)&&Number.isFinite(p.lat));
+ if(pts.length<3)return null;
+ const avg=pts.reduce((a,p)=>({lng:a.lng+p.lng/pts.length,lat:a.lat+p.lat/pts.length}),{lng:0,lat:0});
+ if(sectorPointInsidePolygon(avg,pts))return avg;
+ const minLat=Math.min(...pts.map(p=>p.lat)),maxLat=Math.max(...pts.map(p=>p.lat));
+ let best=null;
+ for(let k=1;k<100;k++){
+  const lat=minLat+(maxLat-minLat)*k/100, xs=[];
+  for(let i=0,j=pts.length-1;i<pts.length;j=i++){
+   const a=pts[j],b=pts[i];
+   if((a.lat>lat)!==(b.lat>lat))xs.push(a.lng+(b.lng-a.lng)*(lat-a.lat)/(b.lat-a.lat));
+  }
+  xs.sort((a,b)=>a-b);
+  for(let i=0;i+1<xs.length;i+=2){
+   const candidate={lng:(xs[i]+xs[i+1])/2,lat},width=xs[i+1]-xs[i];
+   if(!best||width>best.width)best={...candidate,width};
+  }
+ }
+ return best?{lng:best.lng,lat:best.lat}:pts[0];
+}
 function buildSectorOverlay(){
  const empty={type:'FeatureCollection',features:[]};
  if(manualSectorAreas.length||drawSectorMode){
@@ -1199,10 +1231,14 @@ $('playBtn').onclick=()=>{
  const validResources=resources.filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat)));
  const validExitStops=exitRoutes.flatMap((r,ri)=>(r.points||[]).map((p,pi)=>({...p,kind:'exit-route-tour',exitRouteId:r.id,exitRouteName:r.name,exitPointIndex:pi,exitRouteIndex:ri,name:r.name})));
  const sectorStops=[0,1,2].map(s=>{
-  const from=SECTOR_LIMITS[s],to=SECTOR_LIMITS[s+1],mid=sectorPointAt(route,(from+to)/2);
-  const sample=sectorSample(from,to),idx=Math.floor(sample.length/2);
-  const pos=sectorOffsetPoint(mid,sample[Math.max(0,idx-1)],sample[Math.min(sample.length-1,idx+1)],190);
-  return {id:'sector-tour-'+(s+1),name:'SETOR '+(s+1),lng:pos.lng,lat:pos.lat,kind:'sector-tour',sector:s+1};
+  const sectorNumber=s+1,manualArea=manualSectorAreas.find(a=>Number(a.sector)===sectorNumber);
+  let pos=manualArea?sectorInteriorPoint(manualArea):null;
+  if(!pos){
+   const from=SECTOR_LIMITS[s],to=SECTOR_LIMITS[s+1],mid=sectorPointAt(route,(from+to)/2);
+   const sample=sectorSample(from,to),idx=Math.floor(sample.length/2);
+   pos=sectorOffsetPoint(mid,sample[Math.max(0,idx-1)],sample[Math.min(sample.length-1,idx+1)],190);
+  }
+  return {id:'sector-tour-'+sectorNumber,name:'SETOR '+sectorNumber,lng:pos.lng,lat:pos.lat,kind:'sector-tour',sector:sectorNumber};
  });
  const tour=[route[0],route[route.length-1],...sectorStops,...validExitStops,...validResources];
  validExitStops.forEach(p=>{const rr=exitRoutes.find(r=>r.id===p.exitRouteId);p.exitRouteLength=rr?.points?.length||0});
