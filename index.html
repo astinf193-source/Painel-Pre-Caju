@@ -1534,7 +1534,18 @@ $('presMapTour').onclick=()=>{closePres();if(!document.fullscreenElement)documen
 
 function selectedCoords(){const p=selected()||route[0];return {lat:p.lat,lng:p.lng,name:p.name}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();if(addMode){addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor=''}if(drawRouteMode){drawRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawRouteBtn').textContent='✎ Desenhar percurso';toast('Desenho cancelado. O traçado anterior será mantido após recarregar.')}if(drawExitRouteMode){drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';drawnExitCoords=[];toast('Desenho da saída cancelado.');}}if(e.key==='ArrowRight'&&$('formModal').style.display!=='flex')$('nextBtn').click();if(e.key==='ArrowLeft'&&$('formModal').style.display!=='flex')$('prevBtn').click();if(e.key.toLowerCase()==='p'&&$('formModal').style.display!=='flex')$('playBtn').click()});
-const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const closeOpening=()=>{if(openingOverlay)openingOverlay.classList.add('hidden');if(openingVideo){openingVideo.pause();}if($('app').style.display==='none'){$('app').style.display='grid';requestAnimationFrame(()=>map.resize());}};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
+const openingOverlay=document.getElementById('openingOverlay');const openingVideo=document.getElementById('openingVideo');const skipOpening=document.getElementById('skipOpening');const restoreInitialMapView=()=>{
+ if(!map.isStyleLoaded()){map.once('load',restoreInitialMapView);return}
+ const start=route&&route[0];if(!start||!Number.isFinite(Number(start.lng))||!Number.isFinite(Number(start.lat)))return;
+ map.resize();
+ map.easeTo({center:[Number(start.lng),Number(start.lat)],zoom:17.4,pitch:65,bearing:18,duration:900,essential:true});
+};
+const closeOpening=()=>{
+ if(openingOverlay)openingOverlay.classList.add('hidden');
+ if(openingVideo)openingVideo.pause();
+ if($('app').style.display==='none')$('app').style.display='grid';
+ requestAnimationFrame(restoreInitialMapView);
+};if(skipOpening)skipOpening.addEventListener('click',closeOpening);if(openingVideo){openingVideo.addEventListener('ended',closeOpening);openingVideo.addEventListener('error',()=>{if(skipOpening)skipOpening.textContent='Entrar no painel ⟶';});}
 
 const DAILY_PLAN={'2026-11-13':96,'2026-11-14':149,'2026-11-15':142};
 function resourceDayMatches(p,day){
