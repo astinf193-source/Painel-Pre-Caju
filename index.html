@@ -989,7 +989,8 @@ function renderImageMarkers(){
    el.appendChild(label);
    el.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();selectPoint(p.id,true)});
    // Mantém as imagens e o nome acima da coordenada, deixando o círculo do ponto visível logo abaixo.
-   const markerOffset=specialImagePoint?[0,-64]:[0,0];\n   const marker=new maplibregl.Marker({element:el,anchor:'bottom',offset:markerOffset}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
+   const markerOffset=specialImagePoint?[0,-64]:[0,0];
+   const marker=new maplibregl.Marker({element:el,anchor:'bottom',offset:markerOffset}).setLngLat([Number(p.lng),Number(p.lat)]).addTo(map);
    imageMarkers.push(marker);
  });
 }
