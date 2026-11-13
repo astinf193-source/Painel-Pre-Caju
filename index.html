@@ -1247,7 +1247,7 @@ $('playBtn').onclick=()=>{
  const tour=[route[0],route[route.length-1],...sectorStops,...validExitStops,...validResources];
  validExitStops.forEach(p=>{const rr=exitRoutes.find(r=>r.id===p.exitRouteId);p.exitRouteLength=rr?.points?.length||0});
  activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
- toast('Apresentação iniciada: início do percurso, final do percurso, Setor 1, Setor 2 e Setor 3.');
+ toast('Apresentação iniciada: início, final, setores, saídas de ambulâncias e recursos cadastrados, incluindo o Camarote AJU.');
  let i=0,previousTourPoint=null;
  const nextStop=()=>{
   if(!playing)return;
@@ -1263,6 +1263,8 @@ $('playBtn').onclick=()=>{
    showTourName(p,p.name);
   }else if(p.kind==='exit-route-tour'){
    showTourName(p,p.exitRouteName.toUpperCase());
+  }else if(p.kind==='resource'){
+   showTourName(p,String(p.name||'').trim().toUpperCase());
   }
   $('flightLabel').textContent=p.name;
   if(p.kind==='route'){
@@ -1313,6 +1315,8 @@ function showOperationalNames(){
   const pos=area?sectorInteriorPoint(area):null;
   if(pos)entries.push({name:'SETOR '+sector,lng:pos.lng,lat:pos.lat});
  }
+ const camarote=resources.find(p=>String(p.name||'').trim().toUpperCase()==='CAMAROTE AJU');
+ if(camarote)entries.push({name:'CAMAROTE AJU',lng:Number(camarote.lng),lat:Number(camarote.lat)});
  entries.forEach(item=>{
   const el=document.createElement('div');el.className='operational-name-marker';el.textContent=item.name;
   el.style.cssText='padding:7px 12px;border:2px solid #ffe66d;border-radius:7px;background:rgba(4,22,36,.97);color:#fff;font:800 15px/1.2 Arial,sans-serif;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none';
