@@ -309,6 +309,66 @@ body[data-role="visualizador"] #sectorDrawClear{display:none!important}
 
 .operational-name-marker{padding:7px 11px;border:2px solid #39c9ff;border-radius:7px;background:rgba(4,22,36,.96);color:#fff;font:800 12px/1.2 Arial,sans-serif;letter-spacing:.45px;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none}
 
+
+/* Interface mobile independente — não altera o layout desktop nem os dados do mapa. */
+#mobileInfoToggleBtn{display:none}
+@media(max-width:800px){
+ html,body{width:100%;height:100%;min-height:0;overflow:hidden;overscroll-behavior:none}
+ #app{width:100%;height:100dvh;min-height:0;grid-template-rows:auto minmax(0,1fr);overflow:hidden}
+ header{height:auto;min-height:0;padding:5px 8px;gap:4px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+ .panel-title-banner{width:100%;height:clamp(38px,10vw,54px);max-height:54px;object-fit:contain;object-position:left center}
+ .header-right{margin:0;min-width:0;gap:4px;justify-content:flex-end;flex-wrap:nowrap}
+ #authUser,#cloudStatus,.header-right .tag,#syncLocalBtn,#authSignOut{display:none!important}
+ #loginMenuBtn{font-size:10px!important;padding:7px 8px!important;white-space:nowrap}
+ #mapWorkspace{position:relative;display:block;min-height:0;height:100%;overflow:hidden}
+ #map{position:absolute;inset:0;width:100%;height:100%;min-height:0}
+ #mapControls{position:absolute;top:7px;left:7px;right:7px;max-width:none;display:flex;flex-direction:row;align-items:center;gap:6px;z-index:5}
+ #toolsToggleBtn{display:none!important}
+ #mobileInfoToggleBtn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:34px;padding:7px 9px;font-size:10px;white-space:nowrap;background:#0b2434ed;border-color:#42647a}
+ #mapControls .maptools{display:flex!important;flex:1 1 auto;min-width:0;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:5px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ #mapControls .maptools::-webkit-scrollbar{display:none}
+ #mapControls .maptools button,#mapControls .maptools select{display:none!important}
+ body[data-role="visualizador"] #mapControls #routeBtn,
+ body[data-role="visualizador"] #mapControls #northBtn,
+ body[data-role="visualizador"] #mapControls #baseMapBtn{display:inline-flex!important}
+ #mapControls .maptools button{flex:0 0 auto;min-height:34px;padding:7px 9px;font-size:10px;white-space:nowrap}
+ #playbar{left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));max-width:none;width:auto;display:flex;flex-wrap:nowrap;align-items:center;gap:5px;padding:7px;background:rgba(5,20,31,.94);backdrop-filter:blur(8px)}
+ #playbar button{flex:0 0 auto;min-width:37px;min-height:38px;padding:7px 9px;font-size:11px}
+ #playbar #flightLabel{display:none}
+ #playbar #flightCount{font-size:10px;min-width:48px;text-align:center}
+ #playbar input{display:block;flex:1 1 auto;min-width:30px;width:100%;order:0}
+ #mapWorkspace .sidebar{display:none}
+ #mapWorkspace.mobile-info-open .sidebar{display:flex;position:absolute;z-index:7;right:8px;left:8px;bottom:calc(66px + env(safe-area-inset-bottom));width:auto;max-height:min(56dvh,460px);min-height:0;overflow:auto;border:1px solid #3b718e;border-radius:13px;padding:10px;background:rgba(8,29,43,.97);box-shadow:0 12px 34px #0009;gap:9px}
+ #mapWorkspace.mobile-info-open .sidebar .card{padding:10px}
+ #mapWorkspace.mobile-info-open .sidebar .card h2{font-size:11px}
+ #mapWorkspace.mobile-info-open .sidebar .field{margin:5px 0}
+ #mapWorkspace.mobile-info-open .sidebar .stats{gap:6px}
+ #mapWorkspace.mobile-info-open .sidebar .stat{padding:8px}
+ #mapWorkspace.mobile-info-open .sidebar .stat strong{font-size:17px}
+ .maplibregl-ctrl-bottom-right{bottom:76px!important;right:5px!important}
+ .maplibregl-ctrl-bottom-left{bottom:70px!important;left:5px!important}
+ #toast{bottom:calc(70px + env(safe-area-inset-bottom));max-width:calc(100% - 24px)}
+ #formModal{position:fixed;z-index:30}
+ .modal{max-height:80dvh}
+ .operational-name-marker{font-size:clamp(9px,2.8vw,12px);padding:5px 8px;max-width:65vw;white-space:normal}
+}
+@media(max-width:420px){
+ header{grid-template-columns:minmax(0,1fr) auto;padding:4px 6px}
+ .panel-title-banner{height:42px}
+ #mobileInfoToggleBtn{font-size:9px;padding:6px 7px}
+ #mapControls{left:5px;right:5px;top:5px;gap:4px}
+ #mapControls .maptools{gap:4px}
+ #mapControls .maptools button{font-size:9px;padding:6px 7px}
+ #playbar{left:5px;right:5px;padding:6px;gap:4px}
+ #playbar button{min-width:34px;min-height:36px;padding:6px 7px}
+}
+@media(max-width:800px) and (orientation:landscape){
+ header{grid-template-columns:minmax(0,1fr) auto}
+ .panel-title-banner{height:36px}
+ #mapWorkspace.mobile-info-open .sidebar{max-height:65dvh;bottom:58px}
+ #playbar{max-width:520px}
+}
+
 </style>
 </head>
 <body>
@@ -340,6 +400,7 @@ body[data-role="visualizador"] #sectorDrawClear{display:none!important}
   <div id="map" class="map-loading">
     <div id="mapControls">
       <button id="toolsToggleBtn" type="button" aria-expanded="false">☰ Ferramentas do mapa</button>
+      <button id="mobileInfoToggleBtn" type="button" aria-expanded="false" aria-controls="mobileSidebar">ⓘ Informações</button>
       <div class="maptools"><button id="sectorToolsToggle" type="button">✎ Delimitar setores manualmente</button><select id="sectorDrawSelect" aria-label="Setor a delimitar"><option value="1">Setor 1</option><option value="2">Setor 2</option><option value="3">Setor 3</option></select><button id="sectorDrawStart" type="button">Iniciar desenho</button><button id="sectorFreehandBtn" type="button">〰 Traçar curva à mão</button><button id="sectorDrawFinish" type="button" disabled>Concluir setor (0 pontos)</button><button id="sectorDrawUndo" type="button" disabled>Desfazer ponto</button><button id="sectorDrawCancel" type="button" disabled>Cancelar</button><button id="sectorDrawClear" type="button" class="danger">Limpar setores manuais</button><button id="camarotePlaceBtn" type="button" style="border-color:#ffe66d;color:#ffe66d">📍 Marcar CAMAROTE AJU</button><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="clearExitRoutesBtn" class="danger">✕ Limpar saídas cadastradas</button><button id="baseMapBtn">Mapa de ruas</button></div>
     </div>
     <div id="playbar">
@@ -347,7 +408,7 @@ body[data-role="visualizador"] #sectorDrawClear{display:none!important}
       <span id="flightLabel">PERCURSO / INÍCIO</span><input id="flightSlider" type="range" min="0" max="5" step="1" value="0" aria-label="Ponto do percurso"><span id="flightCount">1/6</span>
     </div>
   </div>
-  <aside class="sidebar ops-map-sidebar">
+  <aside id="mobileSidebar" class="sidebar ops-map-sidebar">
     <section class="card">
       <h2>Efetivo diário · Planejamento</h2>
       <div class="field"><label for="opsDaySelect">Data da operação</label><select id="opsDaySelect"><option value="2026-11-13">13/11 · Sexta-feira</option><option value="2026-11-14">14/11 · Sábado</option><option value="2026-11-15">15/11 · Domingo</option></select></div>
@@ -569,6 +630,13 @@ async function migrateLocalToCloud(){
  }
 }
 $('syncLocalBtn').addEventListener('click',migrateLocalToCloud);
+$('mobileInfoToggleBtn').addEventListener('click',()=>{
+ const workspace=$('mapWorkspace');
+ const open=workspace.classList.toggle('mobile-info-open');
+ $('mobileInfoToggleBtn').setAttribute('aria-expanded',String(open));
+ $('mobileInfoToggleBtn').textContent=open?'✕ Fechar':'ⓘ Informações';
+ requestAnimationFrame(()=>map.resize());
+});
 $('toolsToggleBtn').addEventListener('click',()=>{
  const box=$('mapControls'),open=box.classList.toggle('tools-open');
  $('toolsToggleBtn').setAttribute('aria-expanded',String(open));
