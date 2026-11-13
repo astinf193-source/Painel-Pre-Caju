@@ -284,7 +284,9 @@ body[data-role="visualizador"] #sectorDrawUndo,
 body[data-role="visualizador"] #sectorDrawCancel,
 body[data-role="visualizador"] #sectorDrawClear{display:none!important}
 
-\n.operational-name-marker{padding:7px 11px;border:2px solid #39c9ff;border-radius:7px;background:rgba(4,22,36,.96);color:#fff;font:800 12px/1.2 Arial,sans-serif;letter-spacing:.45px;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none}\n</style>
+
+.operational-name-marker{padding:7px 11px;border:2px solid #39c9ff;border-radius:7px;background:rgba(4,22,36,.96);color:#fff;font:800 12px/1.2 Arial,sans-serif;letter-spacing:.45px;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none}
+</style>
 </head>
 <body>
 
@@ -1129,7 +1131,9 @@ $('drawExitRouteBtn').onclick=()=>{
   if(drawnExitCoords.length<2){toast('Marque pelo menos dois pontos para a rota de saída.');return}
   drawExitRouteMode=false;map.getCanvas().style.cursor='';map.doubleClickZoom.enable();
   exitRoute=drawnExitCoords.map((p,i)=>({...p,id:'exit'+i,name:i===0?'Saída das ambulâncias — início':(i===drawnExitCoords.length-1?'Saída das ambulâncias — destino':'Saída — ponto '+(i+1)),kind:'exit-route'}));
-  const ambulanceCrew=prompt('Informe a quantidade de militares nesta guarnição de ambulância:','0');\n  const militaryCount=Math.max(0,Math.floor(Number(ambulanceCrew)||0));\n  exitRoutes.push({id:'exit-'+Date.now(),name:'Saída '+(exitRoutes.length+1),points:structuredClone(exitRoute),militaryCount});
+  const ambulanceCrew=prompt('Informe a quantidade de militares nesta guarnição de ambulância:','0');
+  const militaryCount=Math.max(0,Math.floor(Number(ambulanceCrew)||0));
+  exitRoutes.push({id:'exit-'+Date.now(),name:'Saída '+(exitRoutes.length+1),points:structuredClone(exitRoute),militaryCount});
   persist();updateMapData();$('drawExitRouteBtn').textContent='🚑 Desenhar saída das ambulâncias';
   renderList();toast('Saída '+exitRoutes.length+' salva com '+militaryCount+' militar(es). Você pode ajustar a quantidade no menu lateral.');
  }
@@ -1448,7 +1452,9 @@ function renderDailyOperationalInfo(){
  const day=$('opsDaySelect')?.value||'2026-11-13';
  const dayResources=resources.filter(p=>resourceDayMatches(p,day));
  const planned=DAILY_PLAN[day]??0;
- const resourceTeamCount=dayResources.reduce((sum,p)=>{const n=Number(String(p.team??'').replace(',','.'));return sum+(Number.isFinite(n)&&n>0?n:0)},0);\n const ambulanceTeamCount=exitRoutes.reduce((sum,r)=>sum+(Number(r.militaryCount)||0),0);\n const teamCount=resourceTeamCount+ambulanceTeamCount;
+ const resourceTeamCount=dayResources.reduce((sum,p)=>{const n=Number(String(p.team??'').replace(',','.'));return sum+(Number.isFinite(n)&&n>0?n:0)},0);
+ const ambulanceTeamCount=exitRoutes.reduce((sum,r)=>sum+(Number(r.militaryCount)||0),0);
+ const teamCount=resourceTeamCount+ambulanceTeamCount;
  const vehicles=dayResources.filter(isVehicleResource);
  const set=(id,v)=>{const el=$(id);if(el)el.textContent=String(v)};
  set('dailyPlanned',planned.toLocaleString('pt-BR'));
@@ -1460,7 +1466,12 @@ function renderDailyOperationalInfo(){
  const filter=String($('vehicleFilter')?.value||'').trim().toLowerCase();
  const shown=vehicles.filter(p=>!filter||[p.name,p.type,p.vehicle,p.prefix,p.prefixo,p.zone,p.zona,p.sector,p.mission].filter(Boolean).join(' ').toLowerCase().includes(filter));
  $('dailyVehicleList').innerHTML=shown.length?shown.map(p=>'<div class="point"><i class="pin"></i><div class="ptxt"><strong>'+safe(p.name||resourceVehicleLabel(p))+'</strong><span>'+safe(resourceVehicleLabel(p))+' · '+safe(p.zone||p.zona||p.sector||'Setor não informado')+'</span><span class="ops-vehicle-meta">'+safe(p.team?String(p.team)+' militar(es)':'Efetivo não informado')+(p.mission?' · '+safe(p.mission):'')+'</span></div><button type="button" data-daily-select="'+safe(p.id)+'">Ver</button></div>').join(''):'<div class="ops-vehicle-empty">Nenhuma viatura identificada para esta data. Confira o cadastro e a identificação do veículo.</div>';
- $('dailyVehicleList').querySelectorAll('[data-daily-select]').forEach(b=>b.onclick=()=>selectPoint(b.dataset.dailySelect,true));\n const routeList=$('ambulanceRouteList');\n if(routeList){\n  routeList.innerHTML=exitRoutes.length?exitRoutes.map((r,i)=>'<div class="point" style="align-items:center"><i class="pin" style="background:#f59e0b"></i><div class="ptxt"><strong>'+safe(r.name||('Saída '+(i+1)))+'</strong><span>Efetivo da guarnição da ambulância</span></div><label style="display:flex;align-items:center;gap:5px;font-size:10px;white-space:nowrap">Militares <input type="number" min="0" step="1" inputmode="numeric" data-ambulance-crew="'+safe(r.id)+'" value="'+Math.max(0,Number(r.militaryCount)||0)+'" style="width:58px;padding:6px;border:1px solid #42647a;border-radius:6px;background:#071925;color:#fff"></label></div>').join(''):'<p class="small">Desenhe uma saída para informar os militares.</p>';\n  routeList.querySelectorAll('[data-ambulance-crew]').forEach(input=>input.addEventListener('change',()=>{const routeItem=exitRoutes.find(x=>x.id===input.dataset.ambulanceCrew);if(!routeItem)return;routeItem.militaryCount=Math.max(0,Math.floor(Number(input.value)||0));persist();renderDailyOperationalInfo();toast('Efetivo da '+routeItem.name+' atualizado.');}));\n }
+ $('dailyVehicleList').querySelectorAll('[data-daily-select]').forEach(b=>b.onclick=()=>selectPoint(b.dataset.dailySelect,true));
+ const routeList=$('ambulanceRouteList');
+ if(routeList){
+  routeList.innerHTML=exitRoutes.length?exitRoutes.map((r,i)=>'<div class="point" style="align-items:center"><i class="pin" style="background:#f59e0b"></i><div class="ptxt"><strong>'+safe(r.name||('Saída '+(i+1)))+'</strong><span>Efetivo da guarnição da ambulância</span></div><label style="display:flex;align-items:center;gap:5px;font-size:10px;white-space:nowrap">Militares <input type="number" min="0" step="1" inputmode="numeric" data-ambulance-crew="'+safe(r.id)+'" value="'+Math.max(0,Number(r.militaryCount)||0)+'" style="width:58px;padding:6px;border:1px solid #42647a;border-radius:6px;background:#071925;color:#fff"></label></div>').join(''):'<p class="small">Desenhe uma saída para informar os militares.</p>';
+  routeList.querySelectorAll('[data-ambulance-crew]').forEach(input=>input.addEventListener('change',()=>{const routeItem=exitRoutes.find(x=>x.id===input.dataset.ambulanceCrew);if(!routeItem)return;routeItem.militaryCount=Math.max(0,Math.floor(Number(input.value)||0));persist();renderDailyOperationalInfo();toast('Efetivo da '+routeItem.name+' atualizado.');}));
+ }
 }
 $('opsDaySelect').addEventListener('change',renderDailyOperationalInfo);
 $('vehicleFilter').addEventListener('input',renderDailyOperationalInfo);
