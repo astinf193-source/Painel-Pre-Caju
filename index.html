@@ -785,6 +785,9 @@ function buildSectorOverlay(){
   }
   return {areas:{type:'FeatureCollection',features:areas},boundaries:{type:'FeatureCollection',features:boundaries},labels:{type:'FeatureCollection',features:labels}};
  }
+ /* Não desenha limites automáticos aproximados: as áreas só aparecem após delimitação manual. */
+ return {areas:empty,boundaries:empty,labels:empty};
+ /* Geometria automática antiga mantida no código apenas como referência; não é renderizada. */
  if(!Array.isArray(route)||route.length<2)return {areas:empty,boundaries:empty,labels:empty};
  const limits=SECTOR_LIMITS,areas=[],boundaries=[],labels=[],outer=[];
  const names=['SETOR 1','SETOR 2','SETOR 3'];
@@ -1031,8 +1034,8 @@ $('sectorDrawFinish').onclick=()=>{
 $('sectorDrawClear').onclick=()=>{
  if(!sectorDrawPermission()){toast('Entre com perfil de administrador ou editor.');return;}
  if(!manualSectorAreas.length){toast('Ainda não existem delimitações manuais salvas.');return;}
- if(!confirm('Apagar todas as delimitações manuais dos setores? O contorno automático será exibido novamente.'))return;
- manualSectorAreas=[];persist();updateMapData();toast('Delimitações manuais removidas.');
+ if(!confirm('Apagar todas as delimitações manuais dos setores? As áreas ficarão sem limites até serem desenhadas novamente.'))return;
+ manualSectorAreas=[];persist();updateMapData();toast('Delimitações manuais removidas. Desenhe novamente os setores quando desejar.');
 };
 
 $('drawRouteBtn').onclick=()=>{
