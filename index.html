@@ -714,12 +714,79 @@ async function loadSaved(){
  }
 }
 function sourceData(){return {type:'FeatureCollection',features:allPoints().map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.lng,p.lat]},properties:{id:p.id,name:p.kind==='route'?((p.id==='r0'||p.id==='r5')?(activeTourLabelId===p.id?(p.id==='r0'?'INÍCIO DO PERCURSO':'FIM DO PERCURSO'):''):p.name):(activeTourResourceId===p.id?p.name:''),kind:p.kind||'resource',type:p.type||''}}))}}
+
+/* Divisão visual dos setores: calculada sobre a rota existente, sem editar seus pontos. */
+function sectorDistance(a,b){
+ const rad=Math.PI/180,dy=(Number(b.lat)-Number(a.lat))*111320,dx=(Number(b.lng)-Number(a.lng))*111320*Math.cos((Number(a.lat)+Number(b.lat))*Math.PI/360);
+ return Math.hypot(dx,dy);
+}
+function sectorPointAt(points,fraction){
+ const lengths=[];let total=0;
+ for(let i=1;i<points.length;i++){const d=sectorDistance(points[i-1],points[i]);lengths.push(d);total+=d}
+ if(!total)return points[0];
+ let target=Math.max(0,Math.min(1,fraction))*total;
+ for(let i=0;i<lengths.length;i++){
+  if(target<=lengths[i]||i===lengths.length-1){
+   const t=lengths[i]?target/lengths[i]:0,a=points[i],b=points[i+1];
+   return {lng:Number(a.lng)+(Number(b.lng)-Number(a.lng))*t,lat:Number(a.lat)+(Number(b.lat)-Number(a.lat))*t};
+  }
+  target-=lengths[i];
+ }
+ return points[points.length-1];
+}
+function sectorOffsetPoint(p,prev,next,meters=220){
+ const dx=(Number(next.lng)-Number(prev.lng))*111320*Math.cos(Number(p.lat)*Math.PI/180);
+ const dy=(Number(next.lat)-Number(prev.lat))*111320;
+ const len=Math.hypot(dx,dy)||1;
+ const nx=dy/len,ny=-dx/len;
+ return {lng:Number(p.lng)+(nx*meters)/(111320*Math.cos(Number(p.lat)*Math.PI/180)),lat:Number(p.lat)+(ny*meters)/111320};
+}
+function sectorSample(from,to,count=18){
+ const out=[];
+ for(let i=0;i<=count;i++)out.push(sectorPointAt(route,from+(to-from)*i/count));
+ return out;
+}
+function buildSectorOverlay(){
+ const empty={type:'FeatureCollection',features:[]};
+ if(!Array.isArray(route)||route.length<2)return {areas:empty,boundaries:empty,labels:empty};
+ const limits=[0,1/3,2/3,1],areas=[],boundaries=[],labels=[],outer=[];
+ const names=['SETOR 1','SETOR 2','SETOR 3'];
+ for(let s=0;s<3;s++){
+  const center=sectorSample(limits[s],limits[s+1]);
+  const offset=center.map((p,i)=>sectorOffsetPoint(p,center[Math.max(0,i-1)],center[Math.min(center.length-1,i+1)],220));
+  const ring=[...center.map(p=>[p.lng,p.lat]),...offset.slice().reverse().map(p=>[p.lng,p.lat])];
+  ring.push(ring[0]);
+  areas.push({type:'Feature',properties:{sector:s+1,name:names[s]},geometry:{type:'Polygon',coordinates:[ring]}});
+  if(s===0)outer.push(...offset);
+  else outer.push(...offset.slice(1));
+  const mid=sectorPointAt(route,(limits[s]+limits[s+1])/2);
+  const idx=Math.max(0,Math.min(center.length-1,Math.floor(center.length/2)));
+  const labelPos=sectorOffsetPoint(mid,center[Math.max(0,idx-1)],center[Math.min(center.length-1,idx+1)],145);
+  labels.push({type:'Feature',properties:{name:names[s]},geometry:{type:'Point',coordinates:[labelPos.lng,labelPos.lat]}});
+ }
+ for(const fraction of [1/3,2/3]){
+  const p=sectorPointAt(route,fraction),before=sectorPointAt(route,Math.max(0,fraction-.01)),after=sectorPointAt(route,Math.min(1,fraction+.01));
+  const sea=sectorOffsetPoint(p,before,after,220);
+  boundaries.push({type:'Feature',properties:{name:fraction<.5?'ARcos da Orla':'2º SGBM'},geometry:{type:'LineString',coordinates:[[p.lng,p.lat],[sea.lng,sea.lat]]}});
+ }
+ if(outer.length)boundaries.push({type:'Feature',properties:{name:'Limite da faixa de praia'},geometry:{type:'LineString',coordinates:outer.map(p=>[p.lng,p.lat])}});
+ return {
+  areas:{type:'FeatureCollection',features:areas},
+  boundaries:{type:'FeatureCollection',features:boundaries},
+  labels:{type:'FeatureCollection',features:labels}
+ };
+}
+
 function updateMapData(){
  if(!map.isStyleLoaded())return;
  renderImageMarkers();
  if(exitRoutes.some(r=>r.points.length>=2))ensureAmbulanceMarkers();else{ambulanceMarkers.forEach(x=>x.marker.remove());ambulanceMarkers=[];stopAmbulanceAnimation()}
  const line=map.getSource('route-line');if(line)line.setData({type:'Feature',geometry:{type:'LineString',coordinates:route.map(p=>[p.lng,p.lat])}});
  const pts=map.getSource('all-points');if(pts)pts.setData(sourceData());
+ const sectorData=buildSectorOverlay();
+ const sectorAreas=map.getSource('sector-areas');if(sectorAreas)sectorAreas.setData(sectorData.areas);
+ const sectorBoundaries=map.getSource('sector-boundaries');if(sectorBoundaries)sectorBoundaries.setData(sectorData.boundaries);
+ const sectorLabels=map.getSource('sector-labels');if(sectorLabels)sectorLabels.setData(sectorData.labels);
   const exitLine=map.getSource('ambulance-exit-line');if(exitLine)exitLine.setData({type:'Feature',geometry:{type:'MultiLineString',coordinates:exitRoutes.map(r=>r.points.map(p=>[p.lng,p.lat]))}});
 }
 function buildLayers(){
@@ -727,6 +794,12 @@ function buildLayers(){
  map.addSource('route-line',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:route.map(p=>[p.lng,p.lat])}}});
  map.addLayer({id:'route-glow',type:'line',source:'route-line',paint:{'line-color':'#2478ff','line-width':12,'line-opacity':.30,'line-blur':2}});
  map.addLayer({id:'route-main',type:'line',source:'route-line',paint:{'line-color':'#2478ff','line-width':5,'line-dasharray':[2,1.3]}});
+ map.addSource('sector-areas',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+ map.addLayer({id:'sector-areas-fill',type:'fill',source:'sector-areas',paint:{'fill-color':'#f04438','fill-opacity':0.075}});
+ map.addSource('sector-boundaries',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+ map.addLayer({id:'sector-boundary-lines',type:'line',source:'sector-boundaries',paint:{'line-color':'#f04438','line-width':2.8,'line-opacity':0.92,'line-dasharray':[1.2,0.7]}});
+ map.addSource('sector-labels',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+ map.addLayer({id:'sector-label-text',type:'symbol',source:'sector-labels',layout:{'text-field':['get','name'],'text-font':['Open Sans Bold','Arial Unicode MS Bold'],'text-size':13,'text-letter-spacing':0.04,'text-allow-overlap':true},paint:{'text-color':'#ffffff','text-halo-color':'#a51f1f','text-halo-width':7,'text-halo-blur':0.4}});
   map.addSource('ambulance-exit-line',{type:'geojson',data:{type:'Feature',geometry:{type:'LineString',coordinates:[]}}});
   map.addLayer({id:'ambulance-exit-glow',type:'line',source:'ambulance-exit-line',paint:{'line-color':'#ff9f1c','line-width':11,'line-opacity':.3,'line-blur':2}});
   map.addLayer({id:'ambulance-exit-main',type:'line',source:'ambulance-exit-line',paint:{'line-color':'#ff9f1c','line-width':5,'line-dasharray':[1.5,1]}});
