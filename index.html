@@ -1237,8 +1237,13 @@ $('playBtn').onclick=()=>{
  }
  // Sequência institucional: início, final e, em seguida, setores 1, 2 e 3.
  // Os pontos originais da rota permanecem intactos; os setores são paradas virtuais de apresentação.
- const camaroteSource=allPoints().find(p=>normalizeOperationalName(p.name).includes('CAMAROTE'));
- const camaroteStop=camaroteSource&&Number.isFinite(Number(camaroteSource.lng))&&Number.isFinite(Number(camaroteSource.lat))?{...camaroteSource,name:'CAMAROTE AJU',kind:'resource',isCamaroteStop:true}:null;
+ const camaroteSource=allPoints().find(p=>{
+  const searchable=normalizeOperationalName([p.name,p.type,p.mission,p.description,p.category].filter(Boolean).join(' '));
+  return searchable.includes('CAMAROTE')&&searchable.includes('AJU');
+ });
+ const camaroteLng=Number(camaroteSource?.lng??camaroteSource?.longitude??camaroteSource?.coordinates?.[0]);
+ const camaroteLat=Number(camaroteSource?.lat??camaroteSource?.latitude??camaroteSource?.coordinates?.[1]);
+ const camaroteStop=camaroteSource&&Number.isFinite(camaroteLng)&&Number.isFinite(camaroteLat)?{...camaroteSource,lng:camaroteLng,lat:camaroteLat,name:'CAMAROTE AJU',kind:'camarote-tour',isCamaroteStop:true}:null;
  const validResources=resources.filter(p=>Number.isFinite(Number(p.lng))&&Number.isFinite(Number(p.lat))&&(!camaroteStop||p.id!==camaroteStop.id));
  const validExitStops=exitRoutes.flatMap((r,ri)=>(r.points||[]).map((p,pi)=>({...p,kind:'exit-route-tour',exitRouteId:r.id,exitRouteName:r.name,exitPointIndex:pi,exitRouteIndex:ri,name:r.name})));
  const sectorStops=[0,1,2].map(s=>{
@@ -1252,6 +1257,7 @@ $('playBtn').onclick=()=>{
   return {id:'sector-tour-'+sectorNumber,name:'SETOR '+sectorNumber,lng:pos.lng,lat:pos.lat,kind:'sector-tour',sector:sectorNumber};
  });
  const tour=[route[0],route[route.length-1],...sectorStops,...(camaroteStop?[camaroteStop]:[]),...validExitStops,...validResources];
+ if(!camaroteStop)toast('CAMAROTE AJU não localizado entre os pontos cadastrados. Cadastre/edite o ponto com nome CAMAROTE AJU e coordenadas válidas para incluí-lo no sobrevoo.');
  validExitStops.forEach(p=>{const rr=exitRoutes.find(r=>r.id===p.exitRouteId);p.exitRouteLength=rr?.points?.length||0});
  activeTourLabelId=null;activeTourResourceId=null;updateMapData();renderImageMarkers();if(tourNameMarker){tourNameMarker.remove();tourNameMarker=null}
  toast('Apresentação iniciada: início, final, setores, saídas de ambulâncias e recursos cadastrados, incluindo o Camarote AJU.');
@@ -1268,6 +1274,8 @@ $('playBtn').onclick=()=>{
    if(routeIndex===0){showTourName(p,'INÍCIO DO PERCURSO')}else if(routeIndex===route.length-1)showTourName(p,'FIM DO PERCURSO');
   }else if(p.kind==='sector-tour'){
    showTourName(p,p.name);
+  }else if(p.kind==='camarote-tour'){
+   showTourName(p,'CAMAROTE AJU');
   }else if(p.kind==='exit-route-tour'){
    showTourName(p,p.exitRouteName.toUpperCase());
   }else if(p.kind==='resource'){
@@ -1279,6 +1287,10 @@ $('playBtn').onclick=()=>{
    $('flightCount').textContent=ri===0?'Início do percurso': 'Final do percurso';
    $('flightSlider').value=Math.max(0,ri);selectedId=p.id;selectPoint(p.id,false);
    map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.4,pitch:65,bearing:map.getBearing()+6,duration:1500,essential:true});
+  }else if(p.kind==='camarote-tour'){
+   $('flightCount').textContent='CAMAROTE AJU';
+   selectedId=p.id;
+   map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.6,pitch:64,bearing:map.getBearing()+5,duration:1700,essential:true});
   }else if(p.kind==='sector-tour'){
    $('flightCount').textContent=p.name;
    map.flyTo({center:[Number(p.lng),Number(p.lat)],zoom:17.2,pitch:62,bearing:map.getBearing()+5,duration:1500,essential:true});
@@ -1322,8 +1334,12 @@ function showOperationalNames(){
   const pos=area?sectorInteriorPoint(area):null;
   if(pos)entries.push({name:'SETOR '+sector,lng:pos.lng,lat:pos.lat});
  }
- const camarote=allPoints().find(p=>normalizeOperationalName(p.name).includes('CAMAROTE'));
- if(camarote)entries.push({name:'CAMAROTE AJU',lng:Number(camarote.lng),lat:Number(camarote.lat)});
+ const camarote=allPoints().find(p=>{
+  const searchable=normalizeOperationalName([p.name,p.type,p.mission,p.description,p.category].filter(Boolean).join(' '));
+  const lng=Number(p.lng??p.longitude??p.coordinates?.[0]),lat=Number(p.lat??p.latitude??p.coordinates?.[1]);
+  return searchable.includes('CAMAROTE')&&searchable.includes('AJU')&&Number.isFinite(lng)&&Number.isFinite(lat);
+ });
+ if(camarote)entries.push({name:'CAMAROTE AJU',lng:Number(camarote.lng??camarote.longitude??camarote.coordinates?.[0]),lat:Number(camarote.lat??camarote.latitude??camarote.coordinates?.[1])});
  entries.forEach(item=>{
   const el=document.createElement('div');el.className='operational-name-marker';el.textContent=item.name;
   el.style.cssText='padding:7px 12px;border:2px solid #ffe66d;border-radius:7px;background:rgba(4,22,36,.97);color:#fff;font:800 15px/1.2 Arial,sans-serif;white-space:nowrap;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none';
