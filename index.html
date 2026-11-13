@@ -266,6 +266,21 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
 .ops-vehicle-empty{font-size:11px;color:#a9bfce;line-height:1.5;padding:8px 2px}
 @media(max-width:800px){.ops-map-sidebar .card{padding:10px}}
 
+
+/* Ferramenta de delimitação manual dos setores */
+#sectorToolsToggle{border-color:#ffcf33;color:#ffe58a}
+#sectorDrawSelect{background:#102c40;color:#fff;border:1px solid #52758b;border-radius:7px;padding:8px;font-size:11px}
+#sectorDrawFinish{border-color:#29b77b;color:#baf5d8}
+#sectorDrawUndo,#sectorDrawCancel{border-color:#7894a6}
+#sectorDrawClear{border-color:#bd4949;color:#ffb6b6}
+body[data-role="visualizador"] #sectorToolsToggle,
+body[data-role="visualizador"] #sectorDrawSelect,
+body[data-role="visualizador"] #sectorDrawStart,
+body[data-role="visualizador"] #sectorDrawFinish,
+body[data-role="visualizador"] #sectorDrawUndo,
+body[data-role="visualizador"] #sectorDrawCancel,
+body[data-role="visualizador"] #sectorDrawClear{display:none!important}
+
 </style>
 </head>
 <body>
@@ -297,7 +312,7 @@ body[data-role="visualizador"] .dash-card-photo span{display:none!important}
   <div id="map">
     <div id="mapControls">
       <button id="toolsToggleBtn" type="button" aria-expanded="false">☰ Ferramentas do mapa</button>
-      <div class="maptools"><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="clearExitRoutesBtn" class="danger">✕ Limpar saídas cadastradas</button><button id="baseMapBtn">Mapa de ruas</button></div>
+      <div class="maptools"><button id="sectorToolsToggle" type="button">✎ Delimitar setores manualmente</button><select id="sectorDrawSelect" aria-label="Setor a delimitar"><option value="1">Setor 1</option><option value="2">Setor 2</option><option value="3">Setor 3</option></select><button id="sectorDrawStart" type="button">Iniciar desenho</button><button id="sectorDrawFinish" type="button" disabled>Concluir setor (0 pontos)</button><button id="sectorDrawUndo" type="button" disabled>Desfazer ponto</button><button id="sectorDrawCancel" type="button" disabled>Cancelar</button><button id="sectorDrawClear" type="button" class="danger">Limpar setores manuais</button><button id="addModeBtn">＋ Adicionar equipe no mapa</button><button id="routeBtn">⤢ Ver percurso</button><button id="northBtn">↑ Norte</button><button id="drawRouteBtn">✎ Desenhar percurso</button><button id="drawExitRouteBtn">🚑 Desenhar saída das ambulâncias</button><button id="clearExitRoutesBtn" class="danger">✕ Limpar saídas cadastradas</button><button id="baseMapBtn">Mapa de ruas</button></div>
     </div>
     <div id="playbar">
       <button id="prevBtn" title="Ponto anterior">◀</button><button id="playBtn" class="primary">▶ Sobrevoar</button><button id="nextBtn" title="Próximo ponto">▶|</button>
@@ -433,7 +448,7 @@ async function uploadResourceImage(dataUrl,userId){
  return path;
 }
 async function buildCloudState(){
- const snapshot={route:structuredClone(route),exitRoute:structuredClone(exitRoute),exitRoutes:structuredClone(exitRoutes),resources:structuredClone(resources),savedAt:new Date().toISOString()};
+ const snapshot={route:structuredClone(route),exitRoute:structuredClone(exitRoute),exitRoutes:structuredClone(exitRoutes),resources:structuredClone(resources),manualSectorAreas:structuredClone(manualSectorAreas),savedAt:new Date().toISOString()};
  for(const p of snapshot.resources){
   if(p.imageData&&String(p.imageData).startsWith('data:')&&!p.imageStoragePath)p.imageStoragePath=await uploadResourceImage(p.imageData,authenticatedUser.id);
   if(p.imageData2&&String(p.imageData2).startsWith('data:')&&!p.imageStoragePath2)p.imageStoragePath2=await uploadResourceImage(p.imageData2,authenticatedUser.id);
@@ -447,6 +462,7 @@ async function hydrateCloudState(state){
  snapshot.exitRoute=Array.isArray(snapshot.exitRoute)?snapshot.exitRoute:[];
  snapshot.exitRoutes=Array.isArray(snapshot.exitRoutes)?snapshot.exitRoutes:[];
  snapshot.resources=Array.isArray(snapshot.resources)?snapshot.resources:[];
+ snapshot.manualSectorAreas=Array.isArray(snapshot.manualSectorAreas)?snapshot.manualSectorAreas:[];
  for(const p of snapshot.resources){
   for(const [field,pathField] of [['imageData','imageStoragePath'],['imageData2','imageStoragePath2']]){
    if(p[pathField]){
@@ -462,9 +478,9 @@ async function applyCloudState(state){
  cloudApplying=true;
  try{
   const snapshot=await hydrateCloudState(state);
-  route=snapshot.route;exitRoute=snapshot.exitRoute;exitRoutes=snapshot.exitRoutes;resources=snapshot.resources;
+  route=snapshot.route;exitRoute=snapshot.exitRoute;exitRoutes=snapshot.exitRoutes;resources=snapshot.resources;manualSectorAreas=snapshot.manualSectorAreas;
   await writeDB({...snapshot,savedAt:new Date().toISOString()});
-  try{const compact={route,exitRoute,exitRoutes,resources:resources.map(p=>{const q={...p};delete q.imageData;delete q.imageData2;return q})};localStorage.setItem(STORAGE_KEY,JSON.stringify(compact));}catch(e){}
+  try{const compact={route,exitRoute,exitRoutes,manualSectorAreas,resources:resources.map(p=>{const q={...p};delete q.imageData;delete q.imageData2;return q})};localStorage.setItem(STORAGE_KEY,JSON.stringify(compact));}catch(e){}
   if(map.isStyleLoaded()){updateMapData();renderList();if(!selected()||!allPoints().some(p=>p.id===selectedId))selectedId=route[0]?.id;if(selectedId)selectPoint(selectedId,false);}
   setCloudStatus('● Nuvem sincronizada');
  }finally{cloudApplying=false;}
@@ -479,7 +495,7 @@ async function pushCloudState(){
   const lp=resources.find(p=>p.id===cp.id);
   if(lp){if(cp.imageStoragePath)lp.imageStoragePath=cp.imageStoragePath;if(cp.imageStoragePath2)lp.imageStoragePath2=cp.imageStoragePath2;}
  }
- await writeDB({route:structuredClone(route),exitRoute:structuredClone(exitRoute),exitRoutes:structuredClone(exitRoutes),resources:structuredClone(resources),savedAt:new Date().toISOString()});
+ await writeDB({route:structuredClone(route),exitRoute:structuredClone(exitRoute),exitRoutes:structuredClone(exitRoutes),resources:structuredClone(resources),manualSectorAreas:structuredClone(manualSectorAreas),savedAt:new Date().toISOString()});
  setCloudStatus('● Nuvem sincronizada');
 }
 function scheduleCloudSync(){
@@ -636,7 +652,7 @@ const initialRoute=[
  {id:'r4',name:'Eixo da avenida — trecho 04 (aprox.)',lng:-37.0409,lat:-10.9763,kind:'route'},
  {id:'r5',name:'FINAL DO PERCURSO — direção Coroa do Meio (aprox.)',lng:-37.0404,lat:-10.9735,kind:'route'}
 ];
-let route=structuredClone(initialRoute), exitRoute=[], exitRoutes=[], resources=[], selectedId='r0', addMode=false, drawRouteMode=false, drawExitRouteMode=false, drawnCoords=[], drawnExitCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
+let route=structuredClone(initialRoute), exitRoute=[], exitRoutes=[], resources=[], manualSectorAreas=[], drawSectorMode=0, drawnSectorCoords=[], selectedId='r0', addMode=false, drawRouteMode=false, drawExitRouteMode=false, drawnCoords=[], drawnExitCoords=[], editId=null, draftCoords=null, playing=false, playTimer=null;
 let pointPopup=null, imageMarkers=[], activeTourLabelId=null, activeTourResourceId=null, tourNameMarker=null, ambulanceMarkers=[], ambulanceAnimationFrame=null;
 const map=new maplibregl.Map({
  container:'map',
@@ -678,7 +694,7 @@ function persist(){
  // IndexedDB accommodates much larger records than localStorage, including team images.
  writeDB(snapshot).then(()=>{
   try{
-   const compact={route:snapshot.route,exitRoute:snapshot.exitRoute,exitRoutes:snapshot.exitRoutes,resources:snapshot.resources.map(p=>{const q={...p};delete q.imageData;delete q.imageData2;return q})};
+   const compact={route:snapshot.route,exitRoute:snapshot.exitRoute,exitRoutes:snapshot.exitRoutes,manualSectorAreas:snapshot.manualSectorAreas,resources:snapshot.resources.map(p=>{const q={...p};delete q.imageData;delete q.imageData2;return q})};
    localStorage.setItem(STORAGE_KEY,JSON.stringify(compact));
   }catch(e){}
  }).catch(()=>toast('Não foi possível salvar os dados localmente. Faça uma cópia dos dados antes de limpar o navegador.'));
@@ -688,12 +704,12 @@ async function loadSaved(){
  let loaded=false;
  try{
   const saved=await readDB();
-  if(saved&&Array.isArray(saved.route)&&Array.isArray(saved.resources)){route=saved.route;exitRoute=Array.isArray(saved.exitRoute)?saved.exitRoute:[];exitRoutes=Array.isArray(saved.exitRoutes)?saved.exitRoutes:(exitRoute.length?[{id:'exit-legacy',name:'Saída 1',points:exitRoute}]:[]);resources=saved.resources;loaded=true}
+  if(saved&&Array.isArray(saved.route)&&Array.isArray(saved.resources)){route=saved.route;exitRoute=Array.isArray(saved.exitRoute)?saved.exitRoute:[];exitRoutes=Array.isArray(saved.exitRoutes)?saved.exitRoutes:(exitRoute.length?[{id:'exit-legacy',name:'Saída 1',points:exitRoute}]:[]);resources=saved.resources;manualSectorAreas=Array.isArray(saved.manualSectorAreas)?saved.manualSectorAreas:[];loaded=true}
  }catch(e){}
  if(!loaded){
   try{
    const current=localStorage.getItem(STORAGE_KEY),v=current?JSON.parse(current):null;
-   if(v&&Array.isArray(v.route)&&Array.isArray(v.resources)){route=v.route;exitRoute=Array.isArray(v.exitRoute)?v.exitRoute:[];exitRoutes=Array.isArray(v.exitRoutes)?v.exitRoutes:(exitRoute.length?[{id:'exit-legacy',name:'Saída 1',points:exitRoute}]:[]);resources=v.resources;loaded=true}
+   if(v&&Array.isArray(v.route)&&Array.isArray(v.resources)){route=v.route;exitRoute=Array.isArray(v.exitRoute)?v.exitRoute:[];exitRoutes=Array.isArray(v.exitRoutes)?v.exitRoutes:(exitRoute.length?[{id:'exit-legacy',name:'Saída 1',points:exitRoute}]:[]);resources=v.resources;manualSectorAreas=Array.isArray(v.manualSectorAreas)?v.manualSectorAreas:[];loaded=true}
    if(!loaded){
     const backup=localStorage.getItem(BACKUP_KEY),b=backup?JSON.parse(backup):null;
     if(b&&Array.isArray(b.route)&&Array.isArray(b.resources)){route=b.route;resources=b.resources;loaded=true;toast('Dados recuperados da cópia de segurança local.')}
@@ -750,6 +766,25 @@ function sectorSample(from,to,count=18){
 }
 function buildSectorOverlay(){
  const empty={type:'FeatureCollection',features:[]};
+ if(manualSectorAreas.length||drawSectorMode){
+  const areas=[],boundaries=[],labels=[];
+  const drawItems=manualSectorAreas.map(a=>({sector:a.sector,coordinates:a.coordinates,preview:false}));
+  if(drawSectorMode&&drawnSectorCoords.length>=2)drawItems.push({sector:drawSectorMode,coordinates:drawnSectorCoords,preview:true});
+  for(const item of drawItems){
+   const coords=item.coordinates.map(p=>[Number(p.lng),Number(p.lat)]);
+   const closed=coords.length>=3?[...coords,coords[0]]:coords;
+   const name='SETOR '+item.sector;
+   if(closed.length>=4&&!item.preview){
+    areas.push({type:'Feature',properties:{sector:item.sector,name},geometry:{type:'Polygon',coordinates:[closed]}});
+    boundaries.push({type:'Feature',properties:{name},geometry:{type:'LineString',coordinates:closed}});
+    const center=coords.reduce((a,p)=>[a[0]+p[0]/coords.length,a[1]+p[1]/coords.length],[0,0]);
+    labels.push({type:'Feature',properties:{name},geometry:{type:'Point',coordinates:center}});
+   }else if(item.preview){
+    boundaries.push({type:'Feature',properties:{name:'Desenhando '+name},geometry:{type:'LineString',coordinates:closed}});
+   }
+  }
+  return {areas:{type:'FeatureCollection',features:areas},boundaries:{type:'FeatureCollection',features:boundaries},labels:{type:'FeatureCollection',features:labels}};
+ }
  if(!Array.isArray(route)||route.length<2)return {areas:empty,boundaries:empty,labels:empty};
  const limits=SECTOR_LIMITS,areas=[],boundaries=[],labels=[],outer=[];
  const names=['SETOR 1','SETOR 2','SETOR 3'];
@@ -920,6 +955,15 @@ function closeForm(){$('formModal').style.display='none';editId=null;draftCoords
 map.on('load',()=>{buildLayers();renderList();updateMapData();map.fitBounds(route.reduce((b,p)=>b.extend([p.lng,p.lat]),new maplibregl.LngLatBounds([route[0].lng,route[0].lat],[route[0].lng,route[0].lat])),{padding:{top:100,bottom:100,left:60,right:60},duration:0});selectPoint('r0',false);map.easeTo({center:[route[0].lng,route[0].lat],zoom:17.4,pitch:65,bearing:18,duration:900});});
 map.on('idle',()=>{if(exitRoutes.some(r=>Array.isArray(r.points)&&r.points.length>=2))ensureAmbulanceMarkers()});
 map.on('click',e=>{
+ if(drawSectorMode){
+  drawnSectorCoords.push({lng:e.lngLat.lng,lat:e.lngLat.lat});
+  updateMapData();
+  $('sectorDrawFinish').disabled=drawnSectorCoords.length<3;
+  $('sectorDrawUndo').disabled=drawnSectorCoords.length===0;
+  $('sectorDrawFinish').textContent='Concluir SETOR '+drawSectorMode+' ('+drawnSectorCoords.length+' pontos)';
+  toast('Ponto '+drawnSectorCoords.length+' registrado no SETOR '+drawSectorMode+'. Continue contornando a área.');
+  return;
+ }
  if(drawExitRouteMode){
   drawnExitCoords.push({lng:e.lngLat.lng,lat:e.lngLat.lat});
   updateMapData();$('drawExitRouteBtn').textContent=`✓ Concluir saída (${drawnExitCoords.length} pontos)`;
@@ -936,6 +980,61 @@ map.on('click',e=>{
  }
  if(addMode){openForm(e.lngLat);addMode=false;$('addModeBtn').textContent='＋ Adicionar equipe no mapa';map.getCanvas().style.cursor='';}
 });
+
+function sectorDrawPermission(){
+ return authenticatedProfile&&['administrador','editor'].includes(authenticatedProfile.papel);
+}
+function stopSectorDrawing(){
+ drawSectorMode=0;drawnSectorCoords=[];map.getCanvas().style.cursor='';
+ map.doubleClickZoom.enable();
+ $('sectorDrawFinish').disabled=true;$('sectorDrawUndo').disabled=true;$('sectorDrawCancel').disabled=true;
+ $('sectorDrawFinish').textContent='Concluir setor (0 pontos)';
+ updateMapData();
+}
+$('sectorToolsToggle').onclick=()=>{
+ const controls=['sectorDrawSelect','sectorDrawStart','sectorDrawFinish','sectorDrawUndo','sectorDrawCancel','sectorDrawClear'];
+ const show=$('sectorDrawSelect').style.display==='none';
+ controls.forEach(id=>$(id).style.display=show?'':'none');
+ $('sectorToolsToggle').textContent=show?'✎ Ocultar delimitação manual':'✎ Delimitar setores manualmente';
+};
+['sectorDrawSelect','sectorDrawStart','sectorDrawFinish','sectorDrawUndo','sectorDrawCancel','sectorDrawClear'].forEach(id=>$(id).style.display='none');
+$('sectorDrawStart').onclick=()=>{
+ if(!sectorDrawPermission()){toast('Entre com perfil de administrador ou editor para delimitar os setores.');return;}
+ const otherMode=drawExitRouteMode||drawRouteMode||addMode;
+ if(otherMode){toast('Finalize ou cancele primeiro o outro modo de desenho.');return;}
+ drawSectorMode=Number($('sectorDrawSelect').value)||1;drawnSectorCoords=[];
+ stopFlight();map.getCanvas().style.cursor='crosshair';map.doubleClickZoom.disable();
+ $('sectorDrawFinish').disabled=true;$('sectorDrawUndo').disabled=true;$('sectorDrawCancel').disabled=false;
+ $('sectorDrawFinish').textContent='Concluir SETOR '+drawSectorMode+' (0 pontos)';
+ updateMapData();
+ toast('Desenhe o contorno do SETOR '+drawSectorMode+' clicando nos vértices da área. Contorne toda a área e clique em “Concluir setor”.');
+};
+$('sectorDrawUndo').onclick=()=>{
+ if(!drawSectorMode||!drawnSectorCoords.length)return;
+ drawnSectorCoords.pop();updateMapData();
+ $('sectorDrawUndo').disabled=!drawnSectorCoords.length;
+ $('sectorDrawFinish').disabled=drawnSectorCoords.length<3;
+ $('sectorDrawFinish').textContent='Concluir SETOR '+drawSectorMode+' ('+drawnSectorCoords.length+' pontos)';
+};
+$('sectorDrawCancel').onclick=()=>{
+ if(!drawSectorMode)return;
+ stopSectorDrawing();toast('Desenho do setor cancelado. As delimitações já salvas foram preservadas.');
+};
+$('sectorDrawFinish').onclick=()=>{
+ if(!drawSectorMode||drawnSectorCoords.length<3){toast('Marque pelo menos três pontos para fechar a área.');return;}
+ const sector=drawSectorMode,coords=structuredClone(drawnSectorCoords);
+ manualSectorAreas=manualSectorAreas.filter(a=>Number(a.sector)!==sector);
+ manualSectorAreas.push({sector,coordinates:coords});
+ stopSectorDrawing();persist();updateMapData();
+ toast('SETOR '+sector+' delimitado e salvo. Repita para os outros setores.');
+};
+$('sectorDrawClear').onclick=()=>{
+ if(!sectorDrawPermission()){toast('Entre com perfil de administrador ou editor.');return;}
+ if(!manualSectorAreas.length){toast('Ainda não existem delimitações manuais salvas.');return;}
+ if(!confirm('Apagar todas as delimitações manuais dos setores? O contorno automático será exibido novamente.'))return;
+ manualSectorAreas=[];persist();updateMapData();toast('Delimitações manuais removidas.');
+};
+
 $('drawRouteBtn').onclick=()=>{
  if(!drawRouteMode){
    stopFlight();drawRouteMode=true;drawnCoords=[];addMode=false;
